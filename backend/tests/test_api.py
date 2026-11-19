@@ -329,3 +329,67 @@ def test_upload_rejects_mismatched_content_type(client):
     assert case.status_code == 201
     response = client.post(f"/api/cases/{case.json()['id']}/documents", files={"file":("fake.pdf", b"%PDF-1.4 fake", "image/png")})
     assert response.status_code == 415
+
+
+def test_ready_reports_database_connection(client):
+    response = client.get("/ready")
+    assert response.status_code == 200
+    assert response.json()["database"] == "connected"
+
+
+def test_security_headers_and_request_id(client):
+    response = client.get("/health", headers={"X-Request-ID":"test-request-42"})
+    assert response.status_code == 200
+    assert response.headers["X-Request-ID"] == "test-request-42"
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Referrer-Policy"] == "no-referrer"
+    assert "frame-ancestors 'none'" in response.headers["Content-Security-Policy"]
+
+
+def test_invalid_request_id_is_replaced(client):
+    response = client.get("/health", headers={"X-Request-ID":"bad id with spaces"})
+    assert response.status_code == 200
+    assert response.headers["X-Request-ID"] != "bad id with spaces"
+
+
+def test_system_version_and_metrics(client):
+    version = client.get("/api/system/version")
+    assert version.status_code == 200
+    assert version.json()["version"] == "1.0.0"
+    metrics = client.get("/metrics")
+    assert metrics.status_code == 200
+    assert "sooru_http_requests_total" in metrics.text
+
+
+def test_auth_cache_headers_are_no_store(client):
+    response = client.get("/api/auth/me")
+    assert response.status_code == 200
+    assert response.headers["Cache-Control"] == "no-store"
+
+
+def test_bootstrap_disabled_returns_forbidden(client, monkeypatch):
+    from app import main
+    monkeypatch.setattr(main, "BOOTSTRAP_ENABLED", False)
+    response = client.post("/api/auth/bootstrap", json={
+        "username": "blockedadmin", "email": "blocked@example.test",
+        "password": "Another-secure-password-123",
+    })
+    assert response.status_code == 403
+
+
+def test_auth_rate_limit_returns_retry_after(monkeypatch):
+    from app import main
+    from fastapi import HTTPException
+    from starlette.requests import Request
+    main._auth_attempts.clear()
+    request = Request({"type":"http", "method":"POST", "path":"/api/auth/login", "headers":[], "client":("192.0.2.55",1234), "server":("testserver",80), "scheme":"http", "query_string":b""})
+    main.enforce_auth_rate_limit(request, "unit-test", 1, 60)
+    try:
+        main.enforce_auth_rate_limit(request, "unit-test", 1, 60)
+        assert False, "Expected rate limit exception"
+    except HTTPException as exc:
+        assert exc.status_code == 429
+        assert exc.headers["Retry-After"] == "60"
+    finally:
+        main._auth_attempts.clear()

@@ -16,13 +16,16 @@ services:
       retries: 5
 
   api:
-    build: ./backend
+    build:
+      context: ./backend
+      target: dev
     environment:
       DATABASE_URL: postgresql+psycopg://sooru:sooru_dev@db:5432/sooru
       APP_ENV: ${APP_ENV:-development}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
       SOORU_JWT_SECRET: ${SOORU_JWT_SECRET:-local-development-secret-change-before-deployment}
       SOORU_UPLOAD_DIR: /app/uploads/cases
+      SOORU_LOG_LEVEL: ${SOORU_LOG_LEVEL:-INFO}
     ports:
       - "8000:8000"
     volumes:
@@ -31,7 +34,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=3)"]
       interval: 10s
       timeout: 5s
       retries: 5

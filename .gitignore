@@ -1,23 +1,16 @@
-# Environment and secrets
 .env
 .env.*
 !.env.example
-
-# Python
 __pycache__/
 *.py[cod]
-.venv/
-venv/
-.pytest_cache/
-sooru_test.db
-
-# Node
+*.db
+*.sqlite
+*.sqlite3
 node_modules/
 frontend/dist/
-
-# OS/editor
+backend/uploads/
+backups/
+*.log
 .DS_Store
 .vscode/
 .idea/
-# Uploaded beneficiary documents
-uploads/

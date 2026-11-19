@@ -1,13 +1,14 @@
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Header
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text, inspect
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Annotated
-import os, re, json, hmac, hashlib, base64, secrets
+import os, re, json, hmac, hashlib, base64, secrets, logging, time
+from collections import defaultdict, deque
 from .database import Base, engine, get_db
 from .models import Case, ConsentRecord, AuditLog, User, CaseDocument, CaseFundingSource, ConstructionStage, DocumentExtraction, IntakeSession, BudgetPlan, ConstructionEvidence, RecoveryTask, EvaluationRun
 from .document_ai import extract_document, extract_fields, compare_case
@@ -15,33 +16,62 @@ from .agents import run_case_agents
 from .schemas import CaseCreate, CaseUpdate, CaseOut, ConsentCreate, ConsentOut, AuditOut, BootstrapRequest, LoginRequest, UserCreate, UserOut, TokenOut, DocumentOut, FundingCreate, FundingOut, StageCreate, StageOut, StageStatusUpdate, ExtractionOut, ExtractionRequest
 from pydantic import BaseModel, Field
 
-Base.metadata.create_all(bind=engine)
 def ensure_consent_status_column(database_engine):
     if 'consent_status' not in {column['name'] for column in inspect(database_engine).get_columns('cases')}:
         with database_engine.begin() as conn:
             conn.execute(text("ALTER TABLE cases ADD COLUMN consent_status VARCHAR(20) DEFAULT 'pending'"))
-ensure_consent_status_column(engine)
 
 APP_ENV = os.getenv("APP_ENV", "development").lower()
-if APP_ENV == "production" and (os.getenv("SOORU_JWT_SECRET", "").strip() in {"", "dev-only-change-this-secret", "local-development-secret-change-before-deployment"} or len(os.getenv("SOORU_JWT_SECRET", "")) < 32):
-    raise RuntimeError("Production requires a strong SOORU_JWT_SECRET (at least 32 characters).")
+_production_secret = os.getenv("SOORU_JWT_SECRET", "").strip()
+if APP_ENV == "production" and (len(_production_secret) < 32 or _production_secret.lower().startswith(("replace", "change", "example", "your-secret"))):
+    raise RuntimeError("Production requires a randomly generated SOORU_JWT_SECRET (at least 32 characters; placeholders are rejected).")
 
-app = FastAPI(title="Sooru API", version="0.9.0")
+app = FastAPI(title="Sooru API", version="1.0.0", docs_url=None if APP_ENV == "production" else "/docs", redoc_url=None if APP_ENV == "production" else "/redoc")
 allowed_origins = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if origin.strip()]
 if APP_ENV == "production" and "*" in allowed_origins:
     raise RuntimeError("Wildcard CORS origins are not allowed in production.")
 app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credentials=True, allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allow_headers=["Authorization", "Content-Type", "X-Request-ID"])
 
+LOG_LEVEL = os.getenv("SOORU_LOG_LEVEL", "INFO").upper()
+logging.basicConfig(level=LOG_LEVEL, format="%(message)s")
+logger = logging.getLogger("sooru.api")
+request_metrics = defaultdict(int)
+
 @app.middleware("http")
-async def security_and_request_id(request, call_next):
-    request_id = request.headers.get("X-Request-ID") or secrets.token_hex(12)
-    response = await call_next(request)
+async def security_and_request_id(request: Request, call_next):
+    incoming = request.headers.get("X-Request-ID", "")
+    request_id = incoming if re.fullmatch(r"[A-Za-z0-9._-]{1,80}", incoming) else secrets.token_hex(12)
+    started = time.perf_counter()
+    try:
+        response = await call_next(request)
+    except Exception:
+        request_metrics[(request.method, request.url.path, "500")] += 1
+        logger.exception(json.dumps({"event":"request_error","request_id":request_id,"method":request.method,"path":request.url.path}))
+        raise
+    elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
     response.headers["X-Request-ID"] = request_id
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if request.url.path not in {"/docs", "/redoc", "/openapi.json"}:
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
     response.headers["Cache-Control"] = "no-store" if request.url.path.startswith("/api/auth") else response.headers.get("Cache-Control", "no-cache")
+    route = getattr(request.scope.get("route"), "path", request.url.path)
+    request_metrics[(request.method, route, str(response.status_code))] += 1
+    logger.info(json.dumps({"event":"request","request_id":request_id,"method":request.method,"path":route,"status":response.status_code,"duration_ms":elapsed_ms}))
     return response
+
+_auth_attempts = defaultdict(deque)
+def enforce_auth_rate_limit(request: Request, bucket: str, limit: int, window_seconds: int = 60):
+    key = f"{bucket}:{request.client.host if request.client else 'unknown'}"
+    now = time.monotonic()
+    attempts = _auth_attempts[key]
+    while attempts and now - attempts[0] > window_seconds:
+        attempts.popleft()
+    if len(attempts) >= limit:
+        raise HTTPException(status_code=429, detail="Too many authentication attempts. Try again later.", headers={"Retry-After": str(window_seconds)})
+    attempts.append(now)
 
 UPLOAD_DIR = Path(os.getenv("SOORU_UPLOAD_DIR", "uploads/cases")).resolve()
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
@@ -114,7 +144,19 @@ Authenticated = Annotated[User, Depends(current_user)]
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "sooru-api", "version": "0.9.0"}
+    return {"status": "ok", "service": "sooru-api", "version": "1.0.0"}
+
+@app.get("/api/system/version")
+def system_version():
+    return {"service":"sooru-api","version":"1.0.0","environment":APP_ENV,"docs_enabled":APP_ENV != "production"}
+
+@app.get("/metrics", response_class=PlainTextResponse)
+def metrics():
+    lines=["# HELP sooru_http_requests_total Total API requests by method, path, and status.","# TYPE sooru_http_requests_total counter"]
+    for (method,path,status),count in sorted(request_metrics.items()):
+        safe_path=path.replace('\\','').replace('"','')
+        lines.append(f'sooru_http_requests_total{{method="{method}",path="{safe_path}",status="{status}"}} {count}')
+    return "\n".join(lines)+"\n"
 
 @app.get("/ready")
 def readiness(db: Session = Depends(get_db)):
@@ -124,12 +166,17 @@ def readiness(db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=503, detail="Database is not ready")
 
+BOOTSTRAP_ENABLED = os.getenv("SOORU_BOOTSTRAP_ENABLED", "true" if APP_ENV != "production" else "false").lower() in {"1", "true", "yes"}
+
 @app.get("/api/auth/status")
 def auth_status(db: Session = Depends(get_db)):
-    return {"bootstrap_required": db.query(User).count() == 0}
+    return {"bootstrap_required": db.query(User).count() == 0 and BOOTSTRAP_ENABLED, "bootstrap_enabled": BOOTSTRAP_ENABLED}
 
 @app.post("/api/auth/bootstrap", response_model=TokenOut, status_code=201)
-def bootstrap_admin(payload: BootstrapRequest, db: Session = Depends(get_db)):
+def bootstrap_admin(payload: BootstrapRequest, request: Request, db: Session = Depends(get_db)):
+    if not BOOTSTRAP_ENABLED:
+        raise HTTPException(status_code=403, detail="Administrator bootstrap is disabled")
+    enforce_auth_rate_limit(request, "bootstrap", 5)
     if db.query(User).count() != 0:
         raise HTTPException(status_code=409, detail="Bootstrap is already complete")
     user = User(username=payload.username.strip(), email=payload.email.strip().lower(), password_hash=_password_hash(payload.password), role="admin", is_active=True)
@@ -137,7 +184,8 @@ def bootstrap_admin(payload: BootstrapRequest, db: Session = Depends(get_db)):
     return {"access_token": _make_token(user), "token_type":"bearer", "user":user}
 
 @app.post("/api/auth/login", response_model=TokenOut)
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    enforce_auth_rate_limit(request, "login", 30)
     user = db.query(User).filter(User.username == payload.username).first()
     if not user or not _verify_password(payload.password, user.password_hash) or not user.is_active:
         raise HTTPException(status_code=401, detail="Invalid username or password")

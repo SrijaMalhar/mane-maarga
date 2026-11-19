@@ -11,6 +11,7 @@ from app.database import Base, engine
 def client(tmp_path, monkeypatch):
     from app import main
     main.UPLOAD_DIR = tmp_path / "uploads"
+    main._auth_attempts.clear()  # isolate in-memory throttling between tests
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     with TestClient(app) as test_client:

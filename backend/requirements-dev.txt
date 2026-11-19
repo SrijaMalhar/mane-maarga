@@ -1,3 +1,4 @@
 -r requirements.txt
-pytest
-httpx
+pytest>=8.0
+httpx2
+alembic>=1.13

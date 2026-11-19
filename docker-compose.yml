@@ -19,6 +19,8 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://sooru:sooru_dev@db:5432/sooru
+      APP_ENV: ${APP_ENV:-development}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
       SOORU_JWT_SECRET: ${SOORU_JWT_SECRET:-local-development-secret-change-before-deployment}
       SOORU_UPLOAD_DIR: /app/uploads/cases
     ports:

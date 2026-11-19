@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text, inspect
 from pathlib import Path
@@ -21,8 +22,26 @@ def ensure_consent_status_column(database_engine):
             conn.execute(text("ALTER TABLE cases ADD COLUMN consent_status VARCHAR(20) DEFAULT 'pending'"))
 ensure_consent_status_column(engine)
 
-app = FastAPI(title="Sooru API", version="0.8.0")
-app.add_middleware(CORSMiddleware, allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","), allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+APP_ENV = os.getenv("APP_ENV", "development").lower()
+if APP_ENV == "production" and (os.getenv("SOORU_JWT_SECRET", "").strip() in {"", "dev-only-change-this-secret", "local-development-secret-change-before-deployment"} or len(os.getenv("SOORU_JWT_SECRET", "")) < 32):
+    raise RuntimeError("Production requires a strong SOORU_JWT_SECRET (at least 32 characters).")
+
+app = FastAPI(title="Sooru API", version="0.9.0")
+allowed_origins = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if origin.strip()]
+if APP_ENV == "production" and "*" in allowed_origins:
+    raise RuntimeError("Wildcard CORS origins are not allowed in production.")
+app.add_middleware(CORSMiddleware, allow_origins=allowed_origins, allow_credentials=True, allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"], allow_headers=["Authorization", "Content-Type", "X-Request-ID"])
+
+@app.middleware("http")
+async def security_and_request_id(request, call_next):
+    request_id = request.headers.get("X-Request-ID") or secrets.token_hex(12)
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Cache-Control"] = "no-store" if request.url.path.startswith("/api/auth") else response.headers.get("Cache-Control", "no-cache")
+    return response
 
 UPLOAD_DIR = Path(os.getenv("SOORU_UPLOAD_DIR", "uploads/cases")).resolve()
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
@@ -95,7 +114,15 @@ Authenticated = Annotated[User, Depends(current_user)]
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "sooru-api", "version": "0.8.0"}
+    return {"status": "ok", "service": "sooru-api", "version": "0.9.0"}
+
+@app.get("/ready")
+def readiness(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ready", "database": "connected", "service": "sooru-api"}
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database is not ready")
 
 @app.get("/api/auth/status")
 def auth_status(db: Session = Depends(get_db)):
@@ -186,9 +213,11 @@ def upload_document(case_id: int, user: Operator, file: UploadFile = File(...), 
     case = db.get(Case, case_id)
     if not case: raise HTTPException(status_code=404, detail="Case not found")
     original_name = Path(file.filename or "upload").name[:255]
+    original_name = re.sub(r"[\x00-\x1f\x7f]", "", original_name)
     ext = Path(original_name).suffix.lower()
     allowed = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
     if ext not in allowed: raise HTTPException(status_code=415, detail="Only PDF, PNG, and JPEG files are accepted")
+    if file.content_type and file.content_type not in {allowed[ext], "application/octet-stream"}: raise HTTPException(status_code=415, detail="Upload content type does not match file extension")
     data = file.file.read(MAX_UPLOAD_BYTES + 1)
     if len(data) > MAX_UPLOAD_BYTES: raise HTTPException(status_code=413, detail="File exceeds 10 MB limit")
     actual = (data.startswith(b"%PDF-") if ext == ".pdf" else data.startswith(b"\x89PNG\r\n\x1a\n") if ext == ".png" else data.startswith(b"\xff\xd8\xff"))
@@ -477,6 +506,8 @@ def upload_construction_evidence(case_id:int,stage_id:int,user:Operator,file:Upl
     if file.content_type not in {"image/jpeg","image/png","image/webp"}: raise HTTPException(status_code=415,detail="Evidence must be JPEG, PNG or WebP")
     content=file.file.read(10*1024*1024+1)
     if len(content)>10*1024*1024: raise HTTPException(status_code=413,detail="Evidence exceeds 10 MB")
+    signatures={"image/jpeg":content.startswith(b"\xff\xd8\xff"),"image/png":content.startswith(b"\x89PNG\r\n\x1a\n"),"image/webp":len(content)>=12 and content[:4]==b"RIFF" and content[8:12]==b"WEBP"}
+    if not signatures.get(file.content_type, False): raise HTTPException(status_code=415,detail="Evidence content does not match its image type")
     folder=(UPLOAD_DIR/str(case_id)/"evidence").resolve(); folder.mkdir(parents=True,exist_ok=True)
     stored=f"{secrets.token_hex(16)}{Path(file.filename or 'evidence').suffix.lower()}"; path=folder/stored; path.write_bytes(content)
     record=ConstructionEvidence(case_id=case_id,stage_id=stage_id,stored_name=stored,original_name=file.filename or "evidence",content_type=file.content_type,caption=caption,uploaded_by=user.username)

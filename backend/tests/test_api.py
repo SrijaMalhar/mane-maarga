@@ -307,3 +307,25 @@ def test_phase8_synthetic_safety_suite(client):
     assert result.status_code == 200
     assert result.json()["failed"] == 0
     assert result.json()["passed"] == 5
+
+
+def test_readiness_endpoint(client):
+    response = client.get("/ready")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ready"
+    assert response.json()["database"] == "connected"
+
+
+def test_security_headers_and_request_id(client):
+    response = client.get("/health", headers={"X-Request-ID": "test-request-123"})
+    assert response.headers["X-Request-ID"] == "test-request-123"
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Referrer-Policy"] == "no-referrer"
+
+
+def test_upload_rejects_mismatched_content_type(client):
+    case = client.post("/api/cases", json={"beneficiary_name":"Test Person","village":"Test Village","taluk":"Test Taluk"})
+    assert case.status_code == 201
+    response = client.post(f"/api/cases/{case.json()['id']}/documents", files={"file":("fake.pdf", b"%PDF-1.4 fake", "image/png")})
+    assert response.status_code == 415

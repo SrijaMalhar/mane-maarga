@@ -152,3 +152,16 @@ This unified phase combines the former roadmap Phases 8–13:
 New endpoints are grouped under `/api/intelligence`, `/api/cases/{case_id}/budget-plan`, construction evidence, and recovery tasks. The frontend adds a **Sooru Intelligence** workspace with six tabs.
 
 Prototype safeguards: no government submission, benefit eligibility determination, credit decision, payment, or construction verification is automated. Scheme details and estimate assumptions must be verified and localized before pilot deployment.
+
+
+## Phase 9 — Production hardening baseline
+
+- Readiness endpoint (`/ready`) checks database connectivity.
+- Request IDs and security response headers are added to API responses.
+- CORS methods/headers are constrained; wildcard CORS is rejected in production.
+- Production mode requires a strong JWT secret.
+- Document upload validates extension, content type when supplied, and file signature.
+- Construction evidence validates image signatures rather than trusting MIME type alone.
+- Added readiness, security-header, and upload-validation tests.
+
+This is a hardening baseline, not a complete production security audit. Rate limiting, managed secrets, HTTPS termination, migrations, backup/restore drills, and external monitoring still need deployment-specific setup.

@@ -260,3 +260,50 @@ def test_agent_plan_returns_specialists_and_human_gate(client):
 def test_agent_plan_not_found(client):
     response = client.get('/api/cases/999999/agent-plan')
     assert response.status_code == 404
+
+def test_phase8_scheme_catalog_is_reference_only(client):
+    response = client.get("/api/intelligence/schemes")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["count"] >= 4
+    assert "eligibility" in data["disclaimer"].lower()
+    assert all(item["reference_only"] for item in data["items"])
+
+def test_phase8_voice_intake_session_flow(client):
+    start = client.post("/api/intelligence/intake", json={"language":"en"})
+    assert start.status_code == 201
+    token = start.json()["session_token"]
+    answers = ["Test Person", "Test Village", "Test Taluk", "yes", "4", "budget", "skip"]
+    for answer in answers:
+        response = client.post(f"/api/intelligence/intake/{token}/message", json={"message":answer})
+        assert response.status_code == 200
+    final = client.get(f"/api/intelligence/intake/{token}")
+    assert final.status_code == 200
+    assert final.json()["status"] == "completed"
+    assert final.json()["fields"]["beneficiary_name"] == "Test Person"
+
+def test_phase8_budget_plan_excludes_proposed_funding(client):
+    created = client.post("/api/cases", json={"beneficiary_name":"Budget Test","village":"V","taluk":"T","estimated_cost":100000})
+    case_id = created.json()["id"]
+    client.post(f"/api/cases/{case_id}/funding", json={"source_type":"subsidy","source_name":"Demo","amount":50000,"status":"proposed"})
+    response = client.post(f"/api/cases/{case_id}/budget-plan", json={"built_up_sqft":500,"quality_tier":"basic","contingency_percent":8,"labor_percent":35,"materials_percent":55,"other_percent":10})
+    assert response.status_code == 200
+    result = response.json()
+    assert result["proposed_funding_not_counted"] == 50000
+    assert result["confirmed_funding"] == 0
+    assert result["funding_gap"] == result["estimated_total"]
+
+def test_phase8_recovery_task_create_and_update(client):
+    created = client.post("/api/cases", json={"beneficiary_name":"Task Test","village":"V","taluk":"T"})
+    case_id = created.json()["id"]
+    task = client.post(f"/api/cases/{case_id}/recovery-tasks", json={"title":"Get land record","category":"document"})
+    assert task.status_code == 201
+    updated = client.patch(f"/api/recovery-tasks/{task.json()['id']}", json={"status":"completed"})
+    assert updated.status_code == 200
+    assert updated.json()["status"] == "completed"
+
+def test_phase8_synthetic_safety_suite(client):
+    result = client.post("/api/intelligence/evaluation/synthetic")
+    assert result.status_code == 200
+    assert result.json()["failed"] == 0
+    assert result.json()["passed"] == 5

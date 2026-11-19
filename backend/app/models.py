@@ -101,3 +101,56 @@ class DocumentExtraction(Base):
     engine: Mapped[str] = mapped_column(String(60), default="unknown")
     confidence: Mapped[float] = mapped_column(Numeric(4, 3), default=0)
     extracted_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class IntakeSession(Base):
+    __tablename__ = "intake_sessions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    language: Mapped[str] = mapped_column(String(20), default="kn")
+    state_json: Mapped[str] = mapped_column(Text, default="{}")
+    transcript_json: Mapped[str] = mapped_column(Text, default="[]")
+    status: Mapped[str] = mapped_column(String(20), default="in_progress")
+    created_by: Mapped[str] = mapped_column(String(120), default="anonymous")
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class BudgetPlan(Base):
+    __tablename__ = "budget_plans"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    plan_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class ConstructionEvidence(Base):
+    __tablename__ = "construction_evidence"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    stage_id: Mapped[int] = mapped_column(ForeignKey("construction_stages.id", ondelete="CASCADE"), index=True)
+    stored_name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    original_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(120), nullable=False)
+    caption: Mapped[str] = mapped_column(Text, default="")
+    verification_status: Mapped[str] = mapped_column(String(30), default="pending")
+    uploaded_by: Mapped[str] = mapped_column(String(120), nullable=False)
+    uploaded_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class RecoveryTask(Base):
+    __tablename__ = "recovery_tasks"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    category: Mapped[str] = mapped_column(String(40), default="document")
+    description: Mapped[str] = mapped_column(Text, default="")
+    due_date: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="open")
+    owner: Mapped[str] = mapped_column(String(120), default="")
+    created_by: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+class EvaluationRun(Base):
+    __tablename__ = "evaluation_runs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    suite_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    result_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())

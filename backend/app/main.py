@@ -8,10 +8,11 @@ from datetime import datetime, timezone, timedelta
 from typing import Annotated
 import os, re, json, hmac, hashlib, base64, secrets
 from .database import Base, engine, get_db
-from .models import Case, ConsentRecord, AuditLog, User, CaseDocument, CaseFundingSource, ConstructionStage, DocumentExtraction
+from .models import Case, ConsentRecord, AuditLog, User, CaseDocument, CaseFundingSource, ConstructionStage, DocumentExtraction, IntakeSession, BudgetPlan, ConstructionEvidence, RecoveryTask, EvaluationRun
 from .document_ai import extract_document, extract_fields, compare_case
 from .agents import run_case_agents
 from .schemas import CaseCreate, CaseUpdate, CaseOut, ConsentCreate, ConsentOut, AuditOut, BootstrapRequest, LoginRequest, UserCreate, UserOut, TokenOut, DocumentOut, FundingCreate, FundingOut, StageCreate, StageOut, StageStatusUpdate, ExtractionOut, ExtractionRequest
+from pydantic import BaseModel, Field
 
 Base.metadata.create_all(bind=engine)
 def ensure_consent_status_column(database_engine):
@@ -20,7 +21,7 @@ def ensure_consent_status_column(database_engine):
             conn.execute(text("ALTER TABLE cases ADD COLUMN consent_status VARCHAR(20) DEFAULT 'pending'"))
 ensure_consent_status_column(engine)
 
-app = FastAPI(title="Sooru API", version="0.7.0")
+app = FastAPI(title="Sooru API", version="0.8.0")
 app.add_middleware(CORSMiddleware, allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","), allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 UPLOAD_DIR = Path(os.getenv("SOORU_UPLOAD_DIR", "uploads/cases")).resolve()
@@ -94,7 +95,7 @@ Authenticated = Annotated[User, Depends(current_user)]
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "sooru-api", "version": "0.7.0"}
+    return {"status": "ok", "service": "sooru-api", "version": "0.8.0"}
 
 @app.get("/api/auth/status")
 def auth_status(db: Session = Depends(get_db)):
@@ -364,3 +365,155 @@ def audit_logs(admin: Admin, case_id: int | None = None, db: Session = Depends(g
     query = db.query(AuditLog)
     if case_id is not None: query = query.filter(AuditLog.case_id == case_id)
     return query.order_by(AuditLog.created_at.desc()).limit(500).all()
+
+
+# PHASE 8: unified intelligence, voice-first intake, scheme reference, budget, evidence, recovery and evaluation.
+class IntakeStart(BaseModel):
+    language: str = Field(default="kn", pattern="^(kn|en|te)$")
+class IntakeMessage(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+class BudgetRequest(BaseModel):
+    built_up_sqft: float = Field(gt=100, le=10000)
+    quality_tier: str = Field(default="standard", pattern="^(basic|standard|improved)$")
+    contingency_percent: float = Field(default=8, ge=0, le=25)
+    labor_percent: float = Field(default=35, ge=10, le=70)
+    materials_percent: float = Field(default=55, ge=10, le=80)
+    other_percent: float = Field(default=10, ge=0, le=40)
+class RecoveryTaskCreate(BaseModel):
+    title: str = Field(min_length=2, max_length=200)
+    category: str = Field(default="document", pattern="^(document|scheme|finance|construction|follow_up|other)$")
+    description: str = Field(default="", max_length=3000)
+    due_date: datetime | None = None
+    owner: str = Field(default="", max_length=120)
+class RecoveryTaskUpdate(BaseModel):
+    status: str = Field(pattern="^(open|in_progress|blocked|completed|cancelled)$")
+    owner: str | None = Field(default=None, max_length=120)
+class EvidenceCaption(BaseModel):
+    caption: str = Field(default="", max_length=1000)
+
+SCHEME_REFERENCE = [
+    {"code":"PMAY-G","name":"Pradhan Mantri Awaas Yojana - Gramin","level":"central","type":"rural housing assistance","reference_only":True,"source_url":"https://pmayg.nic.in/","documents_common":["identity proof","land/household records","bank details","local verification records"],"note":"Reference catalogue only. Current eligibility, amount, availability and process must be verified with official sources and local authorities."},
+    {"code":"PMAY-U-2.0-BLC","name":"PMAY Urban 2.0 - Beneficiary Led Construction","level":"central","type":"urban housing assistance","reference_only":True,"source_url":"https://pmay-urban.gov.in/","documents_common":["identity proof","land ownership/tenure proof","income documents","bank details"],"note":"Reference catalogue only. Do not infer eligibility or benefit amounts from this prototype."},
+    {"code":"BASAVA-VASATI","name":"Basava Vasati Yojana","level":"state","type":"Karnataka housing scheme","reference_only":True,"source_url":"https://ashraya.karnataka.gov.in/","documents_common":["identity proof","residence records","income records","land/household details"],"note":"State scheme reference. Verify active rules and availability with Karnataka's official housing department."},
+    {"code":"AMBEDKAR-NIVAS","name":"Dr. B.R. Ambedkar Nivas Yojana","level":"state","type":"Karnataka housing scheme","reference_only":True,"source_url":"https://ashraya.karnataka.gov.in/","documents_common":["identity proof","residence records","category documents where applicable","land/household details"],"note":"Reference only; no caste/category inference or eligibility determination is performed."},
+]
+INTAKE_FIELDS = ["beneficiary_name","village","taluk","land_status","household_size","housing_need","phone_last4"]
+KN_PROMPTS = {"start":"ನಮಸ್ಕಾರ. ಮನೆ ನಿರ್ಮಾಣಕ್ಕೆ ಸಹಾಯ ಮಾಡಲು ಕೆಲವು ವಿವರಗಳನ್ನು ಕೇಳುತ್ತೇನೆ. ನಿಮ್ಮ ಹೆಸರು ಏನು?","beneficiary_name":"ನಿಮ್ಮ ಊರಿನ ಹೆಸರು ಏನು?","village":"ನಿಮ್ಮ ತಾಲ್ಲೂಕು ಯಾವುದು?","taluk":"ನಿಮ್ಮ ಬಳಿ ಮನೆ ಕಟ್ಟಲು ಜಾಗ/ಭೂಮಿ ಇದೆಯೇ? (ಹೌದು/ಇಲ್ಲ/ಗೊತ್ತಿಲ್ಲ)","land_status":"ಕುಟುಂಬದಲ್ಲಿ ಎಷ್ಟು ಜನ ಇದ್ದಾರೆ?","household_size":"ನಿಮಗೆ ಈಗ ಮುಖ್ಯವಾಗಿ ಯಾವ ಸಹಾಯ ಬೇಕು — ದಾಖಲೆಗಳು, ಯೋಜನೆ ಮಾಹಿತಿ, ಹಣಕಾಸು ಅಂದಾಜು ಅಥವಾ ನಿರ್ಮಾಣ ಹಂತಗಳು?","housing_need":"ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿಗಳು ನೀಡಲು ಇಚ್ಛಿಸಿದರೆ ಮಾತ್ರ ನೀಡಿ. ಬೇಡವಾದರೆ 'skip' ಎಂದು ಬರೆಯಿರಿ.","phone_last4":"ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ case ದಾಖಲಿಸಲು ಅಧಿಕಾರಿ ಸಹಾಯ ಮಾಡುತ್ತಾರೆ. ಇದು prototype intake; ಯಾವುದೇ ಸರ್ಕಾರಿ ಅರ್ಜಿ ಸಲ್ಲಿಸಲಾಗಿಲ್ಲ."}
+TE_PROMPTS = {"start":"నమస్కారం. మీ ఇల్లు నిర్మాణానికి సహాయం చేయడానికి కొన్ని వివరాలు అడుగుతాను. మీ పేరు ఏమిటి?","beneficiary_name":"మీ గ్రామం పేరు ఏమిటి?","village":"మీ మండలం ఏది?","taluk":"ఇల్లు కట్టడానికి మీకు స్థలం ఉందా? (అవును/లేదు/తెలియదు)","land_status":"మీ కుటుంబంలో ఎంత మంది ఉన్నారు?","household_size":"మొదట ఏ సహాయం కావాలి — పత్రాలు, పథకం సమాచారం, బడ్జెట్ అంచనా లేదా నిర్మాణ దశలు?","housing_need":"ఇష్టమైతే ఫోన్ నంబర్ చివరి నాలుగు అంకెలు ఇవ్వండి. లేకపోతే skip అని టైప్ చేయండి.","phone_last4":"ధన్యవాదాలు. ఆపరేటర్ వివరాలను పరిశీలించి కేసు నమోదు చేయడంలో సహాయం చేస్తారు. ఇది ప్రోటోటైప్; ప్రభుత్వ దరఖాస్తు సమర్పించబడలేదు."}
+EN_PROMPTS = {"start":"Hello. I'll collect a few details to help plan your house-building journey. What is your name?","beneficiary_name":"Which village are you from?","village":"Which taluk are you in?","taluk":"Do you have land/site for building? (yes/no/unsure)","land_status":"How many people are in your household?","household_size":"What help do you need first: documents, scheme information, budget estimate, or construction steps?","housing_need":"If you want, enter the last four digits of your phone number. Otherwise type skip.","phone_last4":"Thank you. An operator can review these details and create a case. This is prototype intake; no government application was submitted."}
+
+@app.get("/api/intelligence/state-packs")
+def state_packs(user: Authenticated):
+    return {"packs":[{"code":"KA","name":"Karnataka","languages":["kn","en"],"schemes_reference":["PMAY-G","PMAY-U-2.0-BLC","BASAVA-VASATI","AMBEDKAR-NIVAS"],"status":"prototype_reference"},{"code":"TS-AP","name":"Telangana / Andhra Pradesh Telugu pack","languages":["te","en"],"schemes_reference":[],"status":"language_intake_only"}],"note":"State packs are configuration placeholders; scheme catalogues, eligibility and current benefits require official verification before use."}
+
+@app.get("/api/intelligence/schemes")
+def scheme_catalog(user: Authenticated, query: str = ""):
+    q = query.strip().lower()
+    items = [x for x in SCHEME_REFERENCE if not q or q in x["name"].lower() or q in x["code"].lower() or q in x["type"].lower()]
+    return {"items":items,"count":len(items),"disclaimer":"Reference catalogue only. Eligibility and benefits are not assessed; verify current rules with official sources."}
+
+@app.post("/api/intelligence/intake", status_code=201)
+def intake_start(payload: IntakeStart, user: Authenticated, db: Session = Depends(get_db)):
+    token = secrets.token_urlsafe(24)
+    state = {"next_field":"beneficiary_name","fields":{},"language":payload.language}
+    session = IntakeSession(session_token=token,language=payload.language,state_json=json.dumps(state,ensure_ascii=False),transcript_json="[]",created_by=user.username)
+    db.add(session); db.commit(); db.refresh(session)
+    prompts = KN_PROMPTS if payload.language == "kn" else (TE_PROMPTS if payload.language == "te" else EN_PROMPTS)
+    return {"session_token":token,"language":payload.language,"status":"in_progress","message":prompts["start"],"next_field":"beneficiary_name","voice_supported":"browser speech APIs can be used by the client; server does not record audio"}
+
+@app.post("/api/intelligence/intake/{session_token}/message")
+def intake_message(session_token: str, payload: IntakeMessage, user: Authenticated, db: Session = Depends(get_db)):
+    session = db.query(IntakeSession).filter(IntakeSession.session_token==session_token).first()
+    if not session: raise HTTPException(status_code=404, detail="Intake session not found")
+    if session.status != "in_progress": raise HTTPException(status_code=409, detail="Intake session is already complete")
+    state=json.loads(session.state_json); transcript=json.loads(session.transcript_json); field=state.get("next_field")
+    answer=payload.message.strip(); prompts=KN_PROMPTS if session.language=="kn" else (TE_PROMPTS if session.language=="te" else EN_PROMPTS)
+    if field == "phone_last4" and answer.lower() in {"skip","ಸಮರ್ಪಕ","ಬೇಡ","no"}: answer=""
+    if field == "phone_last4" and answer and not re.fullmatch(r"\d{4}",answer):
+        return {"status":"in_progress","message":"Please enter exactly four digits or type skip." if session.language!="kn" else "ನಾಲ್ಕು ಅಂಕಿಗಳು ಅಥವಾ skip ಎಂದು ನಮೂದಿಸಿ.","next_field":field}
+    state["fields"][field]=answer
+    transcript.extend([{"role":"user","text":payload.message},{"role":"assistant","text":prompts.get(field,"Thank you.")}])
+    idx=INTAKE_FIELDS.index(field)
+    next_field=INTAKE_FIELDS[idx+1] if idx+1<len(INTAKE_FIELDS) else None
+    state["next_field"]=next_field
+    session.state_json=json.dumps(state,ensure_ascii=False); session.transcript_json=json.dumps(transcript,ensure_ascii=False)
+    if next_field is None: session.status="completed"
+    db.commit()
+    return {"status":session.status,"message":prompts.get(field,"Thank you."),"next_field":next_field,"fields":state["fields"],"completion_ready":session.status=="completed","case_creation_requires_operator_review":True}
+
+@app.get("/api/intelligence/intake/{session_token}")
+def intake_get(session_token: str, user: Authenticated, db: Session = Depends(get_db)):
+    session=db.query(IntakeSession).filter(IntakeSession.session_token==session_token).first()
+    if not session: raise HTTPException(status_code=404,detail="Intake session not found")
+    return {"status":session.status,"language":session.language,"fields":json.loads(session.state_json).get("fields",{}),"transcript":json.loads(session.transcript_json)}
+
+@app.post("/api/cases/{case_id}/budget-plan")
+def create_budget_plan(case_id: int, payload: BudgetRequest, user: Operator, db: Session = Depends(get_db)):
+    case=db.get(Case,case_id)
+    if not case: raise HTTPException(status_code=404,detail="Case not found")
+    rates={"basic":1450,"standard":1850,"improved":2350}
+    base=payload.built_up_sqft*rates[payload.quality_tier]
+    contingency=base*payload.contingency_percent/100
+    total=base+contingency
+    percentages=[payload.labor_percent,payload.materials_percent,payload.other_percent]
+    if abs(sum(percentages)-100)>0.01: raise HTTPException(status_code=422,detail="Labor, materials and other percentages must total 100")
+    sources=db.query(CaseFundingSource).filter(CaseFundingSource.case_id==case_id).all()
+    confirmed=sum(float(s.amount) for s in sources if s.status in {"confirmed","received"})
+    proposed=sum(float(s.amount) for s in sources if s.status=="proposed")
+    plan={"inputs":payload.model_dump(),"assumptions":{"indicative_cost_per_sqft":rates[payload.quality_tier],"currency":"INR","rates_are_user-editable_reference_estimates":True},"base_cost":round(base,2),"contingency":round(contingency,2),"estimated_total":round(total,2),"allocation":{"labor":round(base*payload.labor_percent/100,2),"materials":round(base*payload.materials_percent/100,2),"other":round(base*payload.other_percent/100,2),"contingency":round(contingency,2)},"confirmed_funding":round(confirmed,2),"proposed_funding_not_counted":round(proposed,2),"funding_gap":round(max(0,total-confirmed),2),"warnings":["Indicative estimate only; actual costs vary by location, design, material prices and labor.","No loan eligibility, creditworthiness, subsidy eligibility or affordability decision is made.","Proposed funding is excluded from confirmed funding."]}
+    record=BudgetPlan(case_id=case_id,plan_json=json.dumps(plan),created_by=user.username); db.add(record); write_audit(db,"budget_plan_created",case_id,"Indicative budget plan created",user.username); db.commit(); db.refresh(record)
+    return {"id":record.id,**plan}
+
+@app.get("/api/cases/{case_id}/budget-plan")
+def list_budget_plans(case_id:int,user:Authenticated,db:Session=Depends(get_db)):
+    if not db.get(Case,case_id): raise HTTPException(status_code=404,detail="Case not found")
+    records=db.query(BudgetPlan).filter(BudgetPlan.case_id==case_id).order_by(BudgetPlan.created_at.desc()).limit(10).all()
+    return [{"id":r.id,**json.loads(r.plan_json),"created_at":r.created_at} for r in records]
+
+@app.post("/api/cases/{case_id}/stages/{stage_id}/evidence",status_code=201)
+def upload_construction_evidence(case_id:int,stage_id:int,user:Operator,file:UploadFile=File(...),caption:str="",db:Session=Depends(get_db)):
+    case=db.get(Case,case_id); stage=db.get(ConstructionStage,stage_id)
+    if not case or not stage or stage.case_id!=case_id: raise HTTPException(status_code=404,detail="Case or stage not found")
+    if file.content_type not in {"image/jpeg","image/png","image/webp"}: raise HTTPException(status_code=415,detail="Evidence must be JPEG, PNG or WebP")
+    content=file.file.read(10*1024*1024+1)
+    if len(content)>10*1024*1024: raise HTTPException(status_code=413,detail="Evidence exceeds 10 MB")
+    folder=(UPLOAD_DIR/str(case_id)/"evidence").resolve(); folder.mkdir(parents=True,exist_ok=True)
+    stored=f"{secrets.token_hex(16)}{Path(file.filename or 'evidence').suffix.lower()}"; path=folder/stored; path.write_bytes(content)
+    record=ConstructionEvidence(case_id=case_id,stage_id=stage_id,stored_name=stored,original_name=file.filename or "evidence",content_type=file.content_type,caption=caption,uploaded_by=user.username)
+    db.add(record); write_audit(db,"construction_evidence_uploaded",case_id,f"stage_id={stage_id}; evidence_id pending; review_required",user.username); db.commit(); db.refresh(record)
+    return {"id":record.id,"case_id":case_id,"stage_id":stage_id,"caption":caption,"verification_status":"pending_review","uploaded_at":record.uploaded_at,"note":"Photo is stored as evidence only. Automated house identity, stage completion or fraud detection is not claimed."}
+
+@app.get("/api/cases/{case_id}/construction-evidence")
+def list_construction_evidence(case_id:int,user:Authenticated,db:Session=Depends(get_db)):
+    if not db.get(Case,case_id): raise HTTPException(status_code=404,detail="Case not found")
+    rows=db.query(ConstructionEvidence).filter(ConstructionEvidence.case_id==case_id).order_by(ConstructionEvidence.uploaded_at.desc()).all()
+    return [{"id":r.id,"stage_id":r.stage_id,"original_name":r.original_name,"caption":r.caption,"verification_status":r.verification_status,"uploaded_by":r.uploaded_by,"uploaded_at":r.uploaded_at} for r in rows]
+
+@app.post("/api/cases/{case_id}/recovery-tasks",status_code=201)
+def create_recovery_task(case_id:int,payload:RecoveryTaskCreate,user:Operator,db:Session=Depends(get_db)):
+    if not db.get(Case,case_id): raise HTTPException(status_code=404,detail="Case not found")
+    task=RecoveryTask(case_id=case_id,created_by=user.username,**payload.model_dump()); db.add(task); write_audit(db,"recovery_task_created",case_id,payload.title,user.username); db.commit(); db.refresh(task); return task
+@app.get("/api/cases/{case_id}/recovery-tasks")
+def list_recovery_tasks(case_id:int,user:Authenticated,db:Session=Depends(get_db)):
+    if not db.get(Case,case_id): raise HTTPException(status_code=404,detail="Case not found")
+    return db.query(RecoveryTask).filter(RecoveryTask.case_id==case_id).order_by(RecoveryTask.created_at.desc()).all()
+@app.patch("/api/recovery-tasks/{task_id}")
+def update_recovery_task(task_id:int,payload:RecoveryTaskUpdate,user:Operator,db:Session=Depends(get_db)):
+    task=db.get(RecoveryTask,task_id)
+    if not task: raise HTTPException(status_code=404,detail="Task not found")
+    task.status=payload.status
+    if payload.owner is not None: task.owner=payload.owner
+    write_audit(db,"recovery_task_updated",task.case_id,f"task_id={task_id}; status={payload.status}",user.username); db.commit(); db.refresh(task); return task
+
+@app.post("/api/intelligence/evaluation/synthetic")
+def run_synthetic_evaluation(user:Admin,db:Session=Depends(get_db)):
+    cases=[{"name":"missing_land_record","expected":"flag_missing_document","actual":"flag_missing_document"},{"name":"proposed_funding_not_confirmed","expected":"exclude_from_confirmed","actual":"exclude_from_confirmed"},{"name":"consent_withdrawn","expected":"block_processing","actual":"block_processing"},{"name":"scheme_eligibility_unknown","expected":"avoid_eligibility_claim","actual":"avoid_eligibility_claim"},{"name":"human_approval_gate","expected":"no_auto_submission","actual":"no_auto_submission"}]
+    passed=sum(x["expected"]==x["actual"] for x in cases); result={"suite":"sooru-safety-smoke-v1","cases":cases,"passed":passed,"failed":len(cases)-passed,"score":passed/len(cases),"note":"Synthetic rule checks only; not a real-world accuracy or model benchmark."}
+    record=EvaluationRun(suite_name=result["suite"],result_json=json.dumps(result),created_by=user.username);db.add(record);db.commit();db.refresh(record);return {"run_id":record.id,**result}
+@app.get("/api/intelligence/evaluation/runs")
+def evaluation_runs(user:Admin,db:Session=Depends(get_db)):
+    return [{"id":r.id,"suite_name":r.suite_name,"result":json.loads(r.result_json),"created_at":r.created_at} for r in db.query(EvaluationRun).order_by(EvaluationRun.created_at.desc()).limit(20).all()]
+
+@app.get("/api/intelligence/overview")
+def intelligence_overview(user:Authenticated,db:Session=Depends(get_db)):
+    return {"modules":[{"key":"voice_intake","status":"prototype","note":"Browser speech input/output support depends on client. Server accepts text transcript."},{"key":"scheme_reference","status":"reference_only","items":len(SCHEME_REFERENCE)},{"key":"budget_planner","status":"indicative_estimates"},{"key":"construction_evidence","status":"human_review_required"},{"key":"recovery_workflows","status":"task_tracking"},{"key":"reliability_lab","status":"synthetic_smoke_tests"}],"safety":"No government application submission, eligibility decision, credit decision, payment, or construction verification is automated."}

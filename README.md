@@ -137,3 +137,18 @@ Uploaded PDF/image documents can be processed through `POST /api/documents/{docu
 - `GET /api/cases/{case_id}/agent-plan` — authenticated; returns a deterministic case-manager plan with specialist findings and priority actions. This endpoint only reads records and logs plan generation.
 
 The frontend includes an Agent case plan action in each beneficiary row. Plans are labeled as a deterministic prototype, and the approval gate is visibly unapproved.
+
+## Phase 8 — Sooru Intelligence (unified completion phase)
+
+This unified phase combines the former roadmap Phases 8–13:
+
+- **Voice-first intake:** authenticated intake sessions, Kannada/English prompt flow, text transcript API. Browser speech recognition can be used by the frontend when supported; audio is not uploaded or stored.
+- **Scheme reference catalogue:** PMAY-G, PMAY-U 2.0 BLC, Basava Vasati and Ambedkar Nivas reference cards. These are reference-only and do not calculate eligibility or promise benefits.
+- **Budget planner:** transparent square-foot estimate tiers, editable contingency, labor/material/other allocation, confirmed vs proposed funds and indicative funding gap. Not a credit or affordability decision.
+- **Construction evidence:** image upload attached to a construction stage, status remains pending human review. No automated identity, stage-completion or fraud claim.
+- **Recovery tasks:** case-linked follow-up task creation and status tracking.
+- **Reliability lab:** deterministic synthetic safety smoke suite and stored runs. This is not a real-world model benchmark.
+
+New endpoints are grouped under `/api/intelligence`, `/api/cases/{case_id}/budget-plan`, construction evidence, and recovery tasks. The frontend adds a **Sooru Intelligence** workspace with six tabs.
+
+Prototype safeguards: no government submission, benefit eligibility determination, credit decision, payment, or construction verification is automated. Scheme details and estimate assumptions must be verified and localized before pilot deployment.

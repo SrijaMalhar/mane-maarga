@@ -19,18 +19,30 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://sooru:sooru_dev@db:5432/sooru
+      SOORU_JWT_SECRET: ${SOORU_JWT_SECRET:-local-development-secret-change-before-deployment}
+      SOORU_UPLOAD_DIR: /app/uploads/cases
     ports:
       - "8000:8000"
+    volumes:
+      - sooru_uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   frontend:
     build: ./frontend
     ports:
       - "5173:5173"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  sooru_uploads:

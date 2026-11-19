@@ -3,3 +3,9 @@ uvicorn[standard]
 sqlalchemy>=2
 psycopg[binary]
 pydantic
+python-multipart
+
+pypdf>=5.0
+pytesseract>=0.3.13
+pillow>=10.0
+pdf2image>=1.17

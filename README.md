@@ -107,6 +107,31 @@ flowchart LR
 
 The finance engine (`backend/app/engine`) is pure Python with no I/O. It reads a dated rule pack such as `karnataka_pmayg_2024_25.json`, so a change in scheme rules is a data change with a source citation, not a code change.
 
+## Benchmark: MaargaDocBench
+
+An open, synthetic benchmark for the document checks. It generates Karnataka land records (RTC) and PMAY-G sanction orders with known ground truth and planted problems: OCR noise, missing fields, spelling variants of the same person or place, and true mismatches. It then runs the real extractor and case comparison from `backend/app/document_ai.py`. All names are invented, and the same seed always gives the same numbers.
+
+```bash
+python backend/benchmarks/maargadocbench_v0.py                         # 500 documents, seed 7
+python backend/benchmarks/maargadocbench_v0.py --n 2000 --seed 1 --json results.json
+python backend/benchmarks/maargadocbench_v0.py --via-pdf               # read every document back through pypdf first
+```
+
+**v0 results, 500 documents, seed 7:**
+
+| Metric | Result | Target |
+|---|---|---|
+| Field F1 | **0.994** | ≥ 0.90 |
+| Mismatch recall (true mismatches flagged) | **1.000** | ≥ 0.90 |
+| Mismatch precision | 0.648 | — |
+| Spelling-variant false-alarm rate | 1.000 (lower is better) | — |
+
+What these numbers do and don't say:
+
+- **It already caught a bug.** On the first run, the village field on every sanction order was read as "IN": the pattern matched "GRAM" inside the "GRAMIN" header. The fix took field F1 from 0.881 to 0.994, and a regression test now guards it.
+- **Spelling variants are the weak spot.** Exact comparison flags *Kudur* vs *Kuduru* or *Lakshmamma* vs *Laxmamma* every time, which is why precision is 0.65. A Kannada-aware name matcher is the next component, and this metric is how its improvement will be measured.
+- **These are clean, typed layouts.** Real scanned land records with Kannada script will score lower. The next version adds rendered and photographed scans, and Kannada-script fields.
+
 ## Responsible AI
 
 Mane Maarga works with vulnerable families and public money, so the line between help and decision is part of the design:
@@ -167,7 +192,7 @@ Key settings in `.env` (see `.env.example`):
 
 To stop everything: `docker compose down`. Your database and uploads stay in Docker volumes. Removing them (`docker compose down -v`) **permanently deletes all records**.
 
-**Tests:** `docker compose exec api python -m pytest -q`. There are 54 backend tests covering auth, roles, uploads, extraction, funding rules, the money ladder and affordability. CI runs them, plus a frontend build, on every push.
+**Tests:** `docker compose exec api python -m pytest -q`. There are 56 backend tests covering auth, roles, uploads, extraction, funding rules, the money ladder and affordability. CI runs them, plus a frontend build, on every push.
 
 Production Compose, operations and the release checklist are in [`docs/`](docs/).
 
@@ -182,7 +207,8 @@ mane-maarga/
 │   │   ├── agents.py            # rule-based case analysis with an approval gate
 │   │   └── document_ai.py       # text extraction and case comparison
 │   ├── alembic/                 # migrations
-│   └── tests/                   # 54 tests
+│   ├── benchmarks/              # MaargaDocBench (synthetic document benchmark)
+│   └── tests/                   # 56 tests
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/               # Overview, Beneficiaries, CaseFile, Verification, Finance, …
@@ -207,6 +233,8 @@ mane-maarga/
 - [x] Kannada / English interface
 - [ ] Replace the illustrative stage split with the official PMAY-G instalment schedule
 - [ ] Scheme eligibility rules with citations, reviewed by a person
+- [x] MaargaDocBench v0: synthetic document benchmark with planted errors
+- [ ] Kannada-aware name matcher (cut the variant false-alarm rate)
 - [ ] Indic OCR for Kannada land records (beyond Tesseract)
 - [ ] Lyzr agent integration behind the existing approval gate
 - [ ] Bhashini speech for Kannada voice intake (browser speech is used today, labelled beta)

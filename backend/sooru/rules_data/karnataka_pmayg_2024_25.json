@@ -1,0 +1,33 @@
+{
+  "state": "KA",
+  "scheme": "PMAY-G",
+  "effective_from": "2024-11-19",
+  "effective_to": null,
+  "unit_assistance": 120000,
+  "unit_assistance_note": "Plains. PIB release PRID=2074713 (19 Nov 2024): Rs 1.20 lakh in plain areas.",
+  "scheme_loan": {
+    "max_amount": 70000,
+    "source": "PIB release PRID=2074713 (19 Nov 2024): 'Loan up to Rs 70,000 ... at a 3% reduced interest rate.'",
+    "assumed_rate_pa": 0.07,
+    "rate_note": "ASSUMPTION. The release gives a 3-point reduction, not the resulting rate. Confirm with a bank."
+  },
+  "toilet_grant": 12000,
+  "stages": [
+    {"id": "plinth",  "label": "Plinth",           "cost_share": 0.25, "instalment_share": 0.25},
+    {"id": "lintel",  "label": "Lintel",           "cost_share": 0.30, "instalment_share": 0.35},
+    {"id": "roof",    "label": "Roof",             "cost_share": 0.30, "instalment_share": 0.25},
+    {"id": "finish",  "label": "Finishing + keys", "cost_share": 0.15, "instalment_share": 0.15}
+  ],
+  "stage_note": "ILLUSTRATIVE split of cost and instalments per stage. Replace with the official instalment schedule before any real use.",
+  "eligibility_rules": [
+    {"id": "R1", "field": "owns_land", "must_be": true,
+     "text": "The family must own the plot (or have it mutated to them).",
+     "cite": "VERIFY against PMAY-G Framework for Implementation"},
+    {"id": "R2", "field": "owns_pucca_house", "must_be": false,
+     "text": "The family must not already own a pucca house.",
+     "cite": "VERIFY against PMAY-G Framework for Implementation"},
+    {"id": "R3", "field": "on_scheme_list", "must_be": true,
+     "text": "The family must be on the scheme's beneficiary list (sanction).",
+     "cite": "VERIFY against PMAY-G Framework for Implementation"}
+  ]
+}

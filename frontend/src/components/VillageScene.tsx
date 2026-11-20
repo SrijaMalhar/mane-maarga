@@ -15,19 +15,6 @@ export function Photo({ src, srcSet, sizes, alt, className, credit, children }: 
   )
 }
 
-/**
- * Hero photograph: "An old Malenadu house with a tiled roof", by Manjunath M M.
- * CC0 (public domain) from the WordPress Photo Directory: https://wordpress.org/photos/photo/106825910b/
- * Served resized through the WordPress image CDN. If it can't load, the drawing is shown instead.
- */
-const HERO = 'https://pd.w.org/2025/05/106825910b713b69.64290229.jpg'
-const cdn = (w: number) => `https://i0.wp.com/${HERO.replace('https://', '')}?w=${w}&quality=82&strip=all`
-export const heroPhoto = {
-  src: cdn(1200),
-  srcSet: [700, 1000, 1400, 1800].map(w => `${cdn(w)} ${w}w`).join(', '),
-  sizes: '(max-width: 960px) 92vw, 46vw',
-  page: 'https://wordpress.org/photos/photo/106825910b/',
-}
 
 export default function VillageScene({ className }: { className?: string }) {
   return (

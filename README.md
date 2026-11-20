@@ -10,8 +10,7 @@
 
 Mane Maarga helps case workers take rural families in Karnataka from their first housing-assistance record to their front door, keeping documents, money and construction stages in one record that anyone can check.
 
-<img src="https://i0.wp.com/pd.w.org/2025/05/106825910b713b69.64290229.jpg?resize=1600,720&quality=82&strip=all" width="100%" alt="An old tiled-roof house in Karnataka's Malenadu region, surrounded by greenery, with a coconut palm in the foreground" />
-<sub>Photo: Manjunath M M · <a href="https://wordpress.org/photos/photo/106825910b/">CC0, WordPress Photo Directory</a></sub>
+<img src="docs/assets/hero.jpg" width="100%" alt="A finished single-storey home with earthen walls and a sloped roof on a green lawn among trees" />
 
 <p>
 <img alt="React" src="https://img.shields.io/badge/React_18-1F3D2F?style=flat-square&logo=react&logoColor=F6F1E7" />
@@ -100,16 +99,10 @@ flowchart LR
 ## Architecture
 
 ```mermaid
-flowchart TB
-    UI["<b>React frontend</b><br/>TypeScript · Vite<br/>Kannada / English"]
-    API["<b>FastAPI backend</b><br/>Auth & roles · Cases & consent<br/>Documents & extraction · Funding & stages<br/>Finance engine (rule packs) · Case agents · Audit log"]
-    DB[("<b>PostgreSQL 16</b><br/>cases · consent · documents<br/>funding · stages · audit")]
-    FS[["Upload volume<br/>documents · evidence photos"]]
-    OCR["pypdf + Tesseract<br/>eng + kan"]
-    UI -- "REST + JWT" --> API
-    API --> DB
-    API --> FS
-    API --> OCR
+flowchart LR
+    UI["React + TS<br/>Kannada / English"] -- "REST · JWT" --> API["FastAPI<br/>cases · documents · finance engine · audit"]
+    API --> DB[("PostgreSQL")]
+    API --> OCR["pypdf + Tesseract"]
 ```
 
 The finance engine (`backend/app/engine`) is pure Python with no I/O. It reads a dated rule pack such as `karnataka_pmayg_2024_25.json`, so a change in scheme rules is a data change with a source citation, not a code change.

@@ -1,7 +1,7 @@
 import { ArrowRight, ShieldCheck, Scale, Eye } from 'lucide-react'
 import Mascot from '../components/Mascot'
 import House from '../components/House'
-import VillageScene, { Photo, heroPhoto } from '../components/VillageScene'
+import VillageScene, { Photo } from '../components/VillageScene'
 import { LanguageSwitch, useI18n } from '../lib/i18n'
 import { inr } from '../lib/format'
 
@@ -42,13 +42,12 @@ export default function Landing({ onEnter }: { onEnter: () => void }) {
           </div>
         </div>
         <figure className="l-hero-art">
-          <Photo {...heroPhoto} alt="An old tiled-roof house in Karnataka's Malenadu region, surrounded by greenery, with a coconut palm casting a long shadow across the grass" className="l-hero-photo"
-            credit={<>Photo: Manjunath M M · <a href={heroPhoto.page} target="_blank" rel="noreferrer">CC0, WordPress Photo Directory</a></>}>
+          <Photo src="/images/hero.jpg" alt="A single-storey home with earthen walls and a sloped roof, set on a green lawn among trees at dusk" className="l-hero-photo">
             <VillageScene className="l-hero-photo" />
           </Photo>
           <figcaption className="l-hero-plate">
             <span className="plate-num">01</span>
-            <span><b>Malenadu, Karnataka</b><small>Tiled roof, lime-washed walls, room to grow</small></span>
+            <span><b>A home, finished</b><small>Earth walls, a sound roof, room to grow</small></span>
           </figcaption>
           <div className="l-hero-mitra"><Mascot size={96} mood="guide" /></div>
         </figure>

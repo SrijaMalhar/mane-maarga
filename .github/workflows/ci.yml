@@ -1,4 +1,4 @@
-name: Sooru CI
+name: Mane Maarga CI
 on:
   push:
     branches: [main]

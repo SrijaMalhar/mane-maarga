@@ -1,205 +1,241 @@
-# Sooru (ಸೂರು, "roof") — Housing Support Workspace
+<div align="center">
 
-**Lend the gap, not the house.** Sooru is a prototype workspace for tracking rural housing-assistance cases, consent, documents and indicative financing, built for Tech4Bharat 2026 (Theme 1, Problem 1.1). It is **not** a lending, credit, scheme-eligibility, payment or construction-verification decision system.
+<img src="docs/assets/mascot.svg" width="88" alt="Mane Mitra, the Mane Maarga mascot: a small tiled-roof house with a sprout on its ridge" />
 
-[![Sooru CI](https://github.com/SrijaMalhar/sooru/actions/workflows/ci.yml/badge.svg)](https://github.com/SrijaMalhar/sooru/actions/workflows/ci.yml) ![License](https://img.shields.io/badge/license-MIT-green)
+# Mane Maarga · ಮನೆ ಮಾರ್ಗ
 
-Live demo: [TODO: demo URL]
+**A pathway to a home. A platform for dignity.**
 
-![The Money ladder tab: subsidy, funding gap and the cash gap before each instalment](docs/images/money-ladder.png)
+<sub>ಮನೆಗೆ ದಾರಿ, ಬದುಕಿಗೆ ಭರವಸೆ — <i>the path to a home, hope for a better life</i></sub>
 
-## Overview
+Mane Maarga helps case workers take rural families in Karnataka from their first housing-assistance record to their front door, keeping documents, money and construction stages in one record that anyone can check.
 
-A family can own a plot and hold a housing-scheme sanction, yet the house stalls: the subsidy covers a fraction of the cost, and each instalment arrives only after the next stage is built and verified. Sooru keeps one case per family, with consent, documents and funding sources, and computes the cash gap before each instalment so the right gap gets the right kind of money.
+<img src="docs/assets/hero.png" width="100%" alt="The Mane Maarga landing page: a Kannada tagline, the headline 'A home is more than walls. It is a beginning.' and an illustration of a tiled-roof village home drawn over a blueprint" style="border-radius:12px" />
 
-Headline: the money ladder splits every shortfall into a **timing gap** (cash needed only until an instalment lands) and a **funding gap** (cost the subsidy never covers), so only the second needs a term loan. In the sample below, ₹18,000 of a ₹3,08,000 peak cash gap is a bridge need and ₹2,90,000 is the funding gap.
+<p>
+<img alt="React" src="https://img.shields.io/badge/React_18-1F3D2F?style=flat-square&logo=react&logoColor=F6F1E7" />
+<img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-1F3D2F?style=flat-square&logo=typescript&logoColor=F6F1E7" />
+<img alt="Vite" src="https://img.shields.io/badge/Vite-1F3D2F?style=flat-square&logo=vite&logoColor=F6F1E7" />
+<img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-B5573A?style=flat-square&logo=fastapi&logoColor=F6F1E7" />
+<img alt="Python" src="https://img.shields.io/badge/Python_3.12-B5573A?style=flat-square&logo=python&logoColor=F6F1E7" />
+<img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL_16-4A3426?style=flat-square&logo=postgresql&logoColor=F6F1E7" />
+<img alt="Docker" src="https://img.shields.io/badge/Docker_Compose-4A3426?style=flat-square&logo=docker&logoColor=F6F1E7" />
+<img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-C9A03A?style=flat-square" />
+</p>
 
-## Features
+[Live preview](https://sooru.vercel.app) · [Run it locally](#run-it-locally) · [Screenshots](#screenshots) · [Responsible AI](#responsible-ai)
 
-**Case workspace**
-- React + TypeScript dashboard, role-aware (admin, operator, viewer).
-- Case CRUD, consent history and withdrawal, audit trail.
-- Private authenticated document upload and download, content-signature checks, OCR extraction and mismatch flags.
-- Funding-source ledger, construction stages, indicative budget plan and funding gap.
-- Deterministic case-manager plan with specialist findings and an explicit human approval gate.
-- Voice-first text intake (Kannada, English, Telugu), scheme reference catalogue, construction evidence, recovery tasks, synthetic safety smoke suite.
+</div>
 
-**Finance engine** (`backend/app/engine`)
-- **Money ladder:** the exact cash gap before each instalment, split into timing gap and funding gap.
-- **Affordability cap:** total repayments across all loans, including the PMAY-G scheme loan, stay under 30% of monthly income (RBI's microfinance cap is 50%). Income is the mean of the leanest three-quarters of months, so a good month does not hide a lean one.
-- **Dated rule packs:** JSON per state and budget year with effective dates. A missing pack raises an error instead of falling back silently.
+---
 
-**Platform**
-- PBKDF2 password hashes, expiring signed JWTs, constrained CORS, request IDs, security headers, login throttling baseline.
-- Alembic migrations, Docker development and production configurations, CI, operations docs.
+## Live demo
 
-## Safety and prototype boundaries
+- **Live preview:** [sooru.vercel.app](https://sooru.vercel.app) hosts the frontend. The case workspace needs the API, so for the full workflow [run it locally](#run-it-locally) and fill it with synthetic records using `scripts/seed_demo.py`.
+- **Demo credentials:** none are published. The seed script creates an administrator with a password that you choose.
+- **What to explore:** add a family → upload a land record → compare the extracted fields with the case → check the money ladder → review the case insights.
 
-- No government application submission, eligibility determination, credit decision, payment, automated construction verification or fraud detection is performed.
-- Engine outputs are **indicative**. Every engine response carries a disclaimer, and the ladder lists its assumptions.
-- The per-stage cost and instalment split in the rule pack is **illustrative**. The official instalment schedule was not found in the PIB releases checked (PRID 2074713 and 2043921); replace it from the PMAY-G operational guidelines before any real use.
-- The PMAY-G loan (up to ₹70,000) is described by PIB as "at a 3% reduced interest rate". That is a 3-point reduction, not a rate, so the engine takes a lender base rate as input and assumes none.
-- Eligibility rules exist in the rule pack for tests but are **not exposed over HTTP**; their citations still say VERIFY.
-- Scheme cards are reference-only. OCR confidence is uncalibrated. Browser speech input is optional and audio is not stored.
-- Not ready for real beneficiary data without a security and privacy review. Use synthetic data only.
+<div align="center">
+<img src="docs/assets/demo.gif" width="880" alt="Screen recording: the overview, the beneficiary list, a case file, the verification desk flagging a village-name mismatch, the financial plan and money ladder, and the case analysis" />
+<br /><sub>Recorded from the running app with synthetic records. Every name is marked “(sample)”.</sub>
+</div>
 
-## Tech stack
+## Why it exists
 
-| Layer | Tech | Why |
-|---|---|---|
-| API | FastAPI, Pydantic | Validation and OpenAPI docs with little code |
-| Data | PostgreSQL (Compose), SQLite (tests), SQLAlchemy, Alembic | Real database in deployment, fast tests |
-| Finance engine | Plain Python modules | Pure functions: every rupee calculation is unit-testable without a server |
-| Rules | JSON rule packs with effective dates | Rules differ by state and budget year; changing them should not need a deploy |
-| Frontend | React 18, TypeScript, Vite | Typed UI; the ladder recalculates as inputs change |
-| Ops | Docker Compose, Nginx, GitHub Actions | Same stack in dev, production template and CI |
+> Mane Maarga brings the housing-assistance journey into one transparent workflow, from identifying a beneficiary and verifying documents to financial planning, construction progress and completion.
+>
+> It's designed for rural accessibility and accountability. Administrators make better-informed decisions, and the family stays at the centre of the process.
+
+Under PMAY-G, a family in the plains receives ₹1.20 lakh, released in instalments after each construction stage is verified. The bills come due before the instalment arrives, and that timing gap is where families stall. Mane Maarga shows the gap stage by stage. It keeps confirmed, proposed and estimated money separate, so none of it is counted twice.
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%"><img src="docs/assets/screenshots/dashboard.png" alt="Overview: every family placed on the six-stage journey, a needs-attention list and a money ledger" /><br /><sub><b>Overview</b> · every family on the journey, plus what needs a decision today</sub></td>
+<td width="50%"><img src="docs/assets/screenshots/beneficiaries.png" alt="Beneficiary list with journey progress dots, estimates, gaps and consent status" /><br /><sub><b>Beneficiaries</b> · search, filters, and compact, detailed or village views</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/assets/screenshots/beneficiary-details.png" alt="Case file for a sample family showing the house drawing, journey timeline, documents and finances" /><br /><sub><b>Case file</b> · the family's whole housing journey on one page</sub></td>
+<td width="50%"><img src="docs/assets/screenshots/verification.png" alt="Verification desk: PDF preview beside extracted fields, with a village-name mismatch flagged" /><br /><sub><b>Verification desk</b> · extraction suggests, the reviewer decides</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/assets/screenshots/financial-planning.png" alt="Financial planning: funding composition, sources and the money ladder by construction stage" /><br /><sub><b>Financial planning</b> · confirmed vs proposed money, and the money ladder</sub></td>
+<td width="50%"><img src="docs/assets/screenshots/intelligence.png" alt="Case analysis listing recommended next steps with their evidence and the human-approval gate" /><br /><sub><b>Intelligence</b> · suggestions with evidence; a person approves every decision</sub></td>
+</tr>
+</table>
+
+## What works today
+
+| Area | What is built |
+|---|---|
+| **Beneficiary management** | Case records with village, taluk and phone (last four digits only), a six-stage journey, consent capture and withdrawal, search, filters and village grouping. |
+| **Document verification** | PDF/PNG/JPEG upload (10 MB, file signatures checked), authenticated preview, text extraction with `pypdf` and Tesseract (English + Kannada), field-by-field comparison with the case, and a verify / reject / request-correction decision. |
+| **Scheme-aware finance** | Funding sources marked proposed, confirmed, received or rejected. Duplicate confirmed scheme references are blocked. A dated PMAY-G Karnataka rule pack drives the **money ladder**, and a **30% repayment cap** counts every existing loan, including the PMAY-G scheme loan. |
+| **Construction tracking** | A stage plan costed from the estimate, stage status, and photo evidence held for review. The house drawing fills in as stages are verified. |
+| **Decision support** | Rule-based checks of documents, finance, construction and blockers. Each recommendation lists its evidence and requires human approval. Also included: conversational intake in Kannada, English and Telugu, scheme reference links, a budget estimate and follow-up tasks. |
+| **Accountability** | JWT sessions with admin, operator and viewer roles, an audit trail of every sensitive action, rate-limited sign-in, and security headers with request IDs. |
+| **Accessibility** | A full Kannada/English interface using self-hosted Noto Kannada fonts, keyboard navigation and visible focus, status shown by icon and text (never colour alone), reduced-motion support, and phone layouts. |
+
+## How a family moves through it
+
+```mermaid
+flowchart LR
+    A[Intake<br/>ನೋಂದಣಿ] --> B[Verification<br/>ಪರಿಶೀಲನೆ]
+    B --> C[Housing planning<br/>ಮನೆ ಯೋಜನೆ]
+    C --> D[Financial assistance<br/>ಹಣಕಾಸು ನೆರವು]
+    D --> E[Construction<br/>ನಿರ್ಮಾಣ]
+    E --> F[Home completed<br/>ಮನೆ ಪೂರ್ಣ]
+    style A fill:#F6F1E7,stroke:#857D71,color:#23221F
+    style B fill:#E3EBDF,stroke:#2E5641,color:#1F3D2F
+    style C fill:#F4E9C6,stroke:#C9A03A,color:#4A3426
+    style D fill:#F4E9C6,stroke:#C9A03A,color:#4A3426
+    style E fill:#F3DED3,stroke:#B5573A,color:#8E3F27
+    style F fill:#1F3D2F,stroke:#1F3D2F,color:#F6F1E7
+```
+
+**Intake** records the household, with consent. **Verification** checks land and identity documents against the case. **Planning** settles the design and the estimate. **Financial assistance** keeps scheme money, savings, wages and loans apart. **Construction** tracks each stage with evidence. The case file won't move a family forward until consent is recorded, and every stage change is written to the audit trail.
 
 ## Architecture
 
 ```mermaid
-flowchart TD
-  UI[React + TypeScript] --> API[FastAPI REST API]
-  API --> AUTH[JWT + role checks]
-  API --> DB[(PostgreSQL)]
-  API --> FILES[(Private upload volume)]
-  API --> AUDIT[Audit events]
-  API --> ENG[engine_routes.py]
-  ENG --> LAD[engine/ladder.py]
-  ENG --> AFF[engine/affordability.py]
-  LAD --> RULES[(engine/rules_data/*.json)]
-  DB --> MIG[Alembic migrations]
+flowchart TB
+    UI["<b>React frontend</b><br/>TypeScript · Vite<br/>Kannada / English"]
+    API["<b>FastAPI backend</b><br/>Auth & roles · Cases & consent<br/>Documents & extraction · Funding & stages<br/>Finance engine (rule packs) · Case agents · Audit log"]
+    DB[("<b>PostgreSQL 16</b><br/>cases · consent · documents<br/>funding · stages · audit")]
+    FS[["Upload volume<br/>documents · evidence photos"]]
+    OCR["pypdf + Tesseract<br/>eng + kan"]
+    UI -- "REST + JWT" --> API
+    API --> DB
+    API --> FS
+    API --> OCR
 ```
 
-The engine is stateless: a request is validated by Pydantic, the engine runs against the rule pack active today for that state, and the result returns as JSON. Engine routes sit behind the same JWT check as the rest of the API.
+The finance engine (`backend/app/engine`) is pure Python with no I/O. It reads a dated rule pack such as `karnataka_pmayg_2024_25.json`, so a change in scheme rules is a data change with a source citation, not a code change.
 
-## Engineering highlights
+## Responsible AI
 
-1. **Two gaps, not one.** A single "shortfall" would push families into term loans for money that is only late. The ladder computes `gap_k = cumulative cost through stage k − (savings + loan + grants + instalments received before k)`, then subtracts the funding gap to get the timing gap.
-2. **The scheme loan counts toward the cap.** Affordability treats the PMAY-G loan as an existing loan, so the 30% cap holds across all debt. A test shows it shrinks the headroom for a new loan.
-3. **Rules as dated data.** `load_pack` picks the pack whose effective dates cover today, and tests cover dates before the first pack and unknown states.
-4. **Unverified inputs are visible.** While the stage split is unverified, every ladder response includes an `assumptions` list and the UI shows it under the table.
+Mane Maarga works with vulnerable families and public money, so the line between help and decision is part of the design:
 
-## Getting started
+- **People decide.** Suggestions never approve eligibility, credit, payment or a status change. The approval gate is part of every analysis response.
+- **Extraction is unverified until a reviewer confirms it.** Extracted fields are labelled as such, mismatches are flagged, and only a person can mark a document verified.
+- **Money rules are transparent.** Proposed funding is never counted as confirmed. Existing loans are liabilities, not funding. The ladder's stage split is marked illustrative until it's checked against the PMAY-G guidelines.
+- **Suggestions carry their evidence.** Each recommended action names the documents or figures behind it and the check that produced it.
+- **No external model is connected today.** Case analysis is deterministic and rule-based, and the UI says so.
+- **Sensitive actions are auditable,** and consent can be withdrawn at any time.
 
-Prerequisites: Docker Desktop and Docker Compose.
+## Security and privacy
+
+| Implemented | Planned |
+|---|---|
+| JWT sessions (HMAC-SHA256, 60-minute expiry); PBKDF2-SHA256 password hashing | OTP sign-in for field workers |
+| Admin, operator and viewer roles enforced on every route | Field-level access by district or taluk |
+| Consent records with scope, version, who recorded it and when; withdrawal supported | A legally reviewed consent notice in Kannada |
+| Uploads checked for extension, MIME type and file signature; random stored names; 10 MB limit | Encrypted object storage and malware scanning |
+| Only the last four phone digits are stored; Extraction never stores Aadhaar numbers | Data-retention and deletion policy |
+| Audit log of uploads, verifications, funding, stages, consent, users and analyses | Tamper-evident audit export |
+| Secrets from environment variables; production refuses placeholder secrets and wildcard CORS; security headers; rate-limited sign-in | Independent security review |
+
+> **Prototype status:** this has not had a production security review. Use synthetic records only.
+
+## Run it locally
+
+**You'll need:** Docker with Compose, and Git.
 
 ```bash
-git clone https://github.com/SrijaMalhar/sooru.git
-cd sooru
-cp .env.example .env     # then set a strong SOORU_JWT_SECRET
+git clone https://github.com/SrijaMalhar/mane-maarga.git
+cd mane-maarga
+cp .env.example .env        # optional for local development; edit values before any deployment
 docker compose up --build
 ```
 
-- Frontend: http://localhost:5173
-- API docs (development only): http://localhost:8000/docs
-- Bootstrap the first administrator on first run. Production bootstrap is disabled by default.
+| Service | URL |
+|---|---|
+| Web app | http://localhost:5173 |
+| API | http://localhost:8000 |
+| API docs (Swagger) | http://localhost:8000/docs |
 
-The development stack persists the database and uploads in named volumes. **Do not run `docker compose down -v` unless you intend to delete data.**
-
-## Using the money ladder
-
-In the app, open **Sooru Intelligence → Money ladder**. Pick a case to fill the house cost, or enter amounts directly.
-
-Over the API (all routes need `Authorization: Bearer <token>` from `/api/auth/login`):
+On first launch, the app asks you to create the administrator account. To fill an **empty** workspace with synthetic families for a demo:
 
 ```bash
-curl -s -X POST http://localhost:8000/api/engine/ladder \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"total_cost": 500000, "own_savings": 20000, "scheme_loan": 70000}'
+python3 scripts/seed_demo.py --username demo_admin --password 'choose-a-long-password'
 ```
 
-<details>
-<summary>Sample response (trimmed)</summary>
+Key settings in `.env` (see `.env.example`):
 
-```json
-{
-  "total_cost": 500000, "subsidy": 120000, "own_savings": 20000, "scheme_loan": 70000,
-  "funding_gap": 290000, "peak_timing_gap": 18000,
-  "assumptions": ["ILLUSTRATIVE split of cost and instalments per stage. ..."],
-  "rungs": [
-    {"stage": "plinth", "cost": 125000, "instalment_after": 30000, "cash_gap_before_instalment": 35000,  "timing_gap": 0},
-    {"stage": "lintel", "cost": 150000, "instalment_after": 42000, "cash_gap_before_instalment": 155000, "timing_gap": 0},
-    {"stage": "roof",   "cost": 150000, "instalment_after": 30000, "cash_gap_before_instalment": 263000, "timing_gap": 0},
-    {"stage": "finish", "cost": 75000,  "instalment_after": 18000, "cash_gap_before_instalment": 308000, "timing_gap": 18000}
-  ],
-  "disclaimer": "Indicative calculation from illustrative assumptions. ..."
-}
-```
-</details>
+| Variable | Purpose |
+|---|---|
+| `SOORU_JWT_SECRET` | Signs sessions. **Must** be a random string of at least 32 characters outside development. |
+| `SOORU_JWT_TTL_MINUTES` | Session length (default 60). |
+| `CORS_ORIGINS` | The web app's origin(s), comma-separated. |
+| `VITE_API_BASE_URL` | The API URL the frontend calls. |
+| `SOORU_BOOTSTRAP_ENABLED` | Allows first-administrator setup (off by default in production). |
 
-| Method | Path | Body | Returns |
-|---|---|---|---|
-| POST | `/api/engine/ladder` | `state` (default KA), `total_cost`, `own_savings`, `scheme_loan`, `extra_grants` | gaps per stage, `funding_gap`, `peak_timing_gap`, `assumptions` |
-| POST | `/api/engine/affordability` | `monthly_income` (1 to 24 values), `existing_loans` (name, principal, rate_pa, months), `requested`, `rate_pa`, `months` | income used, 30% cap, headroom, `indicative_loan_within_cap`, `no_loan_path` |
+To stop everything: `docker compose down`. Your database and uploads stay in Docker volumes. Removing them (`docker compose down -v`) **permanently deletes all records**.
 
-An unknown state returns 404; out-of-range amounts return 422.
+**Tests:** `docker compose exec api python -m pytest -q`. There are 54 backend tests covering auth, roles, uploads, extraction, funding rules, the money ladder and affordability. CI runs them, plus a frontend build, on every push.
 
-## Tests
-
-```bash
-cd backend
-python -m pip install -r requirements-dev.txt   # Python 3.12
-python -m pytest -q
-```
-
-- `tests/test_api.py`: the case workspace API (auth, cases, consent, documents, funding, stages, intelligence).
-- `tests/test_engine.py`: rule-pack dates, ladder gaps and loan cap, EMI maths, the 30% cap with a scheme loan, the no-loan path, lean-month income, the scheme-loan rate rule, the unverified-assumption flag.
-- `tests/test_engine_api.py`: authentication, validation, the 404 case and the affordability response shape.
-
-Frontend build:
-
-```bash
-cd frontend && npm install && npm run build
-```
-
-CI runs the backend tests and the frontend production build on pushes and pull requests to `main`. Coverage and API latency are not measured yet.
+Production Compose, operations and the release checklist are in [`docs/`](docs/).
 
 ## Project structure
 
-```
-sooru/
+```text
+mane-maarga/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py             # routes, auth, middleware
-│   │   ├── engine_routes.py    # /api/engine/* (ladder, affordability)
-│   │   ├── engine/             # ladder, affordability, rule packs
-│   │   │   └── rules_data/     # dated JSON rule packs (KA PMAY-G)
-│   │   ├── models.py, schemas.py, database.py
-│   │   ├── document_ai.py      # OCR extraction and mismatch checks
-│   │   └── agents.py           # deterministic case-manager plan
-│   ├── alembic/                # migrations
-│   └── tests/
-├── frontend/src/               # App, AuthScreen, IntelligencePanel, MoneyLadderPanel
-├── docs/                       # DEMO, DEPLOYMENT, OPERATIONS, RELEASE_CHECKLIST, images
-├── docker-compose.yml          # development stack
-├── docker-compose.prod.yml     # production template
-└── .github/workflows/ci.yml
+│   │   ├── main.py              # API: auth, cases, documents, funding, stages, intelligence
+│   │   ├── engine/              # finance engine + dated rule packs (money ladder, affordability)
+│   │   ├── agents.py            # rule-based case analysis with an approval gate
+│   │   └── document_ai.py       # text extraction and case comparison
+│   ├── alembic/                 # migrations
+│   └── tests/                   # 54 tests
+├── frontend/
+│   ├── src/
+│   │   ├── pages/               # Overview, Beneficiaries, CaseFile, Verification, Finance, …
+│   │   ├── components/          # Mascot, House drawing, Shell, shared UI
+│   │   └── lib/                 # API client, i18n (Kannada/English), formatting
+│   ├── public/images/mascot/    # Mane Mitra SVGs (exported from the React component)
+│   └── scripts/export-mascot.mjs
+├── scripts/                     # seed_demo.py, backup.sh
+├── docs/                        # deployment, operations, release checklist, README assets
+├── docker-compose.yml
+└── docker-compose.prod.yml
 ```
-
-## Production
-
-`docker-compose.prod.yml` is a deployment template, not a turnkey secure host. Configure a private `.env` with production secrets and exact origins, then `docker compose -f docker-compose.prod.yml up --build -d`. Set up HTTPS, monitoring and encrypted off-host backups separately. See `docs/DEPLOYMENT.md`, `docs/OPERATIONS.md` and `docs/RELEASE_CHECKLIST.md`.
-
-Diagnostics: `GET /health`, `GET /ready`, `GET /api/system/version`, `GET /metrics` (restrict network access).
 
 ## Roadmap
 
-- [ ] Replace the illustrative stage split with the official instalment schedule
-- [ ] Confirm the effective PMAY-G loan rate with a bank
-- [ ] Link the ladder to a case's own funding sources and stages instead of manual inputs
-- [ ] Approval gate with OTP before any submission or payment
-- [ ] Kannada name matcher and document benchmark with a published F1
-- [ ] Confirm whether co-op banks can take bridge-credit repayment from a government transfer
-- [ ] Deploy and add a live demo link; measure coverage and API latency
+- [x] Beneficiary case management with consent
+- [x] Authentication, roles and audit trail
+- [x] Document upload, extraction and human verification
+- [x] Funding sources with double-count protection
+- [x] Money ladder and 30% affordability cap from a dated PMAY-G rule pack
+- [x] Construction stages with photo evidence
+- [x] Kannada / English interface
+- [ ] Replace the illustrative stage split with the official PMAY-G instalment schedule
+- [ ] Scheme eligibility rules with citations, reviewed by a person
+- [ ] Indic OCR for Kannada land records (beyond Tesseract)
+- [ ] Lyzr agent integration behind the existing approval gate
+- [ ] Bhashini speech for Kannada voice intake (browser speech is used today, labelled beta)
+- [ ] Hosted API for the live preview
+- [ ] Frontend tests and monitoring
 
-## Contributing
+## Mane Mitra
 
-Issues and pull requests are welcome. Run `python -m pytest -q` in `backend/` and `npm run build` in `frontend/` first.
+<img align="left" src="frontend/public/images/mascot/mane-mitra-guide.svg" width="72" alt="" />
 
-## License
+**Mane Mitra (ಮನೆ ಮಿತ್ರ)** — *the friend of the home*. It's a small house with a Mangalore-tile roof, a green door, and a sprout on its ridge for hope. It holds a lantern when it's guiding someone. The same drawing appears in the app's empty states, loading screens and sign-in page. It's a single React component, exported to SVG with `node frontend/scripts/export-mascot.mjs`.
 
-MIT. See [LICENSE](LICENSE).
+<br clear="left" />
 
-## Author
+---
 
-SrijaMalhar · GitHub: [SrijaMalhar](https://github.com/SrijaMalhar) · srijamalhar@gmail.com · LinkedIn: [TODO] · Portfolio: [TODO]
+<div align="center">
+
+**Every family deserves a safe place to call home.**
+<br /><sub>ಪ್ರತಿಯೊಂದು ಕುಟುಂಬಕ್ಕೂ ಒಂದು ಸುರಕ್ಷಿತ ಮನೆ.</sub>
+
+Mane Maarga — building pathways to dignified housing through technology, transparency and compassion.
+
+[github.com/SrijaMalhar/mane-maarga](https://github.com/SrijaMalhar/mane-maarga) · MIT License
+
+</div>

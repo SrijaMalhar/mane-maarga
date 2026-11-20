@@ -93,3 +93,14 @@ def test_operator_income_matches_review_arithmetic():
 def test_segment_a_contribution():
     assert segment_a_contribution(500) == 2200
     assert segment_a_contribution(1000) == 1700
+
+
+def test_scheme_loan_rate_needs_a_lender_base_rate():
+    assert PACK.effective_scheme_loan_rate(0.10) == pytest.approx(0.07)
+    assert PACK.effective_scheme_loan_rate(0.02) == 0.0
+    assert not hasattr(PACK, "scheme_loan_rate")  # no silent default
+
+
+def test_ladder_reports_unverified_stage_split():
+    out = build_ladder(PACK, 500000)
+    assert out["assumptions"] and "ILLUSTRATIVE" in out["assumptions"][0]

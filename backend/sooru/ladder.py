@@ -38,4 +38,5 @@ def build_ladder(pack: RulePack, total_cost: float, own_savings: float = 0.0,
         "funding_gap": round(funding_gap),
         "peak_timing_gap": max(r["timing_gap"] for r in rows),
         "rungs": rows,
+        "assumptions": pack.assumptions,
     }

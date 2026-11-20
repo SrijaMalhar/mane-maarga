@@ -22,8 +22,16 @@ class RulePack:
         return self.raw["scheme_loan"]["max_amount"]
 
     @property
-    def scheme_loan_rate(self) -> float:
-        return self.raw["scheme_loan"]["assumed_rate_pa"]
+    def stages_verified(self) -> bool:
+        return bool(self.raw.get("stages_verified", False))
+
+    @property
+    def assumptions(self) -> list[str]:
+        return [] if self.stages_verified else [self.raw["stage_note"]]
+
+    def effective_scheme_loan_rate(self, lender_base_rate_pa: float) -> float:
+        """PIB says '3% reduced interest rate': the lender's base rate minus 3 points. No base rate is assumed."""
+        return max(0.0, lender_base_rate_pa - self.raw["scheme_loan"]["rate_reduction_points"])
 
     @property
     def stages(self) -> list[dict]:

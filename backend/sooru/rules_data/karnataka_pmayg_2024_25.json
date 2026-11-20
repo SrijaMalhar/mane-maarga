@@ -7,27 +7,61 @@
   "unit_assistance_note": "Plains. PIB release PRID=2074713 (19 Nov 2024): Rs 1.20 lakh in plain areas.",
   "scheme_loan": {
     "max_amount": 70000,
-    "source": "PIB release PRID=2074713 (19 Nov 2024): 'Loan up to Rs 70,000 ... at a 3% reduced interest rate.'",
-    "assumed_rate_pa": 0.07,
-    "rate_note": "ASSUMPTION. The release gives a 3-point reduction, not the resulting rate. Confirm with a bank."
+    "source": "PIB, 'Pradhan Mantri Awas Yojana- Rural', 19 Nov 2024 (PRID=2074713): 'Loan up to Rs 70,000 is available to eligible beneficiaries at a 3% reduced interest rate.'",
+    "rate_reduction_points": 0.03,
+    "rate_note": "The release gives a 3-point reduction, not the resulting rate. Pass the lender's base rate to effective_scheme_loan_rate(); no default is assumed."
   },
   "toilet_grant": 12000,
   "stages": [
-    {"id": "plinth",  "label": "Plinth",           "cost_share": 0.25, "instalment_share": 0.25},
-    {"id": "lintel",  "label": "Lintel",           "cost_share": 0.30, "instalment_share": 0.35},
-    {"id": "roof",    "label": "Roof",             "cost_share": 0.30, "instalment_share": 0.25},
-    {"id": "finish",  "label": "Finishing + keys", "cost_share": 0.15, "instalment_share": 0.15}
+    {
+      "id": "plinth",
+      "label": "Plinth",
+      "cost_share": 0.25,
+      "instalment_share": 0.25
+    },
+    {
+      "id": "lintel",
+      "label": "Lintel",
+      "cost_share": 0.3,
+      "instalment_share": 0.35
+    },
+    {
+      "id": "roof",
+      "label": "Roof",
+      "cost_share": 0.3,
+      "instalment_share": 0.25
+    },
+    {
+      "id": "finish",
+      "label": "Finishing + keys",
+      "cost_share": 0.15,
+      "instalment_share": 0.15
+    }
   ],
-  "stage_note": "ILLUSTRATIVE split of cost and instalments per stage. Replace with the official instalment schedule before any real use.",
+  "stage_note": "ILLUSTRATIVE split of cost and instalments per stage. The official instalment schedule was not found in the PIB releases checked (PRID 2074713, 2043921). Replace from the PMAY-G operational guidelines before any real use.",
   "eligibility_rules": [
-    {"id": "R1", "field": "owns_land", "must_be": true,
-     "text": "The family must own the plot (or have it mutated to them).",
-     "cite": "VERIFY against PMAY-G Framework for Implementation"},
-    {"id": "R2", "field": "owns_pucca_house", "must_be": false,
-     "text": "The family must not already own a pucca house.",
-     "cite": "VERIFY against PMAY-G Framework for Implementation"},
-    {"id": "R3", "field": "on_scheme_list", "must_be": true,
-     "text": "The family must be on the scheme's beneficiary list (sanction).",
-     "cite": "VERIFY against PMAY-G Framework for Implementation"}
-  ]
+    {
+      "id": "R1",
+      "field": "owns_land",
+      "must_be": true,
+      "text": "The family must own the plot (or have it mutated to them).",
+      "cite": "VERIFY against PMAY-G Framework for Implementation"
+    },
+    {
+      "id": "R2",
+      "field": "owns_pucca_house",
+      "must_be": false,
+      "text": "The family must not already own a pucca house.",
+      "cite": "VERIFY against PMAY-G Framework for Implementation"
+    },
+    {
+      "id": "R3",
+      "field": "on_scheme_list",
+      "must_be": true,
+      "text": "The family must be on the scheme's beneficiary list (sanction).",
+      "cite": "VERIFY against PMAY-G Framework for Implementation"
+    }
+  ],
+  "toilet_grant_note": "PIB release PRID=2074713: 'Beneficiaries receive up to Rs 12,000 to construct toilets' (Swachh Bharat Mission-Gramin).",
+  "stages_verified": false
 }

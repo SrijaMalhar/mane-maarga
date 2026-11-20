@@ -4,7 +4,7 @@
 
 ![Tests](https://img.shields.io/badge/tests-14%20passed-brightgreen) ![Python](https://img.shields.io/badge/python-3.13-blue) ![License](https://img.shields.io/badge/license-MIT-green) <!-- [TODO: add a real CI build badge once a workflow exists] -->
 
-Live demo: [TODO: demo URL]
+Live demo: [Sooru](https://sooru-jmae.vercel.app)
 
 ![Screenshot of the Sooru money ladder showing the cash gap before each instalment](docs/images/money-ladder.png)
 

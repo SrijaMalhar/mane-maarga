@@ -6,7 +6,7 @@
 
 **A pathway to a home. A platform for dignity.**
 
-<sub>ಮನೆಗೆ ದಾರಿ, ಬದುಕಿಗೆ ಭರವಸೆ — <i>the path to a home, hope for a better life</i></sub>
+<img src="docs/assets/tagline.svg" width="760" alt="ಮನೆಗೆ ದಾರಿ, ಬದುಕಿಗೆ ಭರವಸೆ — The path to a home. Hope for a better life." />
 
 Mane Maarga helps case workers take rural families in Karnataka from their first housing-assistance record to their front door, keeping documents, money and construction stages in one record that anyone can check.
 
@@ -241,15 +241,6 @@ mane-maarga/
 - [x] In-browser demo mode for the hosted preview
 - [ ] Hosted API for the live preview
 - [ ] Frontend tests and monitoring
-
-
-## The mascot
-
-<img align="left" src="frontend/public/images/mascot/mane-maarga-guide.svg" width="72" alt="" />
-
-A small house with a Mangalore-tile roof, a green door and a sprout on its ridge for hope. It holds a lantern when it's guiding someone. The same drawing appears in the app's empty states, loading screens and sign-in page. It's a single React component, exported to SVG with `node frontend/scripts/export-mascot.mjs`.
-
-<br clear="left" />
 
 ---
 

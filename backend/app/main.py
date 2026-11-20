@@ -13,6 +13,7 @@ from .database import Base, engine, get_db
 from .models import Case, ConsentRecord, AuditLog, User, CaseDocument, CaseFundingSource, ConstructionStage, DocumentExtraction, IntakeSession, BudgetPlan, ConstructionEvidence, RecoveryTask, EvaluationRun
 from .document_ai import extract_document, extract_fields, compare_case
 from .agents import run_case_agents
+from .engine_routes import build_router as build_engine_router
 from .schemas import CaseCreate, CaseUpdate, CaseOut, ConsentCreate, ConsentOut, AuditOut, BootstrapRequest, LoginRequest, UserCreate, UserOut, TokenOut, DocumentOut, FundingCreate, FundingOut, StageCreate, StageOut, StageStatusUpdate, ExtractionOut, ExtractionRequest
 from pydantic import BaseModel, Field
 
@@ -596,3 +597,5 @@ def evaluation_runs(user:Admin,db:Session=Depends(get_db)):
 @app.get("/api/intelligence/overview")
 def intelligence_overview(user:Authenticated,db:Session=Depends(get_db)):
     return {"modules":[{"key":"voice_intake","status":"prototype","note":"Browser speech input/output support depends on client. Server accepts text transcript."},{"key":"scheme_reference","status":"reference_only","items":len(SCHEME_REFERENCE)},{"key":"budget_planner","status":"indicative_estimates"},{"key":"construction_evidence","status":"human_review_required"},{"key":"recovery_workflows","status":"task_tracking"},{"key":"reliability_lab","status":"synthetic_smoke_tests"}],"safety":"No government application submission, eligibility decision, credit decision, payment, or construction verification is automated."}
+
+app.include_router(build_engine_router(current_user))

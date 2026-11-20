@@ -38,7 +38,7 @@ def normalize(value: str) -> str:
 def extract_fields(text: str) -> tuple[str, dict]:
     patterns = {
         "survey_number": [r"(?:survey\s*(?:number|no\.?)?|sy\.?\s*no\.?|survey)\s*[:#-]?\s*([\w/-]+)"],
-        "village": [r"(?:village|gram)\s*[:#-]?\s*([A-Za-z][A-Za-z .'-]{1,60})"],
+        "village": [r"\b(?:village|grama?)\b\s*[:#-]?\s*([A-Za-z][A-Za-z .'-]{1,60})"],
         "taluk": [r"(?:taluk|tehsil)\s*[:#-]?\s*([A-Za-z][A-Za-z .'-]{1,60})"],
         "extent": [r"(?:extent|area)\s*[:#-]?\s*([\d.]+\s*(?:acre|acres|ha|hectare|gunta|sq\.?\s*ft)?)"],
         "beneficiary_name": [r"(?:beneficiary|applicant|owner|name)\s*[:#-]?\s*([A-Za-z][A-Za-z .'-]{1,80})"],

@@ -23,7 +23,7 @@ Mane Maarga helps case workers take rural families in Karnataka from their first
 <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-C9A03A?style=flat-square" />
 </p>
 
-[Live preview](https://sooru.vercel.app) · [Run it locally](#run-it-locally) · [Screenshots](#screenshots) · [Responsible AI](#responsible-ai)
+[Live preview](https://mane-maarga.vercel.app) · [Run it locally](#run-it-locally) · [Screenshots](#screenshots) · [Responsible AI](#responsible-ai)
 
 </div>
 
@@ -31,7 +31,7 @@ Mane Maarga helps case workers take rural families in Karnataka from their first
 
 ## Live demo
 
-- **Live preview:** open [sooru.vercel.app](https://sooru.vercel.app), choose **Access the platform**, then **Explore with sample data**. No server is needed: a clearly labelled demo mode runs the workspace in your browser with invented “(sample)” families, using the same rules as the API (money ladder, 30% cap, no double counting). Nothing leaves the browser tab.
+- **Live preview:** open [mane-maarga.vercel.app](https://mane-maarga.vercel.app), choose **Access the platform**, then **Explore with sample data**. No server is needed: a clearly labelled demo mode runs the workspace in your browser with invented “(sample)” families, using the same rules as the API (money ladder, 30% cap, no double counting). Nothing leaves the browser tab.
 - **Full stack:** to sign in against the real API with document text extraction, [run it locally](#run-it-locally).
 - **What to explore:** add a family → upload a land record → compare the extracted fields with the case → check the money ladder → review the case insights.
 

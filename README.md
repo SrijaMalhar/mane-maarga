@@ -2,20 +2,21 @@
 
 **Lend the gap, not the house.** An AI case manager that takes a rural family from owned land to a finished home, and sizes the exact cash gap a co-operative bank needs to cover.
 
-![Tests](https://img.shields.io/badge/tests-12%20passed-brightgreen) ![Python](https://img.shields.io/badge/python-3.13-blue) ![License](https://img.shields.io/badge/license-TODO-lightgrey) <!-- [TODO: add a real CI build badge once a workflow exists] -->
+![Tests](https://img.shields.io/badge/tests-14%20passed-brightgreen) ![Python](https://img.shields.io/badge/python-3.13-blue) ![License](https://img.shields.io/badge/license-MIT-green) <!-- [TODO: add a real CI build badge once a workflow exists] -->
 
 Live demo: [TODO: demo URL]
 
 ![Screenshot of the Sooru money ladder showing the cash gap before each instalment](docs/images/money-ladder.png)
-<!-- [TODO: add docs/images/money-ladder.png once the frontend exists] -->
+
+The screenshot comes from the real engine output; the dev server for it was a throwaway script, not the FastAPI app.
 
 ## Overview
 
 Rural families in India often own a plot and hold a housing-scheme sanction, yet the house stalls. The subsidy covers about ₹1.2 lakh of a ₹4.5–5.5 lakh house, and the next instalment only arrives after the next stage is built and verified. Sooru computes that gap rung by rung, checks what the family can safely repay, and keeps every rule traceable to a dated, cited rule file.
 
-This repo is the **core engine** built for Tech4Bharat 2026 (Theme 1, Problem 1.1): rules-as-code eligibility, the money ladder, an affordability check, a budget band, and a FastAPI layer. Voice, WhatsApp, document checks and the UI are not built yet (see [Roadmap](#roadmap)).
+This repo is the **core engine** built for Tech4Bharat 2026 (Theme 1, Problem 1.1): rules-as-code eligibility, the money ladder, an affordability check, a budget band, a FastAPI layer, and a small React page for the money ladder. Voice, WhatsApp and document checks are not built yet (see [Roadmap](#roadmap)).
 
-Headline result so far: 12 unit tests pass on the engine, including a test that locks the plan's operator-income arithmetic (about ₹3,000 per panchayat at a 5% share).
+Headline result so far: 14 unit tests pass on the engine, including a test that locks the plan's operator-income arithmetic (about ₹3,000 per panchayat at a 5% share).
 
 ## Key Features
 
@@ -41,6 +42,7 @@ Headline result so far: 12 unit tests pass on the engine, including a test that 
   "scheme_loan": 70000,
   "funding_gap": 290000,
   "peak_timing_gap": 18000,
+  "assumptions": ["ILLUSTRATIVE split of cost and instalments per stage. ..."],
   "rungs": [
     {"stage": "plinth", "cost": 125000, "instalment_after": 30000, "cash_gap_before_instalment": 35000,  "timing_gap": 0},
     {"stage": "lintel", "cost": 150000, "instalment_after": 42000, "cash_gap_before_instalment": 155000, "timing_gap": 0},
@@ -50,7 +52,7 @@ Headline result so far: 12 unit tests pass on the engine, including a test that 
 }
 ```
 
-Per-rung fields `label`, `cum_cost` and `cum_instalments` are trimmed here. The stage cost and instalment split is an illustrative assumption in the rule file, not the official schedule.
+Per-rung fields `label`, `cum_cost` and `cum_instalments` are trimmed here. The stage cost and instalment split is an illustrative assumption: the PIB releases I checked (PRID 2074713 and 2043921) give the ₹1.20 lakh unit assistance but no instalment schedule. Every ladder response carries this in `assumptions`.
 </details>
 
 ## Tech Stack
@@ -61,7 +63,7 @@ Per-rung fields `label`, `cum_cost` and `cum_instalments` are trimmed here. The 
 | API | FastAPI + Pydantic | Request validation and OpenAPI docs with little code |
 | Rules | JSON rule packs with effective dates | Rules differ by state and budget year; changing them should not need a deploy |
 | Tests | pytest | Fast, no setup |
-| Frontend | [TODO: React + Vite, not built yet] | Planned for the stage demo |
+| Frontend | React 18 + Vite | Live money ladder that recalculates as the inputs change |
 
 ## Architecture
 
@@ -91,7 +93,7 @@ flowchart LR
 
 | Check | Result | Method |
 |---|---|---|
-| Unit tests | 12 passed, 1 skipped | `pytest` in `backend/`; the skip is the API test when FastAPI is not installed |
+| Unit tests | 14 passed, 1 skipped | `pytest` in `backend/`; the skip is the API test when FastAPI is not installed |
 | Test coverage | [TODO: measure with `pytest --cov`] | Not measured yet |
 | API latency | [TODO] | Not measured yet |
 | Eligibility/field accuracy on documents | [TODO] | Document benchmark not built yet |
@@ -123,6 +125,16 @@ uvicorn sooru.api:app --reload --port 8000
 ```
 
 Open http://localhost:8000/docs for the interactive API docs.
+
+Run the frontend (port 5173, needs Node 18 or newer). Keep the API running in another terminal:
+
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173. Vite forwards `/api/*` to the API on port 8000.
 
 **Environment variables:** none are read today, so there is no `.env.example`.
 
@@ -168,8 +180,12 @@ sooru/
 │   ├── tests/                # test_core.py, test_api.py
 │   ├── pytest.ini
 │   └── requirements.txt
-└── docs/
-    └── Master_plan.docx      # full plan, scoring, pitch
+├── frontend/                 # React + Vite money-ladder page
+│   └── src/                  # App.jsx, api.js, styles.css
+├── docs/
+│   ├── Master_plan.docx      # full plan, scoring, pitch
+│   └── images/               # README screenshot
+└── LICENSE                   # MIT
 ```
 
 ## Testing
@@ -178,7 +194,7 @@ sooru/
 cd backend && python -m pytest -q
 ```
 
-`tests/test_core.py` covers rule loading and effective dates, eligibility verdicts, the ladder (funding gap, timing gap, loan cap), EMI round-trip, the 30% cap with a scheme loan, the no-loan path, lean-month income, the budget band, and the operator-income arithmetic. `tests/test_api.py` covers `/health`, `/ladder` and the 404 case; it skips itself if FastAPI or httpx is missing. [TODO: confirm `test_api.py` passes on your machine after `pip install -r requirements.txt`.]
+`tests/test_core.py` covers rule loading and effective dates, eligibility verdicts, the ladder (funding gap, timing gap, loan cap), EMI round-trip, the 30% cap with a scheme loan, the no-loan path, lean-month income, the budget band, the scheme-loan rate rule (lender base rate minus 3 points, no default), the unverified-stage-split flag, and the operator-income arithmetic. `tests/test_api.py` covers `/health`, `/ladder` and the 404 case; it skips itself if FastAPI or httpx is missing. [TODO: confirm `test_api.py` passes on your machine after `pip install -r requirements.txt`.]
 
 ## Deployment
 
@@ -188,10 +204,11 @@ cd backend && python -m pytest -q
 
 - [ ] Case store and approval gate: spoken yes plus OTP before any submission or payment
 - [ ] Document mismatch check and a Kannada name matcher, with a published F1
-- [ ] Replace the illustrative stage split with the official instalment schedule
-- [ ] Confirm the effective rate on the PMAY-G ₹70,000 loan (source says "3% reduced"; the code assumes 7%)
+- [ ] Replace the illustrative stage split with the official instalment schedule from the PMAY-G operational guidelines (not found in the PIB releases checked)
+- [ ] Confirm the effective rate on the PMAY-G ₹70,000 loan with a bank. PIB says "3% reduced"; the code subtracts 3 points from a lender base rate you pass in and assumes no default
+- [ ] Deploy and add a live demo link
 - [ ] Confirm whether co-op banks can take bridge-credit repayment from a government transfer
-- [ ] React front end for the money ladder
+- [ ] Frontend: eligibility, affordability and budget screens (only the money ladder exists)
 - [ ] CI workflow, coverage report, API latency measurement
 - [ ] Source links for the plan's big claims (see the Sources table in `docs/Master_plan.docx`)
 
@@ -201,7 +218,7 @@ cd backend && python -m pytest -q
 
 ## License
 
-[TODO: choose a license and add a `LICENSE` file.]
+MIT. See [LICENSE](LICENSE).
 
 ## Author
 

@@ -32,6 +32,8 @@ export function href(route: Route): string {
 export type AppCtx = {
   api: Client
   user: AuthUser
+  /** True when running on the in-browser sample data instead of the API. */
+  demo: boolean
   canEdit: boolean
   isAdmin: boolean
   cases: CaseItem[]

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { API_BASE, makeClient, type AuthUser, type CaseItem } from './lib/api'
+import { DEMO_USER, makeDemoClient, resetDemo } from './lib/demo'
 import { AppContext, href, parseRoute, type Route } from './lib/app-context'
 import { I18nProvider } from './lib/i18n'
 import { Loading, useToast } from './components/ui'
@@ -18,6 +19,8 @@ import Audit from './pages/Audit'
 import Team from './pages/Team'
 
 const TOKEN_KEY = 'sooru_token'
+const DEMO_KEY = 'mm_demo'
+const readDemo = () => { try { return sessionStorage.getItem(DEMO_KEY) === '1' } catch { return false } }
 
 function useHashRoute(): [Route, string] {
   const [hash, setHash] = useState(() => window.location.hash)
@@ -31,6 +34,7 @@ function useHashRoute(): [Route, string] {
 
 function Workspace() {
   const [token, setToken] = useState(() => { try { return sessionStorage.getItem(TOKEN_KEY) || '' } catch { return '' } })
+  const [demo, setDemo] = useState(readDemo)
   const [user, setUser] = useState<AuthUser | null>(null)
   const [authState, setAuthState] = useState<'checking' | 'signed-out' | 'bootstrap' | 'ready' | 'offline'>('checking')
   const [entered, setEntered] = useState(() => Boolean(token) || window.location.hash.length > 2)
@@ -42,15 +46,21 @@ function Workspace() {
   const toast = useToast()
 
   const signOut = useCallback(() => {
-    try { sessionStorage.removeItem(TOKEN_KEY) } catch { /* ignore */ }
-    setToken(''); setUser(null); setAuthState('signed-out')
+    try { sessionStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(DEMO_KEY) } catch { /* ignore */ }
+    setToken(''); setUser(null); setDemo(false); setAuthState('checking')
   }, [])
-  const api = useMemo(() => makeClient(token, signOut), [token, signOut])
+  const api = useMemo(() => (demo ? makeDemoClient() : makeClient(token, signOut)), [demo, token, signOut])
+  const startDemo = useCallback(() => {
+    try { sessionStorage.setItem(DEMO_KEY, '1') } catch { /* ignore */ }
+    setDemo(true); setEntered(true)
+    if (!window.location.hash || window.location.hash.length < 3) window.location.hash = '#/overview'
+  }, [])
 
   // Resolve who is signed in, or whether the first administrator must be created.
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      if (demo) { setUser(DEMO_USER); setAuthState('ready'); return }
       try {
         if (token) {
           const r = await fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
@@ -61,7 +71,7 @@ function Workspace() {
       } catch { if (!cancelled) setAuthState('offline') }
     })()
     return () => { cancelled = true }
-  }, [token])
+  }, [token, demo])
 
   const reloadCases = useCallback(async () => {
     setCasesLoading(true)
@@ -78,12 +88,13 @@ function Workspace() {
   if (authState !== 'ready' || !user) {
     return <AuthScreen mode={authState === 'bootstrap' ? 'bootstrap' : authState === 'offline' ? 'offline' : 'signin'}
       onRetry={() => setAuthState('checking')}
+      onDemo={startDemo}
       onBack={() => setEntered(false)}
       onAuthenticated={(tok, u) => { try { sessionStorage.setItem(TOKEN_KEY, tok) } catch { /* ignore */ } setToken(tok); setUser(u); setAuthState('ready') }} />
   }
 
   const ctx = {
-    api, user, cases, casesLoading, casesError, reloadCases, go, toast: toast.show,
+    api, user, demo, cases, casesLoading, casesError, reloadCases, go, toast: toast.show,
     canEdit: user.role !== 'viewer', isAdmin: user.role === 'admin',
     openCaseForm: (existing?: CaseItem) => setCaseForm({ open: true, existing }),
   }
@@ -103,7 +114,7 @@ function Workspace() {
 
   return (
     <AppContext.Provider value={ctx}>
-      <Shell route={route} onSignOut={signOut}>{page}</Shell>
+      <Shell route={route} onSignOut={signOut} demo={demo} onResetDemo={() => { resetDemo(); void reloadCases(); go({ name: 'overview' }) }}>{page}</Shell>
       {caseForm.open && <CaseForm existing={caseForm.existing} onClose={() => setCaseForm({ open: false })} />}
       {toast.node}
     </AppContext.Provider>

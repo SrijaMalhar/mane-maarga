@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { LogOut, MoreHorizontal, X } from 'lucide-react'
+import { LogOut, MoreHorizontal, RotateCcw, X } from 'lucide-react'
 import Mascot from './Mascot'
 import { IconBuild, IconFinance, IconInsight, IconLedger, IconOverview, IconPeople, IconTeam, IconVerify } from './NavIcons'
 import { href, useApp, type Route } from '../lib/app-context'
@@ -7,7 +7,7 @@ import { LanguageSwitch, useI18n } from '../lib/i18n'
 
 type Item = { key: Route['name']; label: string; Icon: (p: { size?: number }) => JSX.Element; adminOnly?: boolean }
 
-export default function Shell({ route, onSignOut, children }: { route: Route; onSignOut: () => void; children: ReactNode }) {
+export default function Shell({ route, onSignOut, children, demo = false, onResetDemo }: { route: Route; onSignOut: () => void; children: ReactNode; demo?: boolean; onResetDemo?: () => void }) {
   const { t } = useI18n()
   const { user, isAdmin } = useApp()
   const [moreOpen, setMoreOpen] = useState(false)
@@ -39,7 +39,7 @@ export default function Shell({ route, onSignOut, children }: { route: Route; on
           <Mascot size={44} />
         </a>
         <div className="rail-items">{items.map(i => link(i, 'rail-item'))}</div>
-        <button className="rail-item rail-out" onClick={onSignOut}><LogOut size={20} aria-hidden /><span>{t('nav.signout')}</span></button>
+        <button className="rail-item rail-out" onClick={onSignOut}><LogOut size={20} aria-hidden /><span>{demo ? 'Leave demo' : t('nav.signout')}</span></button>
       </nav>
 
       <div className="shell-main">
@@ -52,10 +52,16 @@ export default function Shell({ route, onSignOut, children }: { route: Route; on
             <LanguageSwitch />
             <div className="who" title={user.email}>
               <span className="who-avatar" aria-hidden>{user.username.slice(0, 1).toUpperCase()}</span>
-              <span className="who-text"><b>{user.username}</b><small>{user.role}</small></span>
+              <span className="who-text"><b>{user.username}</b><small>{demo ? 'demo · ' : ''}{user.role}</small></span>
             </div>
           </div>
         </header>
+        {demo && (
+          <div className="demo-bar" role="status">
+            <span><b>Sample data</b> · You're exploring with invented families. Changes stay in this browser tab and nothing is sent to a server.</span>
+            <span className="demo-actions"><button className="link-btn" onClick={onResetDemo}><RotateCcw size={14} />Reset</button><button className="link-btn" onClick={onSignOut}>Leave demo</button></span>
+          </div>
+        )}
         <main id="main" className="page" tabIndex={-1}>{children}</main>
       </div>
 

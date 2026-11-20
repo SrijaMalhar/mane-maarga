@@ -4,10 +4,29 @@ import { useState } from 'react'
  * Editorial hero artwork: a Karnataka village home at dusk, drawn over a construction blueprint.
  * If a licensed photograph exists at /images/<photo>, it is shown instead; the drawing is the fallback.
  */
-export function Photo({ src, alt, className, children }: { src: string; alt: string; className?: string; children: JSX.Element }) {
+export function Photo({ src, srcSet, sizes, alt, className, credit, children }: { src: string; srcSet?: string; sizes?: string; alt: string; className?: string; credit?: JSX.Element; children: JSX.Element }) {
   const [failed, setFailed] = useState(false)
   if (failed) return children
-  return <img className={className} src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} />
+  return (
+    <>
+      <img className={className} src={src} srcSet={srcSet} sizes={sizes} alt={alt} decoding="async" fetchPriority="high" onError={() => setFailed(true)} />
+      {credit && <small className="photo-credit">{credit}</small>}
+    </>
+  )
+}
+
+/**
+ * Hero photograph: "An old Malenadu house with a tiled roof", by Manjunath M M.
+ * CC0 (public domain) from the WordPress Photo Directory: https://wordpress.org/photos/photo/106825910b/
+ * Served resized through the WordPress image CDN. If it can't load, the drawing is shown instead.
+ */
+const HERO = 'https://pd.w.org/2025/05/106825910b713b69.64290229.jpg'
+const cdn = (w: number) => `https://i0.wp.com/${HERO.replace('https://', '')}?w=${w}&quality=82&strip=all`
+export const heroPhoto = {
+  src: cdn(1200),
+  srcSet: [700, 1000, 1400, 1800].map(w => `${cdn(w)} ${w}w`).join(', '),
+  sizes: '(max-width: 960px) 92vw, 46vw',
+  page: 'https://wordpress.org/photos/photo/106825910b/',
 }
 
 export default function VillageScene({ className }: { className?: string }) {

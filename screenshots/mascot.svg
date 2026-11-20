@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Sooru mascot">
+  <defs>
+    <clipPath id="bodyClip">
+      <rect x="120" y="210" width="272" height="216" rx="38"/>
+    </clipPath>
+    <clipPath id="roofClip">
+      <path d="M90 236 Q84 224 96 213 L238 86 Q256 70 274 86 L416 213 Q428 224 422 236 Q416 248 402 248 L110 248 Q96 248 90 236 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- ground shadow -->
+  <ellipse cx="256" cy="452" rx="146" ry="9" fill="#1F2B4D" opacity="0.09"/>
+
+  <!-- doorstep -->
+  <rect x="150" y="418" width="212" height="26" rx="13" fill="#E4D8BB"/>
+
+  <!-- body -->
+  <rect x="120" y="210" width="272" height="216" rx="38" fill="#F7F0DF"/>
+  <g clip-path="url(#bodyClip)">
+    <rect x="336" y="200" width="70" height="240" fill="#EBDFC3" opacity="0.65"/>
+    <rect x="110" y="236" width="300" height="22" fill="#1F2B4D" opacity="0.08"/>
+  </g>
+
+  <!-- roof -->
+  <path d="M90 236 Q84 224 96 213 L238 86 Q256 70 274 86 L416 213 Q428 224 422 236 Q416 248 402 248 L110 248 Q96 248 90 236 Z" fill="#1F2B4D"/>
+  <g clip-path="url(#roofClip)">
+    <polygon points="256,60 440,230 440,260 256,260" fill="#141C36" opacity="0.35"/>
+    <path d="M114 226 L240 110" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="6" stroke-linecap="round" fill="none"/>
+  </g>
+  <!-- golden eave trim -->
+  <path d="M122 237 H390" stroke="#D9B15B" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- sage sprout -->
+  <g transform="translate(256 70) scale(0.78) translate(-256 -70)">
+    <path d="M256 82 V66" stroke="#6F9470" stroke-width="6" stroke-linecap="round"/>
+    <path d="M256 68 C228 70 211 50 215 26 C242 26 259 45 256 68 Z" fill="#8FAE8B"/>
+    <path d="M256 68 C285 66 301 48 299 28 C272 28 256 46 256 68 Z" fill="#6F9470"/>
+  </g>
+
+  <!-- eyes -->
+  <ellipse cx="226" cy="306" rx="8.5" ry="12" fill="#1F2B4D"/>
+  <ellipse cx="286" cy="306" rx="8.5" ry="12" fill="#1F2B4D"/>
+  <circle cx="229" cy="301" r="2.6" fill="#FFFFFF"/>
+  <circle cx="289" cy="301" r="2.6" fill="#FFFFFF"/>
+
+  <!-- smile -->
+  <path d="M243 332 Q256 342 269 332" stroke="#1F2B4D" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+
+  <!-- checklist -->
+  <rect x="328" y="350" width="58" height="72" rx="10" fill="#1F2B4D" opacity="0.10" transform="translate(2 3)"/>
+  <rect x="328" y="350" width="58" height="72" rx="10" fill="#FFFDF6" stroke="#E4D8BB" stroke-width="2"/>
+  <rect x="347" y="345" width="20" height="9" rx="4.5" fill="#D9B15B"/>
+  <path d="M338 372 l4 4 l8 -9" stroke="#6F9470" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M338 391 l4 4 l8 -9" stroke="#6F9470" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M338 410 l4 4 l8 -9" stroke="#D9B15B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M357 372 H375 M357 391 H375 M357 410 H369" stroke="#C5CCDB" stroke-width="3.6" stroke-linecap="round"/>
+</svg>

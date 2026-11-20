@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/mascot.svg" width="88" alt="Mane Mitra, the Mane Maarga mascot: a small tiled-roof house with a sprout on its ridge" />
+<img src="docs/assets/logo.svg" width="64" alt="Mane Maarga logo: a tiled roof over a home with a path leading to the door" />
 
 # Mane Maarga · ಮನೆ ಮಾರ್ಗ
 
@@ -10,7 +10,8 @@
 
 Mane Maarga helps case workers take rural families in Karnataka from their first housing-assistance record to their front door, keeping documents, money and construction stages in one record that anyone can check.
 
-<img src="docs/assets/hero.png" width="100%" alt="The Mane Maarga landing page: a Kannada tagline, the headline 'A home is more than walls. It is a beginning.' and an illustration of a tiled-roof village home drawn over a blueprint" style="border-radius:12px" />
+<img src="https://i0.wp.com/pd.w.org/2025/05/106825910b713b69.64290229.jpg?resize=1600,720&quality=82&strip=all" width="100%" alt="An old tiled-roof house in Karnataka's Malenadu region, surrounded by greenery, with a coconut palm in the foreground" />
+<sub>Photo: Manjunath M M · <a href="https://wordpress.org/photos/photo/106825910b/">CC0, WordPress Photo Directory</a></sub>
 
 <p>
 <img alt="React" src="https://img.shields.io/badge/React_18-1F3D2F?style=flat-square&logo=react&logoColor=F6F1E7" />
@@ -192,10 +193,9 @@ mane-maarga/
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/               # Overview, Beneficiaries, CaseFile, Verification, Finance, …
-│   │   ├── components/          # Mascot, House drawing, Shell, shared UI
+│   │   ├── components/          # Logo, House and village drawings, Shell, shared UI
 │   │   └── lib/                 # API client, i18n (Kannada/English), formatting
-│   ├── public/images/mascot/    # Mane Mitra SVGs (exported from the React component)
-│   └── scripts/export-mascot.mjs
+│   └── public/                  # favicon
 ├── scripts/                     # seed_demo.py, backup.sh
 ├── docs/                        # deployment, operations, release checklist, README assets
 ├── docker-compose.yml
@@ -219,14 +219,6 @@ mane-maarga/
 - [x] In-browser demo mode for the hosted preview
 - [ ] Hosted API for the live preview
 - [ ] Frontend tests and monitoring
-
-## Mane Mitra
-
-<img align="left" src="frontend/public/images/mascot/mane-mitra-guide.svg" width="72" alt="" />
-
-**Mane Mitra (ಮನೆ ಮಿತ್ರ)** — *the friend of the home*. It's a small house with a Mangalore-tile roof, a green door, and a sprout on its ridge for hope. It holds a lantern when it's guiding someone. The same drawing appears in the app's empty states, loading screens and sign-in page. It's a single React component, exported to SVG with `node frontend/scripts/export-mascot.mjs`.
-
-<br clear="left" />
 
 ---
 

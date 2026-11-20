@@ -1,5 +1,5 @@
 import { ArrowRight, ShieldCheck, Scale, Eye } from 'lucide-react'
-import Mascot from '../components/Mascot'
+import Logo from '../components/Logo'
 import House from '../components/House'
 import VillageScene, { Photo, heroPhoto } from '../components/VillageScene'
 import { LanguageSwitch, useI18n } from '../lib/i18n'
@@ -21,7 +21,7 @@ export default function Landing({ onEnter }: { onEnter: () => void }) {
     <div className="landing">
       <header className="l-nav">
         <a className="l-brand" href="#top" aria-label="Mane Maarga home">
-          <Mascot size={40} />
+          <Logo size={38} />
           <span><b>Mane Maarga</b><small lang="kn">ಮನೆ ಮಾರ್ಗ</small></span>
         </a>
         <nav className="l-links" aria-label="Page sections">
@@ -50,7 +50,6 @@ export default function Landing({ onEnter }: { onEnter: () => void }) {
             <span className="plate-num">01</span>
             <span><b>Malenadu, Karnataka</b><small>Tiled roof, lime-washed walls, room to grow</small></span>
           </figcaption>
-          <div className="l-hero-mitra"><Mascot size={88} mood="guide" /><p>I'm <b>Mane Mitra</b> — I'll walk with each family from first record to front door.</p></div>
         </figure>
       </section>
 

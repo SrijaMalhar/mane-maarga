@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { Mic, Send, Volume2, Sparkles, ExternalLink, ShieldAlert } from 'lucide-react'
-import Mascot from '../components/Mascot'
 import { CasePicker, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
 import { type AgentPlan, type RecoveryTask } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
@@ -123,7 +122,6 @@ function Intake() {
   return (
     <div className="intake">
       <div className="intake-side">
-        <Mascot size={72} mood="guide" />
         <p>A guided conversation to collect household details in the family's language. An operator reviews the answers before any case is created.</p>
         <label className="field"><span>Language</span><select value={language} onChange={e => setLanguage(e.target.value as 'kn')} disabled={!!session && !done}><option value="kn">ಕನ್ನಡ Kannada</option><option value="en">English</option><option value="te">తెలుగు Telugu</option></select></label>
         <button className="btn primary" onClick={start}>{session ? 'Start over' : 'Start conversation'}</button>

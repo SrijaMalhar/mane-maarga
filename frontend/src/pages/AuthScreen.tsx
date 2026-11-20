@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { ArrowLeft, LockKeyhole, Sparkles } from 'lucide-react'
-import Mascot from '../components/Mascot'
+import Logo from '../components/Logo'
 import DuskVillage from '../components/DuskVillage'
 import { Notice } from '../components/ui'
 import { API_BASE, errorText, type AuthUser } from '../lib/api'
@@ -45,7 +45,7 @@ export default function AuthScreen({ mode, onAuthenticated, onRetry, onBack, onD
       <section className="auth-panel">
         <div className="auth-top"><button className="link-btn" onClick={onBack}><ArrowLeft size={16} /> Mane Maarga</button><LanguageSwitch /></div>
         <div className="auth-form-wrap">
-          <Mascot size={72} mood={mode === 'offline' ? 'calm' : 'guide'} />
+          <Logo size={52} />
           {mode === 'offline' ? (
             <>
               <h1>Explore Mane Maarga</h1>

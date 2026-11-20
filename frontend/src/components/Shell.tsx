@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { LogOut, MoreHorizontal, RotateCcw, X } from 'lucide-react'
-import Mascot from './Mascot'
+import Logo from './Logo'
 import { IconBuild, IconFinance, IconInsight, IconLedger, IconOverview, IconPeople, IconTeam, IconVerify } from './NavIcons'
 import { href, useApp, type Route } from '../lib/app-context'
 import { LanguageSwitch, useI18n } from '../lib/i18n'
@@ -36,7 +36,7 @@ export default function Shell({ route, onSignOut, children, demo = false, onRese
       <a className="skip-link" href="#main">{t('nav.skip')}</a>
       <nav className="rail" aria-label="Primary">
         <a className="rail-brand" href="#/overview" aria-label={t('brand.name')}>
-          <Mascot size={44} />
+          <Logo size={42} />
         </a>
         <div className="rail-items">{items.map(i => link(i, 'rail-item'))}</div>
         <button className="rail-item rail-out" onClick={onSignOut}><LogOut size={20} aria-hidden /><span>{demo ? 'Leave demo' : t('nav.signout')}</span></button>

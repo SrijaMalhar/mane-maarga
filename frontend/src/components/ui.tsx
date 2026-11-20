@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Check, Circle, CircleDashed, X, AlertTriangle, Clock3, CheckCircle2, XCircle, Info } from 'lucide-react'
-import Mascot from './Mascot'
+import House from './House'
 import { STATUSES, type Status } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 
@@ -44,10 +44,10 @@ export function Tag({ tone = 'neutral', children, icon }: { tone?: 'neutral' | '
 }
 
 /* ----- Empty, loading, error states ----- */
-export function Empty({ title, sub, action, mood = 'guide' }: { title: string; sub?: string; action?: ReactNode; mood?: 'calm' | 'happy' | 'guide' }) {
+export function Empty({ title, sub, action, mood = 'plan' }: { title: string; sub?: string; action?: ReactNode; mood?: 'calm' | 'happy' | 'guide' | 'plan' }) {
   return (
     <div className="empty">
-      <Mascot size={84} mood={mood} />
+      <House level={mood === 'happy' ? 5 : 0} size={96} label="" />
       <p className="empty-title">{title}</p>
       {sub && <p className="empty-sub">{sub}</p>}
       {action}
@@ -59,7 +59,7 @@ export function Skeleton({ lines = 3, height = 14 }: { lines?: number; height?: 
 }
 export function Loading({ label }: { label?: string }) {
   const { t } = useI18n()
-  return <div className="loading" role="status"><Mascot size={56} mood="calm" className="bob" /><span>{label ?? t('common.loading')}…</span></div>
+  return <div className="loading" role="status"><span className="loading-path" aria-hidden><i /><i /><i /></span><span>{label ?? t('common.loading')}…</span></div>
 }
 export function Notice({ tone = 'info', children, onClose }: { tone?: 'info' | 'error' | 'success' | 'warn'; children: ReactNode; onClose?: () => void }) {
   const Icon = tone === 'error' ? XCircle : tone === 'success' ? CheckCircle2 : tone === 'warn' ? AlertTriangle : Info

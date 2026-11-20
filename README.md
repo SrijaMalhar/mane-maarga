@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/logo.svg" width="64" alt="Mane Maarga logo: a tiled roof over a home with a path leading to the door" />
+<img src="docs/assets/mascot.svg" width="88" alt="The Mane Maarga mascot: a small tiled-roof house with a green door and a sprout on its ridge" />
 
 # Mane Maarga · ಮನೆ ಮಾರ್ಗ
 
@@ -193,9 +193,10 @@ mane-maarga/
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/               # Overview, Beneficiaries, CaseFile, Verification, Finance, …
-│   │   ├── components/          # Logo, House and village drawings, Shell, shared UI
+│   │   ├── components/          # Mascot, house and village drawings, Shell, shared UI
 │   │   └── lib/                 # API client, i18n (Kannada/English), formatting
-│   └── public/                  # favicon
+│   ├── public/images/mascot/    # mascot SVGs (exported from the React component)
+│   └── scripts/export-mascot.mjs
 ├── scripts/                     # seed_demo.py, backup.sh
 ├── docs/                        # deployment, operations, release checklist, README assets
 ├── docker-compose.yml
@@ -219,6 +220,15 @@ mane-maarga/
 - [x] In-browser demo mode for the hosted preview
 - [ ] Hosted API for the live preview
 - [ ] Frontend tests and monitoring
+
+
+## The mascot
+
+<img align="left" src="frontend/public/images/mascot/mane-maarga-guide.svg" width="72" alt="" />
+
+A small house with a Mangalore-tile roof, a green door and a sprout on its ridge for hope. It holds a lantern when it's guiding someone. The same drawing appears in the app's empty states, loading screens and sign-in page. It's a single React component, exported to SVG with `node frontend/scripts/export-mascot.mjs`.
+
+<br clear="left" />
 
 ---
 

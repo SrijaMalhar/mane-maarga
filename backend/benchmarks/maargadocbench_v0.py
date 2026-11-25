@@ -34,6 +34,7 @@ Usage (from the repository root or from backend/)::
 Targets from the project plan: field F1 >= 0.90 and mismatch recall >= 0.90.
 Targets are goals; only measured numbers should be quoted.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -41,8 +42,8 @@ import json
 import random
 import sys
 import tempfile
-from collections import Counter, defaultdict
-from dataclasses import dataclass, field
+from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -64,20 +65,55 @@ TALUKS = {
     "Channapatna": ["Malur", "Virupakshipura", "Akkur"],
     "Hosakote": ["Nandagudi", "Sulibele", "Anugondanahalli"],
 }
-GIVEN = ["Lakshmamma", "Nagaraju", "Shivamma", "Manjunath", "Gowramma", "Ravi Kumar", "Saroja", "Thimmaiah",
-         "Kamala", "Venkatesh", "Puttamma", "Siddaraju", "Jayamma", "Mahadeva", "Bhagya", "Chikkanna",
-         "Rangamma", "Hanumanthappa", "Yashoda", "Basavaraju"]
+GIVEN = [
+    "Lakshmamma",
+    "Nagaraju",
+    "Shivamma",
+    "Manjunath",
+    "Gowramma",
+    "Ravi Kumar",
+    "Saroja",
+    "Thimmaiah",
+    "Kamala",
+    "Venkatesh",
+    "Puttamma",
+    "Siddaraju",
+    "Jayamma",
+    "Mahadeva",
+    "Bhagya",
+    "Chikkanna",
+    "Rangamma",
+    "Hanumanthappa",
+    "Yashoda",
+    "Basavaraju",
+]
 INITIAL = ["", "", "K", "M", "G", "B", "D", "R", "S", "N"]
 
 # Same entity, different spelling: how names really drift across offices and transliteration.
 VARIANTS = {
-    "Kudur": ["Kuduru"], "Hosahalli": ["Hosa Halli", "Hosahally"], "Tippasandra": ["Tippasandara"],
-    "Solur": ["Soluru"], "Bidadi": ["Biddadi"], "Harohalli": ["Harohally"], "Sathanur": ["Satanur", "Sathanuru"],
-    "Kodihalli": ["Kodihally"], "Sulibele": ["Soolibele"], "Magadi": ["Magadai"], "Kanakapura": ["Kanakpura"],
-    "Lakshmamma": ["Laxmamma", "Lakshamma"], "Nagaraju": ["Nagaraj"], "Shivamma": ["Sivamma"],
-    "Manjunath": ["Manjunatha"], "Venkatesh": ["Venkatesha"], "Siddaraju": ["Siddaraj"],
-    "Thimmaiah": ["Timmaiah"], "Basavaraju": ["Basavaraj"], "Hanumanthappa": ["Hanumantappa"],
-    "Gowramma": ["Gouramma"], "Mahadeva": ["Mahadev"], "Chikkanna": ["Chikanna"],
+    "Kudur": ["Kuduru"],
+    "Hosahalli": ["Hosa Halli", "Hosahally"],
+    "Tippasandra": ["Tippasandara"],
+    "Solur": ["Soluru"],
+    "Bidadi": ["Biddadi"],
+    "Harohalli": ["Harohally"],
+    "Sathanur": ["Satanur", "Sathanuru"],
+    "Kodihalli": ["Kodihally"],
+    "Sulibele": ["Soolibele"],
+    "Magadi": ["Magadai"],
+    "Kanakapura": ["Kanakpura"],
+    "Lakshmamma": ["Laxmamma", "Lakshamma"],
+    "Nagaraju": ["Nagaraj"],
+    "Shivamma": ["Sivamma"],
+    "Manjunath": ["Manjunatha"],
+    "Venkatesh": ["Venkatesha"],
+    "Siddaraju": ["Siddaraj"],
+    "Thimmaiah": ["Timmaiah"],
+    "Basavaraju": ["Basavaraj"],
+    "Hanumanthappa": ["Hanumantappa"],
+    "Gowramma": ["Gouramma"],
+    "Mahadeva": ["Mahadev"],
+    "Chikkanna": ["Chikanna"],
 }
 # OCR confusions seen on scanned forms.
 OCR_SWAPS = [("0", "O"), ("1", "l"), ("5", "S"), ("8", "B"), ("a", "o"), ("m", "rn"), ("i", "l")]
@@ -90,9 +126,9 @@ class Doc:
     kind: str
     condition: str
     text: str
-    truth: dict          # what the document actually says (extraction ground truth)
-    case: dict           # what the case record says
-    should_flag: bool    # True only when a compared field truly refers to a different person/place
+    truth: dict  # what the document actually says (extraction ground truth)
+    case: dict  # what the case record says
+    should_flag: bool  # True only when a compared field truly refers to a different person/place
     planted: str = ""
 
 
@@ -102,13 +138,19 @@ class Tally:
     fp: int = 0
     fn: int = 0
 
-    def add(self, other: "Tally") -> None:
-        self.tp += other.tp; self.fp += other.fp; self.fn += other.fn
+    def add(self, other: Tally) -> None:
+        self.tp += other.tp
+        self.fp += other.fp
+        self.fn += other.fn
 
     @property
-    def precision(self) -> float: return self.tp / (self.tp + self.fp) if self.tp + self.fp else 0.0
+    def precision(self) -> float:
+        return self.tp / (self.tp + self.fp) if self.tp + self.fp else 0.0
+
     @property
-    def recall(self) -> float: return self.tp / (self.tp + self.fn) if self.tp + self.fn else 0.0
+    def recall(self) -> float:
+        return self.tp / (self.tp + self.fn) if self.tp + self.fn else 0.0
+
     @property
     def f1(self) -> float:
         p, r = self.precision, self.recall
@@ -143,25 +185,34 @@ def ocr_noise(value: str, rng: random.Random) -> str:
     a, b = rng.choice(options)
     idx = [i for i, ch in enumerate(value) if value.startswith(a, i)]
     i = rng.choice(idx)
-    return value[:i] + b + value[i + len(a):]
+    return value[:i] + b + value[i + len(a) :]
 
 
 def render(kind: str, f: dict) -> str:
     """Lay the fields out the way the two document types print them."""
     if kind == "land_record":
         lines = ["GOVERNMENT OF KARNATAKA", "RECORD OF RIGHTS, TENANCY AND CROPS (RTC) - SYNTHETIC"]
-        if "survey_number" in f: lines.append(f"Survey No: {f['survey_number']}")
-        if "village" in f: lines.append(f"Village: {f['village']}")
-        if "taluk" in f: lines.append(f"Taluk: {f['taluk']}")
-        if "extent" in f: lines.append(f"Extent: {f['extent']}")
-        if "beneficiary_name" in f: lines.append(f"Owner: {f['beneficiary_name']}")
+        if "survey_number" in f:
+            lines.append(f"Survey No: {f['survey_number']}")
+        if "village" in f:
+            lines.append(f"Village: {f['village']}")
+        if "taluk" in f:
+            lines.append(f"Taluk: {f['taluk']}")
+        if "extent" in f:
+            lines.append(f"Extent: {f['extent']}")
+        if "beneficiary_name" in f:
+            lines.append(f"Owner: {f['beneficiary_name']}")
         lines.append("Crop: Ragi")
     else:
         lines = ["PRADHAN MANTRI AWAAS YOJANA - GRAMIN", "SANCTION ORDER - SYNTHETIC"]
-        if "document_number" in f: lines.append(f"Reference No: {f['document_number']}")
-        if "beneficiary_name" in f: lines.append(f"Beneficiary: {f['beneficiary_name']}")
-        if "village" in f: lines.append(f"Village: {f['village']}")
-        if "taluk" in f: lines.append(f"Taluk: {f['taluk']}")
+        if "document_number" in f:
+            lines.append(f"Reference No: {f['document_number']}")
+        if "beneficiary_name" in f:
+            lines.append(f"Beneficiary: {f['beneficiary_name']}")
+        if "village" in f:
+            lines.append(f"Village: {f['village']}")
+        if "taluk" in f:
+            lines.append(f"Taluk: {f['taluk']}")
         lines.append("Unit assistance: Rs 1,20,000")
     return "\n".join(lines)
 
@@ -175,12 +226,21 @@ def generate(n: int, seed: int) -> list[Doc]:
         name, (village, taluk) = person(rng), place(rng)
         case = {"beneficiary_name": name, "village": village, "taluk": taluk}
         if kind == "land_record":
-            truth = {"survey_number": f"{rng.randint(1, 240)}/{rng.randint(1, 9)}", "village": village, "taluk": taluk,
-                     "extent": f"{rng.choice(['0.05', '0.10', '0.12', '0.20', '1.5'])} acre", "beneficiary_name": name}
+            truth = {
+                "survey_number": f"{rng.randint(1, 240)}/{rng.randint(1, 9)}",
+                "village": village,
+                "taluk": taluk,
+                "extent": f"{rng.choice(['0.05', '0.10', '0.12', '0.20', '1.5'])} acre",
+                "beneficiary_name": name,
+            }
         else:
             code = taluk[:3].upper()
-            truth = {"document_number": f"KA-{code}-2025-{rng.randint(1, 9999):04d}", "beneficiary_name": name,
-                     "village": village, "taluk": taluk}
+            truth = {
+                "document_number": f"KA-{code}-2025-{rng.randint(1, 9999):04d}",
+                "beneficiary_name": name,
+                "village": village,
+                "taluk": taluk,
+            }
         should_flag, planted = False, ""
 
         if condition == "ocr_noise":
@@ -227,15 +287,23 @@ def generate(n: int, seed: int) -> list[Doc]:
 def to_pdf(text: str, path: Path) -> None:
     """A minimal text PDF, so --via-pdf exercises the same pypdf path as uploads."""
     esc = lambda s: s.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")  # noqa: E731
-    stream = "BT /F1 12 Tf 50 780 Td 16 TL " + " ".join(f"({esc(l)}) Tj T*" for l in text.splitlines()) + " ET"
-    objs = ["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
-            f"<< /Length {len(stream)} >>\nstream\n{stream}\nendstream", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
+    stream = "BT /F1 12 Tf 50 780 Td 16 TL " + " ".join(f"({esc(line)}) Tj T*" for line in text.splitlines()) + " ET"
+    objs = [
+        "<< /Type /Catalog /Pages 2 0 R >>",
+        "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+        f"<< /Length {len(stream)} >>\nstream\n{stream}\nendstream",
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
     out, offs = b"%PDF-1.4\n", []
     for i, body in enumerate(objs, 1):
-        offs.append(len(out)); out += f"{i} 0 obj\n{body}\nendobj\n".encode("latin-1")
+        offs.append(len(out))
+        out += f"{i} 0 obj\n{body}\nendobj\n".encode("latin-1")
     x = len(out)
-    out += f"xref\n0 {len(objs) + 1}\n0000000000 65535 f \n".encode() + "".join(f"{o:010d} 00000 n \n" for o in offs).encode()
+    out += (
+        f"xref\n0 {len(objs) + 1}\n0000000000 65535 f \n".encode()
+        + "".join(f"{o:010d} 00000 n \n" for o in offs).encode()
+    )
     out += f"trailer\n<< /Size {len(objs) + 1} /Root 1 0 R >>\nstartxref\n{x}\n%%EOF\n".encode()
     path.write_bytes(out)
 
@@ -243,9 +311,12 @@ def to_pdf(text: str, path: Path) -> None:
 def run(docs: list[Doc], via_pdf: bool = False) -> dict:
     if via_pdf:
         from app.document_ai import extract_document
+
         tmp = Path(tempfile.mkdtemp(prefix="mdb-"))
     field_tally: dict[str, Tally] = defaultdict(Tally)
-    by_cond: dict[str, dict] = defaultdict(lambda: {"docs": 0, "fields": Tally(), "flagged": 0, "should_flag": 0, "caught": 0})
+    by_cond: dict[str, dict] = defaultdict(
+        lambda: {"docs": 0, "fields": Tally(), "flagged": 0, "should_flag": 0, "caught": 0}
+    )
     flag = Tally()
     variant_docs = variant_flagged = 0
     type_correct = 0
@@ -254,7 +325,8 @@ def run(docs: list[Doc], via_pdf: bool = False) -> dict:
     for d in docs:
         text = d.text
         if via_pdf:
-            p = tmp / f"{d.doc_id}.pdf"; to_pdf(d.text, p)
+            p = tmp / f"{d.doc_id}.pdf"
+            to_pdf(d.text, p)
             text, _, _ = extract_document(p, "application/pdf")
         doc_type, got = extract_fields(text)
         type_correct += doc_type == d.kind
@@ -264,43 +336,83 @@ def run(docs: list[Doc], via_pdf: bool = False) -> dict:
         for k in FIELDS:
             want, have = d.truth.get(k), got.get(k)
             if want is not None and have is not None:
-                if normalize(have) == normalize(want): t.tp += 1
-                else: t.fp += 1; t.fn += 1
-            elif want is not None: t.fn += 1
-            elif have is not None: t.fp += 1
+                if normalize(have) == normalize(want):
+                    t.tp += 1
+                else:
+                    t.fp += 1
+                t.fn += 1
+            elif want is not None:
+                t.fn += 1
+            elif have is not None:
+                t.fp += 1
             ft = field_tally[k]
-            if want is not None and have is not None and normalize(have) == normalize(want): ft.tp += 1
+            if want is not None and have is not None and normalize(have) == normalize(want):
+                ft.tp += 1
             else:
-                if have is not None: ft.fp += 1
-                if want is not None: ft.fn += 1
+                if have is not None:
+                    ft.fp += 1
+                if want is not None:
+                    ft.fn += 1
 
         checks = compare_case(got, d.case)
         flagged = any(c.get("status") == "mismatch" for c in checks)
-        if flagged and d.should_flag: flag.tp += 1
-        elif flagged: flag.fp += 1
-        elif d.should_flag: flag.fn += 1
+        if flagged and d.should_flag:
+            flag.tp += 1
+        elif flagged:
+            flag.fp += 1
+        elif d.should_flag:
+            flag.fn += 1
         if d.condition == "variant":
-            variant_docs += 1; variant_flagged += flagged
+            variant_docs += 1
+            variant_flagged += flagged
 
         c = by_cond[d.condition]
-        c["docs"] += 1; c["fields"].add(t); c["flagged"] += flagged; c["should_flag"] += d.should_flag; c["caught"] += flagged and d.should_flag
+        c["docs"] += 1
+        c["fields"].add(t)
+        c["flagged"] += flagged
+        c["should_flag"] += d.should_flag
+        c["caught"] += flagged and d.should_flag
         if (flagged != d.should_flag or t.fn or t.fp) and len(failures) < 12:
-            failures.append({"doc_id": d.doc_id, "condition": d.condition, "planted": d.planted, "flagged": flagged,
-                             "should_flag": d.should_flag, "extracted": got,
-                             "truth": {k: v for k, v in d.truth.items()}})
+            failures.append(
+                {
+                    "doc_id": d.doc_id,
+                    "condition": d.condition,
+                    "planted": d.planted,
+                    "flagged": flagged,
+                    "should_flag": d.should_flag,
+                    "extracted": got,
+                    "truth": {k: v for k, v in d.truth.items()},
+                }
+            )
 
     micro = Tally()
-    for v in field_tally.values(): micro.add(v)
+    for v in field_tally.values():
+        micro.add(v)
     return {
-        "benchmark": "MaargaDocBench", "version": VERSION, "documents": len(docs), "via_pdf": via_pdf,
-        "field_f1": round(micro.f1, 4), "field_precision": round(micro.precision, 4), "field_recall": round(micro.recall, 4),
-        "per_field": {k: {"precision": round(v.precision, 4), "recall": round(v.recall, 4), "f1": round(v.f1, 4)} for k, v in field_tally.items()},
-        "mismatch_recall": round(flag.recall, 4), "mismatch_precision": round(flag.precision, 4),
+        "benchmark": "MaargaDocBench",
+        "version": VERSION,
+        "documents": len(docs),
+        "via_pdf": via_pdf,
+        "field_f1": round(micro.f1, 4),
+        "field_precision": round(micro.precision, 4),
+        "field_recall": round(micro.recall, 4),
+        "per_field": {
+            k: {"precision": round(v.precision, 4), "recall": round(v.recall, 4), "f1": round(v.f1, 4)}
+            for k, v in field_tally.items()
+        },
+        "mismatch_recall": round(flag.recall, 4),
+        "mismatch_precision": round(flag.precision, 4),
         "variant_false_alarm_rate": round(variant_flagged / variant_docs, 4) if variant_docs else None,
         "doc_type_accuracy": round(type_correct / len(docs), 4),
-        "by_condition": {k: {"docs": v["docs"], "field_f1": round(v["fields"].f1, 4), "flag_rate": round(v["flagged"] / v["docs"], 4),
-                             "mismatch_recall": round(v["caught"] / v["should_flag"], 4) if v["should_flag"] else None}
-                         for k, v in sorted(by_cond.items(), key=lambda kv: CONDITIONS.index(kv[0]))},
+        "by_condition": {
+            k: {
+                "docs": v["docs"],
+                "field_f1": round(v["fields"].f1, 4),
+                "flag_rate": round(v["flagged"] / v["docs"], 4),
+                "mismatch_recall": round(v["caught"] / v["should_flag"], 4) if v["should_flag"] else None,
+            }
+            for k, v in sorted(by_cond.items(), key=lambda kv: CONDITIONS.index(kv[0]))
+        },
         "targets": {"field_f1": 0.90, "mismatch_recall": 0.90},
         "sample_failures": failures,
     }
@@ -308,17 +420,23 @@ def run(docs: list[Doc], via_pdf: bool = False) -> dict:
 
 def report(r: dict) -> str:
     ok = lambda v, t: "meets" if v >= t else "below"  # noqa: E731
-    rows = [f"MaargaDocBench v{r['version']} — {r['documents']} synthetic documents{' via PDF' if r['via_pdf'] else ''}", "",
-            f"  Field F1                  {r['field_f1']:.3f}  (P {r['field_precision']:.3f}, R {r['field_recall']:.3f})  target 0.90: {ok(r['field_f1'], .9)}",
-            f"  Mismatch recall           {r['mismatch_recall']:.3f}  target 0.90: {ok(r['mismatch_recall'], .9)}",
-            f"  Mismatch precision        {r['mismatch_precision']:.3f}",
-            f"  Variant false-alarm rate  {r['variant_false_alarm_rate']:.3f}  (lower is better)",
-            f"  Document type accuracy    {r['doc_type_accuracy']:.3f}", "",
-            "  Condition        docs  field F1  flagged  mismatch recall"]
+    rows = [
+        f"MaargaDocBench v{r['version']} — {r['documents']} synthetic documents{' via PDF' if r['via_pdf'] else ''}",
+        "",
+        f"  Field F1                  {r['field_f1']:.3f}  (P {r['field_precision']:.3f}, R {r['field_recall']:.3f})  target 0.90: {ok(r['field_f1'], 0.9)}",
+        f"  Mismatch recall           {r['mismatch_recall']:.3f}  target 0.90: {ok(r['mismatch_recall'], 0.9)}",
+        f"  Mismatch precision        {r['mismatch_precision']:.3f}",
+        f"  Variant false-alarm rate  {r['variant_false_alarm_rate']:.3f}  (lower is better)",
+        f"  Document type accuracy    {r['doc_type_accuracy']:.3f}",
+        "",
+        "  Condition        docs  field F1  flagged  mismatch recall",
+    ]
     for k, v in r["by_condition"].items():
         mr = "—" if v["mismatch_recall"] is None else f"{v['mismatch_recall']:.3f}"
         rows.append(f"  {k:<15} {v['docs']:>5}  {v['field_f1']:>8.3f}  {v['flag_rate']:>7.3f}  {mr:>15}")
-    rows += ["", "  Per field:"] + [f"    {k:<17} P {v['precision']:.3f}  R {v['recall']:.3f}  F1 {v['f1']:.3f}" for k, v in r["per_field"].items()]
+    rows += ["", "  Per field:"] + [
+        f"    {k:<17} P {v['precision']:.3f}  R {v['recall']:.3f}  F1 {v['f1']:.3f}" for k, v in r["per_field"].items()
+    ]
     return "\n".join(rows)
 
 
@@ -326,7 +444,9 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="MaargaDocBench v0: synthetic document benchmark for Mane Maarga.")
     ap.add_argument("--n", type=int, default=500, help="number of documents (default 500)")
     ap.add_argument("--seed", type=int, default=7, help="random seed; same seed, same documents (default 7)")
-    ap.add_argument("--via-pdf", action="store_true", help="render each document to PDF and read it back with pypdf first")
+    ap.add_argument(
+        "--via-pdf", action="store_true", help="render each document to PDF and read it back with pypdf first"
+    )
     ap.add_argument("--json", type=Path, help="write full results as JSON to this path")
     ap.add_argument("--dump-docs", type=Path, help="write the generated documents (JSONL) to this directory")
     a = ap.parse_args(argv)
@@ -334,7 +454,8 @@ def main(argv: list[str] | None = None) -> int:
     if a.dump_docs:
         a.dump_docs.mkdir(parents=True, exist_ok=True)
         with (a.dump_docs / f"maargadocbench_v0_seed{a.seed}.jsonl").open("w", encoding="utf-8") as fh:
-            for d in docs: fh.write(json.dumps(d.__dict__, ensure_ascii=False) + "\n")
+            for d in docs:
+                fh.write(json.dumps(d.__dict__, ensure_ascii=False) + "\n")
     r = run(docs, via_pdf=a.via_pdf)
     r["seed"] = a.seed
     print(report(r))

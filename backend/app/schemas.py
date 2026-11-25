@@ -1,9 +1,11 @@
-from pydantic import BaseModel, ConfigDict, Field
-from typing import Literal
 from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
 
 Status = Literal["intake", "verified", "planning", "finance_review", "construction", "completed"]
 Role = Literal["admin", "operator", "viewer"]
+
 
 class CaseCreate(BaseModel):
     beneficiary_name: str = Field(min_length=2, max_length=160)
@@ -16,6 +18,7 @@ class CaseCreate(BaseModel):
     existing_loan: float = Field(default=0, ge=0)
     notes: str = ""
 
+
 class CaseUpdate(BaseModel):
     beneficiary_name: str | None = Field(default=None, min_length=2, max_length=160)
     village: str | None = Field(default=None, max_length=160)
@@ -27,17 +30,20 @@ class CaseUpdate(BaseModel):
     existing_loan: float | None = Field(default=None, ge=0)
     notes: str | None = None
 
+
 class CaseOut(CaseCreate):
     id: int
     gap_amount: float
     consent_status: str = "pending"
     model_config = ConfigDict(from_attributes=True)
 
+
 class ConsentCreate(BaseModel):
     consent_given: bool
     consent_scope: str = Field(default="case_processing", max_length=80)
     consent_text_version: str = Field(default="v1", max_length=40)
     notes: str = ""
+
 
 class ConsentOut(BaseModel):
     id: int
@@ -50,6 +56,7 @@ class ConsentOut(BaseModel):
     recorded_at: datetime | None
     model_config = ConfigDict(from_attributes=True)
 
+
 class AuditOut(BaseModel):
     id: int
     case_id: int | None
@@ -59,20 +66,24 @@ class AuditOut(BaseModel):
     created_at: datetime | None
     model_config = ConfigDict(from_attributes=True)
 
+
 class BootstrapRequest(BaseModel):
     username: str = Field(min_length=3, max_length=80)
     email: str = Field(min_length=5, max_length=160)
     password: str = Field(min_length=12, max_length=128)
 
+
 class LoginRequest(BaseModel):
     username: str = Field(min_length=3, max_length=80)
     password: str = Field(min_length=1, max_length=128)
+
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=80)
     email: str = Field(min_length=5, max_length=160)
     password: str = Field(min_length=12, max_length=128)
     role: Role = "operator"
+
 
 class UserOut(BaseModel):
     id: int
@@ -83,10 +94,12 @@ class UserOut(BaseModel):
     created_at: datetime | None
     model_config = ConfigDict(from_attributes=True)
 
+
 class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserOut
+
 
 class DocumentOut(BaseModel):
     id: int
@@ -99,8 +112,10 @@ class DocumentOut(BaseModel):
     uploaded_at: datetime | None
     model_config = ConfigDict(from_attributes=True)
 
+
 FundingStatus = Literal["proposed", "confirmed", "received", "rejected"]
 FundingType = Literal["subsidy", "loan", "savings", "wages", "grant", "other"]
+
 
 class FundingCreate(BaseModel):
     source_type: FundingType
@@ -112,12 +127,14 @@ class FundingCreate(BaseModel):
     evidence_document_id: int | None = None
     notes: str = Field(default="", max_length=2000)
 
+
 class FundingOut(FundingCreate):
     id: int
     case_id: int
     created_by: str
     created_at: datetime | None
     model_config = ConfigDict(from_attributes=True)
+
 
 class StageCreate(BaseModel):
     stage_code: str = Field(min_length=2, max_length=40)
@@ -127,6 +144,7 @@ class StageCreate(BaseModel):
     planned_end: datetime | None = None
     notes: str = Field(default="", max_length=2000)
 
+
 class StageOut(StageCreate):
     id: int
     case_id: int
@@ -135,9 +153,11 @@ class StageOut(StageCreate):
     created_at: datetime | None
     model_config = ConfigDict(from_attributes=True)
 
+
 class StageStatusUpdate(BaseModel):
     status: Literal["planned", "in_progress", "verified", "completed", "blocked"]
     notes: str = Field(default="", max_length=2000)
+
 
 class FinanceSummary(BaseModel):
     case_id: int
@@ -150,6 +170,7 @@ class FinanceSummary(BaseModel):
     stages: list[dict]
     warnings: list[str]
 
+
 class ExtractionOut(BaseModel):
     id: int
     document_id: int
@@ -160,6 +181,7 @@ class ExtractionOut(BaseModel):
     engine: str
     confidence: float
     extracted_at: datetime | None
+
 
 class ExtractionRequest(BaseModel):
     force: bool = False

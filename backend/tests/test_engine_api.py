@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 
@@ -21,9 +22,13 @@ def test_ladder_validation_and_unknown_state(client):
 
 
 def test_affordability_counts_existing_and_scheme_loan(client):
-    payload = {"monthly_income": [10000] * 12,
-               "existing_loans": [{"name": "PMAY-G scheme loan", "principal": 70000, "rate_pa": 0.07, "months": 60}],
-               "requested": 150000, "rate_pa": 0.12, "months": 60}
+    payload = {
+        "monthly_income": [10000] * 12,
+        "existing_loans": [{"name": "PMAY-G scheme loan", "principal": 70000, "rate_pa": 0.07, "months": 60}],
+        "requested": 150000,
+        "rate_pa": 0.12,
+        "months": 60,
+    }
     r = client.post("/api/engine/affordability", json=payload)
     assert r.status_code == 200
     body = r.json()

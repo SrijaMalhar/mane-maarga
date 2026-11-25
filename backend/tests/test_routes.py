@@ -1,4 +1,5 @@
 """The router split must not add, drop or rename any route. Update the fixture only on purpose."""
+
 from pathlib import Path
 
 from app.main import app

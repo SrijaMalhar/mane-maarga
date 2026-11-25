@@ -1,5 +1,7 @@
 from datetime import date
+
 import pytest
+
 from app.engine import affordability as aff
 from app.engine.ladder import build_ladder
 from app.engine.rules import check_eligibility, load_pack
@@ -70,9 +72,6 @@ def test_affordability_no_loan_path_when_over_cap():
 def test_conservative_income_weights_lean_months():
     inc = [2000] * 3 + [20000] * 9
     assert aff.conservative_income(inc) < sum(inc) / 12
-
-
-
 
 
 def test_scheme_loan_rate_needs_a_lender_base_rate():

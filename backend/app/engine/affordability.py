@@ -1,5 +1,7 @@
 """Affordability: total repayments, all loans counted, capped at 30% of monthly income."""
+
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 CAP = 0.30  # stricter than RBI's 50% microfinance cap
@@ -56,12 +58,13 @@ class AffordabilityResult:
     notes: list[str] = field(default_factory=list)
 
 
-def assess(monthly_income: list[float], existing_loans: list[Loan], requested: float,
-           rate_pa: float, months: int) -> AffordabilityResult:
+def assess(
+    monthly_income: list[float], existing_loans: list[Loan], requested: float, rate_pa: float, months: int
+) -> AffordabilityResult:
     """existing_loans must include any PMAY-G scheme loan the family has taken or will take."""
     income = conservative_income(monthly_income)
     cap = income * CAP
-    existing = sum(l.emi for l in existing_loans)
+    existing = sum(loan.emi for loan in existing_loans)
     headroom = max(0.0, cap - existing)
     max_new = max_principal(headroom, rate_pa, months)
     approved = min(requested, max_new)
@@ -70,5 +73,4 @@ def assess(monthly_income: list[float], existing_loans: list[Loan], requested: f
         notes.append("Requested loan exceeds the 30% cap; sized down. Offer the no-loan path (phase the build).")
     if existing >= cap:
         notes.append("Existing repayments already at or above the cap; no new loan.")
-    return AffordabilityResult(income, cap, existing, headroom, max_new, approved,
-                               no_loan_path=approved < requested)
+    return AffordabilityResult(income, cap, existing, headroom, max_new, approved, no_loan_path=approved < requested)

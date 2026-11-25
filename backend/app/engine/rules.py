@@ -3,7 +3,9 @@
 The ladder only needs the unit assistance, the scheme-loan cap and the stage split.
 `check_eligibility` is kept for tests and future use but is deliberately NOT exposed over HTTP:
 the workspace makes no eligibility determinations, and the rule citations still say VERIFY."""
+
 from __future__ import annotations
+
 import json
 from dataclasses import dataclass
 from datetime import date
@@ -68,8 +70,9 @@ def check_eligibility(pack: RulePack, facts: dict) -> dict:
             results.append({"rule": rule["id"], "status": "unknown", "text": rule["text"], "cite": rule["cite"]})
             continue
         ok = facts[field] == rule["must_be"]
-        results.append({"rule": rule["id"], "status": "pass" if ok else "fail",
-                        "text": rule["text"], "cite": rule["cite"]})
+        results.append(
+            {"rule": rule["id"], "status": "pass" if ok else "fail", "text": rule["text"], "cite": rule["cite"]}
+        )
     if any(r["status"] == "fail" for r in results):
         verdict = "not_eligible"
     elif missing:

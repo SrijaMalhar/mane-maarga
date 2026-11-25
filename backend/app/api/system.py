@@ -19,7 +19,12 @@ def health():
 
 @router.get("/api/system/version")
 def system_version():
-    return {"service": "mane-maarga-api", "version": "1.0.0", "environment": APP_ENV, "docs_enabled": APP_ENV != "production"}
+    return {
+        "service": "mane-maarga-api",
+        "version": "1.0.0",
+        "environment": APP_ENV,
+        "docs_enabled": APP_ENV != "production",
+    }
 
 
 @router.get("/metrics", response_class=PlainTextResponse)
@@ -30,7 +35,9 @@ def metrics():
     ]
     for (method, path, status), count in sorted(request_metrics.items()):
         safe_path = path.replace("\\", "").replace('"', "")
-        lines.append(f'mane_maarga_http_requests_total{{method="{method}",path="{safe_path}",status="{status}"}} {count}')
+        lines.append(
+            f'mane_maarga_http_requests_total{{method="{method}",path="{safe_path}",status="{status}"}} {count}'
+        )
     return "\n".join(lines) + "\n"
 
 

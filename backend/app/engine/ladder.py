@@ -1,11 +1,14 @@
 """Money ladder: the exact cash gap before each instalment, split into
 a timing gap (bridged until an instalment lands) and a funding gap (cost the subsidy never covers)."""
+
 from __future__ import annotations
+
 from .rules import RulePack
 
 
-def build_ladder(pack: RulePack, total_cost: float, own_savings: float = 0.0,
-                 scheme_loan: float = 0.0, extra_grants: float = 0.0) -> dict:
+def build_ladder(
+    pack: RulePack, total_cost: float, own_savings: float = 0.0, scheme_loan: float = 0.0, extra_grants: float = 0.0
+) -> dict:
     """Stage k's cost must be paid before instalment k arrives (released after stage k is verified).
     gap_k = max(0, cumulative cost through k - (savings + loan + grants + instalments received before k)).
     funding gap F = max(0, total cost - all inflows). timing gap_k = max(0, gap_k - F)."""
@@ -24,10 +27,18 @@ def build_ladder(pack: RulePack, total_cost: float, own_savings: float = 0.0,
         gap = max(0.0, cum_cost - (base_inflow + cum_received))
         gaps.append(gap)
         cum_received += inst
-        rows.append({"stage": s["id"], "label": s["label"], "cost": round(cost), "instalment_after": round(inst),
-                     "cum_cost": round(cum_cost), "cum_instalments": round(cum_received)})
+        rows.append(
+            {
+                "stage": s["id"],
+                "label": s["label"],
+                "cost": round(cost),
+                "instalment_after": round(inst),
+                "cum_cost": round(cum_cost),
+                "cum_instalments": round(cum_received),
+            }
+        )
     funding_gap = max(0.0, total_cost - (base_inflow + subsidy))
-    for row, gap in zip(rows, gaps):
+    for row, gap in zip(rows, gaps, strict=True):
         row["cash_gap_before_instalment"] = round(gap)
         row["timing_gap"] = round(max(0.0, gap - funding_gap))
     return {

@@ -103,7 +103,10 @@ def _finance_agent(case, funding):
     sanctioned = float(case.sanctioned_amount or 0)
     confirmed = sum(float(f.amount or 0) for f in funding if f.status in ("confirmed", "received"))
     proposed = sum(float(f.amount or 0) for f in funding if f.status == "proposed")
-    gap = max(0, cost - sanctioned - confirmed)
+    # Same rule as the finance summary: the case's sanctioned amount counts only when no
+    # detailed confirmed or received source exists, so a subsidy is never counted twice.
+    committed = confirmed if confirmed > 0 else sanctioned
+    gap = max(0, cost - committed)
     actions = []
     if cost <= 0:
         actions.append(
@@ -186,9 +189,16 @@ def _construction_agent(stages):
 
 
 def _recovery_agent(case, document, finance, construction):
+    """Collects blockers from every other check, so it never reports "nothing found" while they report problems."""
     issues = document["findings"]["review_required"] + document["findings"]["not_extracted"]
-    if finance["findings"]["estimated_gap"] > 0:
+    if document["findings"]["document_count"] == 0:
+        issues.append("no documents")
+    if float(case.estimated_cost or 0) <= 0:
+        issues.append("no cost estimate")
+    elif finance["findings"]["estimated_gap"] > 0:
         issues.append("funding gap")
+    if construction["findings"]["stage_count"] == 0:
+        issues.append("no construction stages")
     issues.extend(construction["findings"]["planned_or_delayed"])
     actions = []
     if issues:

@@ -209,7 +209,7 @@ Key settings in `.env` (see `.env.example`):
 | `MANE_MAARGA_AGENT_PROVIDER` | `mock` (default, no key) or `lyzr`. |
 | `MANE_MAARGA_LYZR_API_KEY`, `MANE_MAARGA_LYZR_AGENT_ID` | Lyzr Agent Studio credentials, used only when the provider is `lyzr`. |
 | `MANE_MAARGA_SERVICE_TOKEN` | Opens `/api/tools/*` to machine callers; unset keeps them closed. |
-| `MANE_MAARGA_BHASHINI_USER_ID`, `MANE_MAARGA_BHASHINI_API_KEY` | Bhashini speech for Kannada voice intake. See [docs/voice.md](docs/voice.md). |
+| `MANE_MAARGA_BHASHINI_USER_ID`, `MANE_MAARGA_BHASHINI_API_KEY` | Bhashini speech for Kannada voice intake. On Vercel, set `BHASHINI_USER_ID` and `BHASHINI_API_KEY` to turn it on in the live demo. See [docs/voice.md](docs/voice.md). |
 
 To stop everything: `docker compose down`. Your database and uploads stay in Docker volumes. Removing them (`docker compose down -v`) **permanently deletes all records**.
 
@@ -264,7 +264,7 @@ mane-maarga/
 - [ ] Indic OCR for Kannada land records (beyond Tesseract)
 - [x] Agent runtime with Lyzr provider, citation guard and server-side approval gate
 - [x] Bhashini speech recognition and synthesis for voice intake, with a female or male voice
-- [ ] Record the eight Kannada intake questions in a local speaker's voice ([how](docs/voice.md))
+- [ ] Expressive Kannada intake prompts: render with Indic Parler-TTS or record a local speaker ([how](docs/voice.md))
 - [x] In-browser demo mode for the hosted preview
 - [ ] Hosted API for the live preview
 - [ ] Frontend tests and monitoring

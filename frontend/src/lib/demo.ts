@@ -299,7 +299,6 @@ function routes(s: Store): Array<[string, RegExp, Handler]> {
     ['POST', /^\/api\/cases\/(\d+)\/stages\/(\d+)\/evidence$/, (m, b) => { const c = caseOr404(m[1]); const f = b.__file as File; if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) throw new ApiError('Evidence must be JPEG, PNG or WebP', 415); const e = { id: s.seq++, case_id: c.id, stage_id: Number(m[2]), original_name: f.name, caption: '', verification_status: 'pending_review', uploaded_by: 'demo_visitor', uploaded_at: now() }; s.evidence.unshift(e); audit(s, 'construction_evidence_uploaded', c.id, `stage_id=${m[2]}; review_required`); return e }],
     ['GET', /^\/api\/cases\/(\d+)\/agent-plan$/, m => agentPlan(s, caseOr404(m[1]))],
     ['POST', /^\/api\/cases\/(\d+)\/agent\/run$/, m => agentRun(s, caseOr404(m[1]))],
-    ['GET', /^\/api\/speech\/status$/, () => ({ bhashini: false, languages: ['en', 'kn', 'te'], voices: ['female', 'male'] })],
     ['GET', /^\/api\/audit$/, (_, _b, q) => { const id = q.get('case_id'); return s.audit.filter(a => !id || a.case_id === Number(id)).slice(0, 500) }],
     ['POST', /^\/api\/engine\/ladder$/, (_, b) => ladder(Number(b.total_cost), Number(b.own_savings || 0), Number(b.scheme_loan || 0), Number(b.extra_grants || 0))],
     ['POST', /^\/api\/engine\/affordability$/, (_, b) => affordability(b)],

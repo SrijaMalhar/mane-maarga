@@ -2,6 +2,11 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Voice, part 2 · 25 Nov 2026 · Bhashini on the live demo and an expressive voice
+- Vercel functions (`frontend/api/speech/status|tts|asr`) bring Bhashini to the hosted demo with no backend. Keys are Vercel environment variables; the functions only answer the site's own pages and are rate-limited.
+- `scripts/render_voice_prompts.py` renders the fixed intake questions once with Indic Parler-TTS, with the tone described per line (warm greeting, patient questions, grateful thanks). The audio ships with the site and plays before any live synthesis.
+- Safari: a clear message that it cannot recognise Kannada speech on its own, instead of "voice input failed".
+
 ## Voice · 25 Nov 2026 · Bhashini and a more human Kannada voice
 - Bhashini client (`app/speech/bhashini.py`): config call, then ASR or TTS compute. Keys stay on the server; config is cached for an hour and spoken questions are cached. `POST /api/speech/tts`, `POST /api/speech/asr` (16 kHz WAV, about 1 minute maximum), `GET /api/speech/status`.
 - The voice now sounds less machine-made: TTS at 22.05 kHz instead of 8 kHz, female or male voice, slightly slower playback, and text spoken the way people say it (no brackets or slashes, rupees read as a word). Kannada is never read with an English voice. Recordings by a real person play first when present (`docs/voice.md`).

@@ -3,7 +3,10 @@
    2. Bhashini's Indian-language voices, synthesised on our server at 22.05 kHz.
    3. The browser's own voice, but only if it has a real voice for that language. Kannada read by an
       English voice is what sounds most machine-made, so in that case we stay silent and show the text. */
-import type { Client } from './api'
+/** Who answers /api/speech/*: our API when signed in; the site's own Vercel function in the demo. */
+export type SpeechFetch = (path: string, init?: RequestInit) => Promise<Response>
+export const sameOrigin: SpeechFetch = (path, init) => fetch(path, init)
+export const viaApi = (raw: (p: string, i?: RequestInit) => Promise<Response>): SpeechFetch => raw
 
 export type Lang = 'kn' | 'en' | 'te'
 export type Gender = 'female' | 'male'
@@ -38,7 +41,7 @@ function browserVoice(lang: Lang, gender: Gender): SpeechSynthesisVoice | null {
 export type VoiceSource = 'recorded' | 'bhashini' | 'browser' | 'none'
 
 /** Speak one assistant message. Returns which voice was used ('none' means show the text only). */
-export async function speak(text: string, lang: Lang, opts: { api: Client; bhashini: boolean; gender: Gender }): Promise<VoiceSource> {
+export async function speak(text: string, lang: Lang, opts: { fetcher: SpeechFetch; bhashini: boolean; gender: Gender }): Promise<VoiceSource> {
   const m = await loadManifest()
   if (m) {
     const key = Object.entries(m.prompts[lang] ?? {}).find(([, t]) => t === text)?.[0]
@@ -48,7 +51,7 @@ export async function speak(text: string, lang: Lang, opts: { api: Client; bhash
   }
   if (opts.bhashini) {
     try {
-      const r = await opts.api.raw('/api/speech/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, language: lang, gender: opts.gender }) })
+      const r = await opts.fetcher('/api/speech/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, language: lang, gender: opts.gender }) })
       if (r.ok) { const url = URL.createObjectURL(await r.blob()); void play(url).finally(() => URL.revokeObjectURL(url)); return 'bhashini' }
     } catch { /* fall through */ }
   }

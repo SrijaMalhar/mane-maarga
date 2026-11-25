@@ -7,7 +7,7 @@ import { type AgentPlan, type RecoveryTask } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
 import { useI18n } from '../lib/i18n'
 import { inr, human } from '../lib/format'
-import { speak as speakVoice, startRecording, stopSpeaking, type Gender, type Recording, type VoiceSource } from '../lib/voice'
+import { sameOrigin, speak as speakVoice, startRecording, stopSpeaking, viaApi, type Gender, type Recording, type VoiceSource } from '../lib/voice'
 
 type Tool = 'intake' | 'schemes' | 'budget' | 'tasks' | 'lab'
 
@@ -90,7 +90,7 @@ function CaseAnalysis({ caseId }: { caseId: number }) {
 }
 
 const VOICE_NOTE: Record<VoiceSource, string> = {
-  recorded: 'Voice: recorded by a person',
+  recorded: 'Voice: pre-recorded, expressive prompt',
   bhashini: 'Voice: Bhashini (Indian-language speech)',
   browser: "Voice: this device's built-in voice",
   none: 'No natural voice for this language on this device, so the question is shown as text only.',
@@ -104,7 +104,10 @@ function Intake() {
   const [voiceUsed, setVoiceUsed] = useState<VoiceSource | null>(null)
   const [recording, setRecording] = useState<Recording | null>(null)
   const [hearing, setHearing] = useState(false)
-  useEffect(() => { api.get<{ bhashini: boolean }>('/api/speech/status').then(d => setBhashini(d.bhashini)).catch(() => setBhashini(false)) }, [api])
+  const fetcher = demo ? sameOrigin : viaApi(api.raw)
+  useEffect(() => {
+    fetcher('/api/speech/status').then(r => (r.ok ? r.json() : { bhashini: false })).then(d => setBhashini(Boolean(d.bhashini))).catch(() => setBhashini(false))
+  }, [demo, api]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { try { localStorage.setItem('mm_voice', gender) } catch { /* private mode */ } }, [gender])
   useEffect(() => () => stopSpeaking(), [])
   const [language, setLanguage] = useState<'kn' | 'en' | 'te'>('kn')
@@ -128,7 +131,7 @@ function Intake() {
     setChat(c => [...c, { role: 'user', text }]); setMsg('')
     try { const d = await api.post<{ message: string; fields: Record<string, string>; status: string }>(`/api/intelligence/intake/${session}/message`, { message: text }); setChat(c => [...c, { role: 'assistant', text: d.message }]); setFields(d.fields || {}); if (d.status === 'completed') setDone(true) } catch (e) { setNote(e instanceof Error ? e.message : 'Message failed') }
   }
-  async function speak(text: string) { setVoiceUsed(await speakVoice(text, language, { api, bhashini, gender })) }
+  async function speak(text: string) { setVoiceUsed(await speakVoice(text, language, { fetcher, bhashini, gender })) }
   const lastAssistant = [...chat].reverse().find(m => m.role === 'assistant')?.text
   useEffect(() => { if (autoRead && lastAssistant) void speak(lastAssistant) }, [lastAssistant]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -138,7 +141,9 @@ function Intake() {
         setRecording(null); setHearing(true)
         try {
           const audio = await recording.stop()
-          const d = await api.post<{ text: string }>('/api/speech/asr', { audio_base64: audio, language })
+          const r = await fetcher('/api/speech/asr', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ audio_base64: audio, language }) })
+          if (!r.ok) throw new Error(String(r.status))
+          const d = (await r.json()) as { text: string }
           if (d.text) setMsg(d.text); else setNote('Could not hear an answer. Please try again or type it.')
         } catch { setNote('Could not transcribe. Please try again or type the answer.') } finally { setHearing(false) }
         return
@@ -149,7 +154,12 @@ function Intake() {
     }
     if (!Speech) return
     const rec = new Speech(); rec.lang = bcp
-    rec.onresult = ev => setMsg(ev.results[0][0].transcript); rec.onerror = () => setNote('Voice input failed. Please type instead.'); rec.start()
+    rec.onresult = ev => setMsg(ev.results[0][0].transcript)
+    rec.onerror = ev => setNote(ev?.error === 'not-allowed' || ev?.error === 'service-not-allowed'
+      ? 'Microphone or speech permission was refused. Allow it in the browser settings, or type the answer.'
+      : language === 'en' ? 'Voice input failed. Please type instead.'
+      : "This browser can't recognise Kannada or Telugu speech on its own (Safari can't). It will work once Bhashini is connected; for now, type the answer or use Chrome.")
+    rec.start()
   }
   const canListen = (bhashini && 'MediaRecorder' in window) || !!Speech
 
@@ -165,7 +175,7 @@ function Intake() {
         <p className="fine">
           {bhashini
             ? <><Tag tone="confirmed">Bhashini connected</Tag> Speech is recognised and spoken by Bhashini, the Government of India's language platform. Audio is processed in memory and never stored.</>
-            : <><Tag>Bhashini not connected</Tag> {demo ? 'The browser demo cannot use Bhashini keys.' : 'Set the Bhashini keys on the server to enable it.'} Until then: recorded prompts if present, otherwise this device's own voice.</>}
+            : <><Tag>Bhashini not connected</Tag> {demo ? 'Add the Bhashini keys to this site\'s Vercel settings to enable it.' : 'Set the Bhashini keys on the server to enable it.'} Until then: recorded prompts if present, otherwise this device's own voice.</>}
         </p>
         {voiceUsed && <p className="fine">{VOICE_NOTE[voiceUsed]}</p>}
         {note && <Notice tone="warn" onClose={() => setNote('')}>{note}</Notice>}
@@ -198,7 +208,7 @@ function Intake() {
     </div>
   )
 }
-type SpeechLike = { lang: string; start: () => void; onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void; onerror: () => void }
+type SpeechLike = { lang: string; start: () => void; onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void; onerror: (e?: { error?: string }) => void }
 
 function Schemes() {
   const { api } = useApp()

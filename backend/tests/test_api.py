@@ -1,3 +1,5 @@
+from app.api import auth as auth_api
+from app.api import documents as documents_api
 def test_health(client):
     response = client.get("/health")
     assert response.status_code == 200
@@ -201,7 +203,7 @@ def test_funding_evidence_document_must_belong_to_case(client):
 
 def test_document_extraction_detects_case_mismatch(client, monkeypatch):
     from app import main
-    monkeypatch.setattr(main, "extract_document", lambda path, content_type: ("Applicant: Other Person\nVillage: Other Village\nSurvey No: 42/1\nExtent: 1 acre", "test-fixture", 0.8))
+    monkeypatch.setattr(documents_api, "extract_document", lambda path, content_type: ("Applicant: Other Person\nVillage: Other Village\nSurvey No: 42/1\nExtent: 1 acre", "test-fixture", 0.8))
     case_id = client.post("/api/cases", json={"beneficiary_name":"Test Beneficiary","village":"Test Village","taluk":"Test Taluk"}).json()["id"]
     uploaded = client.post(f"/api/cases/{case_id}/documents", files={"file":("land.pdf",b"%PDF-1.4\nfixture\n%%EOF","application/pdf")})
     document_id = uploaded.json()["id"]
@@ -217,7 +219,7 @@ def test_document_extraction_detects_case_mismatch(client, monkeypatch):
 def test_extraction_is_persisted_and_force_reprocesses(client, monkeypatch):
     from app import main
     calls = []
-    monkeypatch.setattr(main, "extract_document", lambda path, content_type: (calls.append(1) or "Survey No: 10", "test-fixture", 0.7))
+    monkeypatch.setattr(documents_api, "extract_document", lambda path, content_type: (calls.append(1) or "Survey No: 10", "test-fixture", 0.7))
     case_id = client.post("/api/cases", json={"beneficiary_name":"Test Beneficiary","village":"Test Village","taluk":"Test Taluk"}).json()["id"]
     doc_id = client.post(f"/api/cases/{case_id}/documents", files={"file":("land.pdf",b"%PDF-1.4\nfixture\n%%EOF","application/pdf")}).json()["id"]
     first = client.post(f"/api/documents/{doc_id}/extract", json={"force":True})
@@ -231,7 +233,7 @@ def test_extraction_is_persisted_and_force_reprocesses(client, monkeypatch):
 def test_extraction_missing_document_and_ocr_unavailable(client, monkeypatch):
     from app import main
     assert client.post("/api/documents/999/extract", json={"force":True}).status_code == 404
-    monkeypatch.setattr(main, "extract_document", lambda path, content_type: (_ for _ in ()).throw(RuntimeError("OCR engine is unavailable")))
+    monkeypatch.setattr(documents_api, "extract_document", lambda path, content_type: (_ for _ in ()).throw(RuntimeError("OCR engine is unavailable")))
     case_id = client.post("/api/cases", json={"beneficiary_name":"Test Beneficiary","village":"Test Village","taluk":"Test Taluk"}).json()["id"]
     doc_id = client.post(f"/api/cases/{case_id}/documents", files={"file":("land.pdf",b"%PDF-1.4\nfixture\n%%EOF","application/pdf")}).json()["id"]
     response = client.post(f"/api/documents/{doc_id}/extract", json={"force":True})
@@ -359,7 +361,7 @@ def test_system_version_and_metrics(client):
     assert version.json()["version"] == "1.0.0"
     metrics = client.get("/metrics")
     assert metrics.status_code == 200
-    assert "sooru_http_requests_total" in metrics.text
+    assert "mane_maarga_http_requests_total" in metrics.text
 
 
 def test_auth_cache_headers_are_no_store(client):
@@ -370,7 +372,7 @@ def test_auth_cache_headers_are_no_store(client):
 
 def test_bootstrap_disabled_returns_forbidden(client, monkeypatch):
     from app import main
-    monkeypatch.setattr(main, "BOOTSTRAP_ENABLED", False)
+    monkeypatch.setattr(auth_api, "BOOTSTRAP_ENABLED", False)
     response = client.post("/api/auth/bootstrap", json={
         "username": "blockedadmin", "email": "blocked@example.test",
         "password": "Another-secure-password-123",

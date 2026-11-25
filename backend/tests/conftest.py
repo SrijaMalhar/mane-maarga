@@ -1,7 +1,7 @@
 import os
-TEST_DATABASE_URL = "sqlite:///./sooru_test.db"
+TEST_DATABASE_URL = "sqlite:///./mane_maarga_test.db"
 os.environ["DATABASE_URL"] = TEST_DATABASE_URL
-os.environ["SOORU_JWT_SECRET"] = "test-secret-key-that-is-long-enough-for-test"
+os.environ["MANE_MAARGA_JWT_SECRET"] = "test-secret-key-that-is-long-enough-for-test"
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
@@ -10,7 +10,8 @@ from app.database import Base, engine
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     from app import main
-    main.UPLOAD_DIR = tmp_path / "uploads"
+    from app.core import config
+    config.UPLOAD_DIR = tmp_path / "uploads"
     main._auth_attempts.clear()  # isolate in-memory throttling between tests
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)

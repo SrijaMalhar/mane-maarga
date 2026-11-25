@@ -172,3 +172,23 @@ class EvaluationRun(Base):
     result_json: Mapped[str] = mapped_column(Text, nullable=False)
     created_by: Mapped[str] = mapped_column(String(120), nullable=False)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ApprovalRequest(Base):
+    """A change a person must approve. Tools and agents can only create these as pending."""
+
+    __tablename__ = "approval_requests"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    action: Mapped[str] = mapped_column(
+        String(40), nullable=False
+    )  # case_status_change, financial_offer, payment, submission
+    payload_json: Mapped[str] = mapped_column(Text, default="{}")
+    reason: Mapped[str] = mapped_column(Text, default="")
+    citations_json: Mapped[str] = mapped_column(Text, default="[]")
+    status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)  # pending, approved, rejected
+    requested_by: Mapped[str] = mapped_column(String(120), nullable=False)
+    decided_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    decision_note: Mapped[str] = mapped_column(Text, default="")
+    decided_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())

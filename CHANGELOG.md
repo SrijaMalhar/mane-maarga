@@ -2,6 +2,13 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Day 3 · 24 Nov 2026 · Tools, not prompts
+- Tool registry (`app/agents/tools/`): 11 typed tools, each declaring its side effect (`none`, `write` or `gated`). Every call is validated and audited with argument and result hashes and milliseconds.
+- `request_approval` is the only gated tool; it creates a pending `approval_requests` row (Alembic 0002). Only `POST /api/approvals/{id}/decide` by an administrator changes a case's status.
+- `GET /api/tools/openapi.json` and `POST /api/tools/{name}` behind `X-Service-Token` (closed when `MANE_MAARGA_SERVICE_TOKEN` is unset).
+- `app/agents.py` became the `app/agents/` package; behaviour unchanged.
+- 13 new tests, including one that calls every write and gated tool and proves status and money are untouched: 90 passing.
+
 ## Day 2 · 23 Nov 2026 · Rules with receipts
 - Rule pack v2 at `rules_data/KA/pmayg/2024-25.json`: 17 clauses, each with an ID, English and Kannada text, and a source (PIB, Lok Sabha, CAG). Clauses from secondary sources are marked unverified, and the stage split stays illustrative.
 - JSON Schema plus `make rules-lint` (also in CI): fails on a missing https source, missing Kannada, bad clause IDs, stage shares that don't sum to 1, or undeclared facts.

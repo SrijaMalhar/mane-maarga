@@ -40,3 +40,9 @@ BOOTSTRAP_ENABLED = (env("BOOTSTRAP_ENABLED") or ("true" if APP_ENV != "producti
     "true",
     "yes",
 }
+
+# Shared secret for machine callers of /api/tools (for example an external agent platform).
+# Unset means the tool endpoints are closed.
+SERVICE_TOKEN = (env("SERVICE_TOKEN") or "").strip()
+if APP_ENV == "production" and SERVICE_TOKEN and len(SERVICE_TOKEN) < 32:
+    raise RuntimeError("MANE_MAARGA_SERVICE_TOKEN must be at least 32 characters in production.")

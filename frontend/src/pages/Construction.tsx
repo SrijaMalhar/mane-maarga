@@ -50,7 +50,7 @@ function CaseBuild({ c }: { c: CaseItem }) {
     catch (e) { toast(e instanceof Error ? e.message : 'Could not create plan', 'error') } finally { setBusy(false) }
   }
   async function setStatus(s: Stage, status: StageStatus) {
-    try { await api.patch(`/api/stages/${s.id}/status`, { status }); await load(); toast(`${s.stage_name}: ${human(status)}`) } catch (e) { toast(e instanceof Error ? e.message : 'Update failed', 'error') }
+    try { await api.patch(`/api/stages/${s.id}/status`, { status }); await load(); toast(`${s.stage_name}: ${t(`stage.${status}` as never)}`) } catch (e) { toast(e instanceof Error ? e.message : 'Update failed', 'error') }
   }
   async function upload(s: Stage, e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]; e.target.value = ''
@@ -89,12 +89,12 @@ function CaseBuild({ c }: { c: CaseItem }) {
           const ev = evidence.filter(e => e.stage_id === s.id)
           return (
             <li key={s.id} className={`stage-card st-${s.status}`}>
-              <div className="stage-top"><span className="stage-n">{i + 1}</span><Tag tone={s.status === 'completed' || s.status === 'verified' ? 'confirmed' : s.status === 'blocked' ? 'warn' : 'neutral'}>{human(s.status)}</Tag></div>
+              <div className="stage-top"><span className="stage-n">{i + 1}</span><Tag tone={s.status === 'completed' || s.status === 'verified' ? 'confirmed' : s.status === 'blocked' ? 'warn' : 'neutral'}>{t(`stage.${s.status}` as never)}</Tag></div>
               <h3>{s.stage_name}</h3>
               <p className="num">{inr(s.planned_cost)}</p>
               {canEdit && (
                 <label className="field compact"><span className="sr-only">Status for {s.stage_name}</span>
-                  <select value={s.status} onChange={e => setStatus(s, e.target.value as StageStatus)}>{STAGE_STATUSES.map(x => <option key={x} value={x}>{human(x)}</option>)}</select>
+                  <select value={s.status} onChange={e => setStatus(s, e.target.value as StageStatus)}>{STAGE_STATUSES.map(x => <option key={x} value={x}>{t(`stage.${x}` as never)}</option>)}</select>
                 </label>
               )}
               <div className="stage-ev">

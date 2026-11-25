@@ -20,7 +20,7 @@ export default function Intelligence({ initialCase }: { initialCase?: number }) 
   return (
     <div className="intel">
       <PageHead eyebrow="Decision support" title={t('intel.title')} lead={t('intel.lead')} actions={<CasePicker cases={cases} value={caseId} onChange={setCaseId} />} />
-      <div className="intel-banner"><ShieldAlert size={18} aria-hidden /><p>Suggestions here come from deterministic rules over the case records — no external language model is connected. Nothing is submitted, approved or paid automatically; administrators remain responsible for every decision.</p></div>
+      <div className="intel-banner"><ShieldAlert size={18} aria-hidden /><p>{t('banner.intel')}</p></div>
       {caseId ? <CaseAnalysis key={caseId} caseId={caseId} /> : <div className="panel"><Empty title={t('list.empty')} /></div>}
       <section className="intel-tools">
         <div className="seg" role="tablist" aria-label="Tools">
@@ -211,6 +211,7 @@ function Budget({ caseId }: { caseId: number }) {
 
 function Tasks({ caseId }: { caseId: number }) {
   const { api, canEdit } = useApp()
+  const { t } = useI18n()
   const [tasks, setTasks] = useState<RecoveryTask[] | null>(null)
   const [title, setTitle] = useState('')
   const load = () => api.get<RecoveryTask[]>(`/api/cases/${caseId}/recovery-tasks`).then(setTasks).catch(() => setTasks([]))
@@ -224,7 +225,7 @@ function Tasks({ caseId }: { caseId: number }) {
       {tasks.length === 0 ? <p className="muted">No follow-up tasks for this case.</p> : (
         <ul className="src-list">{tasks.map(tk => (
           <li key={tk.id}><span><b>{tk.title}</b><small>{human(tk.category)}{tk.description ? ` · ${tk.description}` : ''}</small></span>
-            {canEdit ? <select aria-label={`Status of ${tk.title}`} value={tk.status} onChange={e => update(tk.id, e.target.value)}>{['open', 'in_progress', 'blocked', 'completed', 'cancelled'].map(s => <option key={s}>{s}</option>)}</select> : <Tag>{tk.status}</Tag>}
+            {canEdit ? <select aria-label={`Status of ${tk.title}`} value={tk.status} onChange={e => update(tk.id, e.target.value)}>{['open', 'in_progress', 'blocked', 'completed', 'cancelled'].map(s => <option key={s} value={s}>{t(`task.${s}` as never)}</option>)}</select> : <Tag>{tk.status}</Tag>}
           </li>))}
         </ul>
       )}

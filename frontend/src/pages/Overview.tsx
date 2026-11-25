@@ -7,14 +7,14 @@ import { href, useApp } from '../lib/app-context'
 import { useI18n } from '../lib/i18n'
 import { inr, inrShort, timeAgo, human } from '../lib/format'
 
-export type Attention = { c: CaseItem; reason: string; tone: 'high' | 'medium' }
+export type Attention = { c: CaseItem; reason: string; vars?: Record<string, string>; tone: 'high' | 'medium' }
 
 /** Derive what needs a human decision from fields the backend actually stores. */
 export function attentionFor(c: CaseItem): Attention | null {
-  if (c.consent_status === 'withdrawn') return { c, reason: 'Consent withdrawn — pause processing', tone: 'high' }
-  if (c.consent_status !== 'given') return { c, reason: 'Consent not yet recorded', tone: 'high' }
-  if (['finance_review', 'construction'].includes(c.status) && Number(c.estimated_cost) <= 0) return { c, reason: 'No construction cost estimate', tone: 'medium' }
-  if (['finance_review', 'construction'].includes(c.status) && Number(c.gap_amount) > 0) return { c, reason: `Funding gap of ${inr(c.gap_amount)}`, tone: Number(c.gap_amount) > 100000 ? 'high' : 'medium' }
+  if (c.consent_status === 'withdrawn') return { c, reason: 'att.withdrawn', tone: 'high' }
+  if (c.consent_status !== 'given') return { c, reason: 'att.noConsent', tone: 'high' }
+  if (['finance_review', 'construction'].includes(c.status) && Number(c.estimated_cost) <= 0) return { c, reason: 'att.noEstimate', tone: 'medium' }
+  if (['finance_review', 'construction'].includes(c.status) && Number(c.gap_amount) > 0) return { c, reason: 'att.gap', vars: { amount: inr(c.gap_amount) }, tone: Number(c.gap_amount) > 100000 ? 'high' : 'medium' }
   return null
 }
 
@@ -56,12 +56,12 @@ export default function Overview() {
             <Empty title={t('list.empty')} sub={t('list.emptySub')} action={canEdit ? <button className="btn primary" onClick={() => openCaseForm()}><Plus size={16} />{t('overview.add')}</button> : undefined} />
           ) : attention.length === 0 ? <Empty mood="happy" title={t('overview.attentionNone')} /> : (
             <ul className="att-list">
-              {attention.slice(0, 7).map(({ c, reason, tone }) => (
+              {attention.slice(0, 7).map(({ c, reason, vars, tone }) => (
                 <li key={c.id}>
                   <a href={href({ name: 'case', id: c.id })} className="att-row">
-                    <span className={`att-mark ${tone}`} aria-label={tone === 'high' ? 'High priority' : 'Medium priority'}>{tone === 'high' ? '!!' : '!'}</span>
+                    <span className={`att-mark ${tone}`} aria-label={t(tone === 'high' ? 'att.high' : 'att.medium')}>{tone === 'high' ? '!!' : '!'}</span>
                     <span className="att-main"><b>{c.beneficiary_name}</b><small>{c.village}, {c.taluk}</small></span>
-                    <span className="att-reason">{reason}</span>
+                    <span className="att-reason">{t(reason as never, vars)}</span>
                     <ArrowRight size={16} aria-hidden />
                   </a>
                 </li>
@@ -81,7 +81,7 @@ export default function Overview() {
             <i className="confirmed" style={{ width: `${totals.est ? Math.min(100, (totals.sanc / totals.est) * 100) : 0}%` }} />
             <i className="gap" style={{ width: `${totals.est ? Math.min(100, (totals.gap / totals.est) * 100) : 0}%` }} />
           </div>
-          <p className="fine">Sum of each case's estimate minus its sanctioned assistance. Existing loans are never counted as funding. Open <a href={href({ name: 'finance' })}>Financial planning</a> for confirmed and proposed sources per family.</p>
+          <p className="fine">{t('overview.gapNote')} <a href={href({ name: 'finance' })}>{t('nav.finance')}</a></p>
         </section>
 
         <section className="panel activity" aria-labelledby="act-h">

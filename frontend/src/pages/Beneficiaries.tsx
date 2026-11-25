@@ -78,7 +78,7 @@ export default function Beneficiaries() {
                           <span className="r-loc"><b>{c.village}</b><small>{c.taluk}</small></span>
                           <span className="r-journey">{view === 'detailed' ? <Journey status={c.status} compact /> : null}<StageTag status={c.status} /></span>
                           {view === 'detailed' && <><span className="num">{Number(c.estimated_cost) ? inr(c.estimated_cost) : '—'}</span><span className={`num ${Number(c.gap_amount) > 0 ? 'gap-amt' : ''}`}>{Number(c.estimated_cost) ? inr(c.gap_amount) : '—'}</span></>}
-                          <span className="r-consent"><ConsentTag status={c.consent_status} />{att && view === 'detailed' && <small className={`r-att ${att.tone}`}>{att.reason}</small>}</span>
+                          <span className="r-consent"><ConsentTag status={c.consent_status} />{att && view === 'detailed' && <small className={`r-att ${att.tone}`}>{t(att.reason as never, att.vars)}</small>}</span>
                         </a>
                       </li>
                     )

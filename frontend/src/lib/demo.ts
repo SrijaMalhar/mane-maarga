@@ -13,17 +13,13 @@ import { ApiError } from './api'
 const KEY = 'mm_demo_store_v1'
 const now = () => new Date().toISOString()
 
-/* PMAY-G Karnataka rule pack — copied from backend/app/engine/rules_data/karnataka_pmayg_2024_25.json */
+/* The same PMAY-G Karnataka rule pack the API reads, synced from backend/app/engine/rules_data (see scripts/sync-rules.mjs). */
+import KA_PMAYG from '../generated/rules/karnataka_pmayg_2024_25.json'
 const PACK = {
-  unit_assistance: 120000,
-  scheme_loan_max: 70000,
-  stages: [
-    { id: 'plinth', label: 'Plinth', cost_share: 0.25, instalment_share: 0.25 },
-    { id: 'lintel', label: 'Lintel', cost_share: 0.3, instalment_share: 0.35 },
-    { id: 'roof', label: 'Roof', cost_share: 0.3, instalment_share: 0.25 },
-    { id: 'finish', label: 'Finishing + keys', cost_share: 0.15, instalment_share: 0.15 },
-  ],
-  stage_note: 'ILLUSTRATIVE split of cost and instalments per stage. The official instalment schedule was not found in the PIB releases checked (PRID 2074713, 2043921). Replace from the PMAY-G operational guidelines before any real use.',
+  unit_assistance: KA_PMAYG.unit_assistance,
+  scheme_loan_max: KA_PMAYG.scheme_loan.max_amount,
+  stages: KA_PMAYG.stages,
+  stage_note: KA_PMAYG.stage_note,
 }
 const DISCLAIMER = 'Indicative calculation from illustrative assumptions. Not an eligibility, credit or payment decision; verify current scheme rules and lender terms before relying on it.'
 
@@ -180,14 +176,15 @@ function agentPlan(s: Store, c: Row) {
   const confirmed = s.funding.filter(f => f.case_id === c.id && ['confirmed', 'received'].includes(f.status)).reduce((a, f) => a + Number(f.amount), 0)
   const proposed = fin.funding_proposed
   const cost = Number(c.estimated_cost || 0)
-  const gap = Math.max(0, cost - Number(c.sanctioned_amount || 0) - confirmed)
+  // Same rule as the API: the sanctioned amount counts only when no confirmed source exists.
+  const gap = Math.max(0, cost - (confirmed > 0 ? confirmed : Number(c.sanctioned_amount || 0)))
   const stages = s.stages.filter(x => x.case_id === c.id)
   const stalled = stages.filter(x => ['planned', 'delayed'].includes(x.status)).map(x => x.stage_name)
   const act = (agent: string, priority: string, action: string, reason: string, evidence: string[] = []) => ({ agent, priority, action, reason, evidence })
   const docA = [...(missing.length ? [act('document_agent', 'high', 'Run extraction and review uploaded documents', `${missing.length} uploaded document(s) have no extraction record.`, missing)] : []), ...(review.length ? [act('document_agent', 'high', 'Resolve document mismatch flags', 'Extraction indicates fields requiring human review.', review)] : []), ...(!docs.length ? [act('document_agent', 'high', 'Collect required land and sanction documents', 'No documents are attached to this case yet.')] : [])]
   const finA = [...(cost <= 0 ? [act('finance_agent', 'medium', 'Record a construction cost estimate', 'A funding gap cannot be estimated without a cost estimate.')] : gap > 0 ? [act('finance_agent', 'high', 'Review funding gap and stage-wise cash needs', `Estimated unfunded amount is ₹${Math.round(gap).toLocaleString('en-IN')}; proposed funding is not counted as confirmed.`)] : []), ...(proposed ? [act('finance_agent', 'medium', 'Verify proposed funding sources', `₹${proposed.toLocaleString('en-IN')} is proposed and not treated as confirmed/received.`)] : [])]
   const conA = !stages.length ? [act('construction_agent', 'medium', 'Create a construction stage plan', 'No stages are recorded for this case.')] : stalled.length ? [act('construction_agent', 'medium', 'Review planned or delayed construction stages', `${stalled.length} stage(s) need progress review.`, stalled)] : []
-  const blockers = [...new Set([...review, ...missing, ...(gap > 0 ? ['funding gap'] : []), ...stalled])]
+  const blockers = [...new Set([...review, ...missing, ...(!docs.length ? ['no documents'] : []), ...(cost <= 0 ? ['no cost estimate'] : gap > 0 ? ['funding gap'] : []), ...(!stages.length ? ['no construction stages'] : []), ...stalled])]
   const recA = blockers.length ? [act('recovery_agent', 'high', 'Create a recovery checklist with owner and due date', 'Multiple unresolved blockers may delay the case.', blockers)] : []
   const spec = (agent: string, a: Row[]) => ({ agent, status: a.length ? 'attention_required' : 'no_action', findings: {}, recommended_actions: a })
   audit(s, 'agent_plan_generated', c.id, 'Deterministic prototype agent plan generated (demo)')

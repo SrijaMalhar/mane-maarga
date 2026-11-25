@@ -142,7 +142,7 @@ export default function CaseFile({ id }: { id: number }) {
                     <span className="ms-dot" aria-hidden />
                     <span className="ms-name">{s.stage_name}</span>
                     <span className="ms-cost">{inr(s.planned_cost)}</span>
-                    <Tag tone={s.status === 'completed' || s.status === 'verified' ? 'confirmed' : s.status === 'blocked' ? 'warn' : 'neutral'}>{human(s.status)}</Tag>
+                    <Tag tone={s.status === 'completed' || s.status === 'verified' ? 'confirmed' : s.status === 'blocked' ? 'warn' : 'neutral'}>{t(`stage.${s.status}` as never)}</Tag>
                   </li>
                 ))}
               </ol>

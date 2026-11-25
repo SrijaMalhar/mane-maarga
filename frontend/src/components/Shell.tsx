@@ -58,8 +58,8 @@ export default function Shell({ route, onSignOut, children, demo = false, onRese
         </header>
         {demo && (
           <div className="demo-bar" role="status">
-            <span><b>Sample data</b> · You're exploring with invented families. Changes stay in this browser tab and nothing is sent to a server.</span>
-            <span className="demo-actions"><button className="link-btn" onClick={onResetDemo}><RotateCcw size={14} />Reset</button><button className="link-btn" onClick={onSignOut}>Leave demo</button></span>
+            <span>{t('banner.demo')}</span>
+            <span className="demo-actions"><button className="link-btn" onClick={onResetDemo}><RotateCcw size={14} />{t('banner.reset')}</button><button className="link-btn" onClick={onSignOut}>{t('banner.leave')}</button></span>
           </div>
         )}
         <main id="main" className="page" tabIndex={-1}>{children}</main>

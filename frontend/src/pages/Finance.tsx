@@ -25,7 +25,7 @@ export default function Finance({ initialCase }: { initialCase?: number }) {
 
 function CaseFinance({ c }: { c: CaseItem }) {
   const { api, canEdit, toast, reloadCases } = useApp()
-  const { lang } = useI18n()
+  const { lang, t } = useI18n()
   const [sum, setSum] = useState<FinanceSummary | null>(null)
   const [sources, setSources] = useState<Funding[]>([])
   const [err, setErr] = useState('')
@@ -93,7 +93,7 @@ function CaseFinance({ c }: { c: CaseItem }) {
               <li key={s.id}>
                 <span><b>{s.source_name}</b><small>{s.source_type}{s.scheme_code ? ` · ${s.scheme_code}` : ''}{s.reference_number ? ` · ref ${s.reference_number}` : ''} · {s.created_by}, {dateShort(s.created_at, lang)}</small></span>
                 <span className="num">{inr(s.amount)}</span>
-                <Tag tone={statusTone[s.status]}>{s.status}</Tag>
+                <Tag tone={statusTone[s.status]}>{t(`funding.${s.status}` as never)}</Tag>
               </li>
             ))}
           </ul>
@@ -109,6 +109,7 @@ function CaseFinance({ c }: { c: CaseItem }) {
 /** The money ladder: the cash a family must find before each instalment arrives. */
 function MoneyLadder({ c, estimate }: { c: CaseItem; estimate: number }) {
   const { api } = useApp()
+  const { t } = useI18n()
   const [cost, setCost] = useState(estimate || 300000)
   const [savings, setSavings] = useState(20000)
   const [loan, setLoan] = useState(0)
@@ -135,9 +136,9 @@ function MoneyLadder({ c, estimate }: { c: CaseItem; estimate: number }) {
       {ladder && (
         <>
           <div className="ladder-summary">
-            <div><span>Subsidy</span><b>{inr(ladder.subsidy)}</b></div>
-            <div><span>Peak cash needed before an instalment</span><b className="warn-text">{inr(ladder.peak_timing_gap)}</b></div>
-            <div><span>Never covered by the scheme</span><b>{inr(ladder.funding_gap)}</b></div>
+            <div><span>{t('ladder.peakCash')}</span><b className="warn-text">{inr(Math.max(0, ...ladder.rungs.map(r => r.cash_gap_before_instalment)))}</b></div>
+            <div><span>{t('ladder.timingGap')}</span><b>{inr(ladder.peak_timing_gap)}</b></div>
+            <div><span>{t('ladder.fundingGap')}</span><b>{inr(ladder.funding_gap)}</b></div>
           </div>
           <ol className="ladder">
             {[...ladder.rungs].reverse().map(r => (

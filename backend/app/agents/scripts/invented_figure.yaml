@@ -1,0 +1,16 @@
+# A model that makes up money and a rule. The citation guard must stop it reaching the operator.
+steps:
+  - thought_summary: Read the case.
+    action: {tool: get_case, args: {case_id: "{{case.id}}"}}
+  - thought_summary: Tell the operator about a top-up grant.
+    status: done
+    citations: [KA-PMAYG-2024-25:AM-77]
+    message_en: The family also qualifies for a ₹2,00,000 top-up grant.
+    message_kn: ಕುಟುಂಬಕ್ಕೆ ₹2,00,000 ಹೆಚ್ಚುವರಿ ಅನುದಾನವೂ ಸಿಗುತ್ತದೆ.
+recover:
+  citation_guard:
+    - thought_summary: Try again with the same claim.
+      status: done
+      citations: []
+      message_en: The family qualifies for a ₹2,00,000 top-up grant.
+      message_kn: ಕುಟುಂಬಕ್ಕೆ ₹2,00,000 ಹೆಚ್ಚುವರಿ ಅನುದಾನ ಸಿಗುತ್ತದೆ.

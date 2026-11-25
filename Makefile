@@ -35,5 +35,8 @@ eval:  ## Run every benchmark and write results to backend/benchmarks/results/
 seed:  ## Fill an empty local workspace with synthetic families (needs USERNAME and PASSWORD)
 	$(PY) scripts/seed_demo.py --username "$(USERNAME)" --password "$(PASSWORD)"
 
+demo:  ## Print agent traces (happy path, recovery, blocked) with the mock provider
+	cd $(BACKEND) && $(PY) scripts/agent_demo.py
+
 build:  ## Production build of the frontend
 	cd $(FRONTEND) && npm run build

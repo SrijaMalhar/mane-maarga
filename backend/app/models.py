@@ -192,3 +192,43 @@ class ApprovalRequest(Base):
     decision_note: Mapped[str] = mapped_column(Text, default="")
     decided_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AgentRun(Base):
+    """One agent run on a case: the goal, the provider, how it ended and what it told the operator."""
+
+    __tablename__ = "agent_runs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    provider: Mapped[str] = mapped_column(String(40), nullable=False)
+    goal: Mapped[str] = mapped_column(Text, default="")
+    language: Mapped[str] = mapped_column(String(4), default="en")
+    status: Mapped[str] = mapped_column(
+        String(20), default="running"
+    )  # running, done, asked, blocked, failed, step_limit
+    message_en: Mapped[str] = mapped_column(Text, default="")
+    message_kn: Mapped[str] = mapped_column(Text, default="")
+    citations_json: Mapped[str] = mapped_column(Text, default="[]")
+    created_by: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    finished_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AgentStep(Base):
+    """One step of a run: PLAN, ACT, CHECK, RECOVER, ASK or DONE, with the tool call and its result."""
+
+    __tablename__ = "agent_steps"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    run_id: Mapped[int] = mapped_column(ForeignKey("agent_runs.id", ondelete="CASCADE"), index=True)
+    idx: Mapped[int] = mapped_column(Integer, nullable=False)
+    phase: Mapped[str] = mapped_column(String(10), nullable=False)
+    thought_summary: Mapped[str] = mapped_column(Text, default="")
+    tool: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    args_json: Mapped[str] = mapped_column(Text, default="{}")
+    result_json: Mapped[str] = mapped_column(Text, default="{}")
+    error: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    message_en: Mapped[str] = mapped_column(Text, default="")
+    message_kn: Mapped[str] = mapped_column(Text, default="")
+    citations_json: Mapped[str] = mapped_column(Text, default="[]")
+    ms: Mapped[float] = mapped_column(Numeric(10, 2), default=0)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())

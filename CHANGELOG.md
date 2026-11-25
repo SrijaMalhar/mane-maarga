@@ -2,6 +2,14 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Day 4 · 25 Nov 2026 · The agent loop
+- `app/agents/runtime.py`: PLAN, ACT, CHECK, RECOVER, ASK, DONE, at most 12 steps. The model returns one JSON decision per turn; the server runs every tool.
+- Providers: `mock` (YAML scripts, figures filled only from tool results) and `lyzr` (Lyzr Agent Studio inference API, 2 retries). Unconfigured Lyzr gives a clear 400.
+- Citation guard: a message reaches the operator only if every rupee figure comes from a tool result or a cited clause, every cited clause exists, and both English and Kannada are present. Two failures block the run.
+- `agent_runs` and `agent_steps` tables (Alembic 0003); `POST /api/cases/{id}/agent/run`, `GET /api/cases/{id}/agent/runs`.
+- System prompt in English and Kannada (`app/agents/prompts/`). `make demo` prints three traces with no key: happy path, recovery, blocked.
+- 7 new tests (happy path, recovery, blocked figure, step limit, no self-approval, Lyzr retries): 97 passing.
+
 ## Day 3 · 24 Nov 2026 · Tools, not prompts
 - Tool registry (`app/agents/tools/`): 11 typed tools, each declaring its side effect (`none`, `write` or `gated`). Every call is validated and audited with argument and result hashes and milliseconds.
 - `request_approval` is the only gated tool; it creates a pending `approval_requests` row (Alembic 0002). Only `POST /api/approvals/{id}/decide` by an administrator changes a case's status.

@@ -1,6 +1,6 @@
-# Architecture (v0)
+# Architecture (v1)
 
-This describes the code as it is today. It will change as the agent runtime, approval gate and lender pieces land; each change is recorded in `docs/adr/`.
+This describes the code as it is today (Day 4: rule packs v2, tool layer, agent runtime). Each design change is recorded in `docs/adr/`.
 
 ## The rule we build around
 
@@ -21,10 +21,19 @@ backend/
 │   │   ├── construction.py stages and photo evidence
 │   │   ├── intelligence.py case checks, intake, scheme reference, tasks, evaluations
 │   │   ├── audit.py       audit trail (admin)
-│   │   └── engine.py      /api/engine/ladder, /api/engine/affordability
+│   │   ├── engine.py      /api/engine/ladder, affordability, eligibility, clauses/{id}
+│   │   ├── tools.py       /api/tools/* (service token) and approval decisions (admin)
+│   │   └── agent.py       /api/cases/{id}/agent/run and /agent/runs
 │   ├── core/              config (env), security (tokens, roles, throttle), audit writes, observability
-│   ├── engine/            rules.py, ladder.py, affordability.py + rules_data/ (dated packs)
-│   ├── agents.py          four rule-based case checks (documents, finance, construction, recovery)
+│   ├── engine/            rules.py (loader + JSON-logic), ladder.py, affordability.py
+│   │   └── rules_data/    schema.json + <STATE>/<scheme>/<year>.json, cited clause by clause
+│   ├── agents/
+│   │   ├── specialists.py four rule-based case checks (documents, finance, construction, recovery)
+│   │   ├── tools/         typed tool registry: 11 tools, audited, side effects declared
+│   │   ├── runtime.py     PLAN → ACT → CHECK → RECOVER → ASK → DONE, max 12 steps
+│   │   ├── providers/     mock (YAML scripts) and lyzr (Lyzr Agent Studio)
+│   │   ├── guards/        citation guard: no figure or rule without a tool result or clause
+│   │   └── prompts/, scripts/  system prompt (en, kn); mock scripts
 │   ├── document_ai.py     text extraction (pypdf, Tesseract) and field comparison
 │   ├── models.py          SQLAlchemy tables
 │   └── schemas.py         Pydantic request/response models
@@ -52,7 +61,10 @@ frontend/
 | Cases, consent, documents, funding, stages, audit | Real, stored in PostgreSQL |
 | Text extraction and field comparison | Real (`pypdf`, Tesseract); scored by MaargaDocBench |
 | Money ladder, 30% repayment cap | Real code; the stage split is illustrative until the official order is found |
-| Case checks | Rule-based, deterministic; no language model yet |
+| Eligibility (PMAY-G exclusions) | Real code over cited clauses; two clauses from secondary sources are marked unverified |
+| Case checks | Rule-based, deterministic |
+| Agent runtime | Real loop, tools and guard; runs on the scripted mock by default, on Lyzr when keys are set |
+| Approval gate | Real: agents create pending requests; only an admin decision changes status |
 | Demo mode in the browser | Sample data only, labelled; uses the same rule pack |
 | Government portals, banks, payments | Not connected; any future connector will be a labelled simulator first |
 

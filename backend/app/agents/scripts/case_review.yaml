@@ -1,0 +1,38 @@
+# Scripted review of one case. Every figure is filled from a tool result in this run.
+steps:
+  - thought_summary: Read the case, check its documents, then build the money ladder and tell the family what cash they will need.
+    status: continue
+  - thought_summary: Who is this family and what money is confirmed?
+    action: {tool: get_case, args: {case_id: "{{case.id}}"}}
+  - thought_summary: Are any documents missing, unextracted or mismatched?
+    action: {tool: check_documents, args: {case_id: "{{case.id}}"}}
+  - thought_summary: Stage-by-stage cash needed before each instalment, from the rule pack.
+    action: {tool: build_money_ladder, args: {case_id: "{{case.id}}"}}
+  - thought_summary: Draft a Kannada note to the family about the cash needed before the next instalment.
+    action:
+      tool: draft_message
+      args: {case_id: "{{case.id}}", kind: cash_needed, items: "{{build_money_ladder.peak_cash_before_instalment|inr}}", language: kn}
+  - thought_summary: Summarise for the operator with the figures and the clauses behind them.
+    status: done
+    citations: [KA-PMAYG-2024-25:AM-01]
+    message_en: >-
+      {{get_case.beneficiary_name}} will need about {{build_money_ladder.peak_cash_before_instalment|inr}} in hand before an
+      instalment arrives; the largest timing gap is {{build_money_ladder.peak_timing_gap|inr}} and the gap no scheme money
+      covers is {{build_money_ladder.funding_gap|inr}}. Unit assistance is ₹1,20,000 (cited). The stage split is illustrative.
+      Documents: {{check_documents.status}}. A Kannada message to the family is drafted, not sent.
+    message_kn: >-
+      {{get_case.beneficiary_name}} ಅವರಿಗೆ ಕಂತು ಬರುವ ಮೊದಲು ಸುಮಾರು {{build_money_ladder.peak_cash_before_instalment|inr}} ಕೈಯಲ್ಲಿ
+      ಬೇಕು; ದೊಡ್ಡ ಸಮಯದ ಅಂತರ {{build_money_ladder.peak_timing_gap|inr}}, ಯೋಜನೆಯ ಹಣ ತುಂಬದ ಕೊರತೆ
+      {{build_money_ladder.funding_gap|inr}}. ಘಟಕ ನೆರವು ₹1,20,000. ಹಂತಗಳ ಹಂಚಿಕೆ ಉದಾಹರಣೆ ಮಾತ್ರ.
+      ಕುಟುಂಬಕ್ಕೆ ಕನ್ನಡ ಸಂದೇಶ ಸಿದ್ಧವಾಗಿದೆ, ಕಳುಹಿಸಿಲ್ಲ.
+recover:
+  missing_cost_estimate:
+    - thought_summary: No cost estimate, so no ladder. Make a task for the engineer instead of guessing a cost.
+      action:
+        tool: create_task
+        args: {case_id: "{{case.id}}", title: Record a construction cost estimate, category: finance,
+               description: The money ladder needs a cost estimate from the taluk engineer.}
+    - thought_summary: Ask the operator to get the estimate; nothing else can be computed yet.
+      status: ask
+      message_en: This case has no cost estimate, so I cannot work out the cash needed per stage. I created a task to record one. Can you get the estimate from the engineer?
+      message_kn: ಈ ಕಡತದಲ್ಲಿ ವೆಚ್ಚದ ಅಂದಾಜು ಇಲ್ಲ, ಆದ್ದರಿಂದ ಪ್ರತಿ ಹಂತಕ್ಕೆ ಬೇಕಾದ ಹಣ ಲೆಕ್ಕಿಸಲು ಆಗುವುದಿಲ್ಲ. ಅದಕ್ಕಾಗಿ ಕಾರ್ಯ ರಚಿಸಿದ್ದೇನೆ. ಎಂಜಿನಿಯರ್‌ನಿಂದ ಅಂದಾಜು ಪಡೆಯಬಹುದೇ?

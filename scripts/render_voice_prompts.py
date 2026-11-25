@@ -21,9 +21,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
+
+# Colab ships TensorFlow, which needs a newer protobuf than parler-tts installs. We only use PyTorch,
+# so stop transformers from importing TensorFlow or JAX at all.
+os.environ.setdefault("USE_TF", "0")
+os.environ.setdefault("USE_FLAX", "0")
+os.environ.setdefault("USE_TORCH", "1")
+os.environ.setdefault("TRANSFORMERS_NO_TF", "1")
 
 ROOT = Path(__file__).resolve().parents[1]
 AUDIO = ROOT / "frontend" / "public" / "audio"

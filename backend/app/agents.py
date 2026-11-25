@@ -1,4 +1,4 @@
-"""Deterministic Sooru agent orchestration prototype.
+"""Deterministic Mane Maarga agent orchestration prototype.
 
 No external LLM is connected. Agents produce evidence-backed suggestions; all
 financial, eligibility, permission and irreversible actions remain human-gated.

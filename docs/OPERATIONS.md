@@ -16,7 +16,7 @@ The API emits one JSON request log with request ID, method, path, status and dur
 Run `scripts/backup.sh` with the production Compose environment. Store backups off-host and encrypt them. For a restore, use a disposable/test database first:
 
 ```bash
-gzip -dc backups/sooru-db-YYYYMMDDTHHMMSSZ.sql.gz | docker compose -f docker-compose.prod.yml exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+gzip -dc backups/mane-maarga-db-YYYYMMDDTHHMMSSZ.sql.gz | docker compose -f docker-compose.prod.yml exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 ```
 
 Uploaded evidence/documents live in a separate named volume and must be backed up independently. Validate restore integrity and document recovery time/objectives before pilot use.

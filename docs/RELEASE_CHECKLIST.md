@@ -1,4 +1,4 @@
-# Sooru release checklist
+# Mane Maarga release checklist
 
 - [ ] Backend tests pass in CI and locally.
 - [ ] Frontend TypeScript build passes.

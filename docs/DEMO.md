@@ -1,4 +1,4 @@
-# Sooru demo script (synthetic data only)
+# Mane Maarga demo script (synthetic data only)
 
 1. Bootstrap a demo administrator with a synthetic identity.
 2. Create an operator and a viewer, then show role restrictions.

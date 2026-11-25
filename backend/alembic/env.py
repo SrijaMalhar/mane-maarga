@@ -8,7 +8,7 @@ from app import models  # noqa: F401
 config = context.config
 if config.config_file_name:
     fileConfig(config.config_file_name)
-config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL", "sqlite:///./sooru.db").replace("%", "%%"))
+config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL", "sqlite:///./mane_maarga.db").replace("%", "%%"))
 target_metadata = Base.metadata
 
 def run_migrations_offline():

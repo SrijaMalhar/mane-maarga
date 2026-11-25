@@ -8,7 +8,7 @@ never alongside real beneficiary data.
         --username demo_admin --password 'choose-a-long-password'
 
 If the workspace has no users yet, the first administrator is created with the
-given credentials (needs SOORU_BOOTSTRAP_ENABLED, on by default in development).
+given credentials (needs MANE_MAARGA_BOOTSTRAP_ENABLED, on by default in development).
 """
 import argparse
 import json

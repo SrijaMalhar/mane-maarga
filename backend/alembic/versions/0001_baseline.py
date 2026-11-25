@@ -1,4 +1,4 @@
-"""Baseline schema for existing Sooru MVP tables.
+"""Baseline schema for existing Mane Maarga MVP tables (first built as Sooru).
 
 For new databases, creates the current SQLAlchemy metadata. For legacy databases,
 create_all is non-destructive and the consent_status column is added if missing.

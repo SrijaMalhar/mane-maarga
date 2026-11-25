@@ -1,0 +1,23 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501", "B008", "B904"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = false
+files = ["app/engine", "app/agents", "app/core"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

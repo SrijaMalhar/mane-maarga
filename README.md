@@ -184,11 +184,11 @@ Key settings in `.env` (see `.env.example`):
 
 | Variable | Purpose |
 |---|---|
-| `SOORU_JWT_SECRET` | Signs sessions. **Must** be a random string of at least 32 characters outside development. |
-| `SOORU_JWT_TTL_MINUTES` | Session length (default 60). |
+| `MANE_MAARGA_JWT_SECRET` | Signs sessions. **Must** be a random string of at least 32 characters outside development. |
+| `MANE_MAARGA_JWT_TTL_MINUTES` | Session length (default 60). |
 | `CORS_ORIGINS` | The web app's origin(s), comma-separated. |
 | `VITE_API_BASE_URL` | The API URL the frontend calls. |
-| `SOORU_BOOTSTRAP_ENABLED` | Allows first-administrator setup (off by default in production). |
+| `MANE_MAARGA_BOOTSTRAP_ENABLED` | Allows first-administrator setup (off by default in production). |
 
 To stop everything: `docker compose down`. Your database and uploads stay in Docker volumes. Removing them (`docker compose down -v`) **permanently deletes all records**.
 

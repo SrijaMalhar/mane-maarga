@@ -18,7 +18,7 @@ import Intelligence from './pages/Intelligence'
 import Audit from './pages/Audit'
 import Team from './pages/Team'
 
-const TOKEN_KEY = 'sooru_token'
+const TOKEN_KEY = 'mm_token'
 const DEMO_KEY = 'mm_demo'
 const readDemo = () => { try { return sessionStorage.getItem(DEMO_KEY) === '1' } catch { return false } }
 

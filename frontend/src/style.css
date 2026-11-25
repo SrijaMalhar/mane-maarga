@@ -763,3 +763,5 @@ code { font-family: var(--font-mono); font-size: .88em; background: var(--sunken
 .kit .swatches div { border: 1px solid var(--rule); font-family: var(--font-mono); font-size: 12px; }
 .kit .swatches span { display: block; height: 56px; }
 .kit .swatches b { display: block; padding: 6px 8px; font-weight: 500; }
+.icon-btn.recording { background: var(--redpen); color: #fff; border-color: var(--redpen); animation: pulse 1.2s ease-in-out infinite; }
+label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1); margin: var(--s2) 0; }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Mic, Send, Volume2, ClipboardCheck, ExternalLink, ShieldAlert } from 'lucide-react'
+import { Mic, Square, Send, Volume2, ClipboardCheck, ExternalLink, ShieldAlert } from 'lucide-react'
 import Mascot from '../components/Mascot'
 import AgentRunPanel from '../components/AgentRunPanel'
 import { CasePicker, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
@@ -7,6 +7,7 @@ import { type AgentPlan, type RecoveryTask } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
 import { useI18n } from '../lib/i18n'
 import { inr, human } from '../lib/format'
+import { speak as speakVoice, startRecording, stopSpeaking, type Gender, type Recording, type VoiceSource } from '../lib/voice'
 
 type Tool = 'intake' | 'schemes' | 'budget' | 'tasks' | 'lab'
 
@@ -88,8 +89,24 @@ function CaseAnalysis({ caseId }: { caseId: number }) {
   )
 }
 
+const VOICE_NOTE: Record<VoiceSource, string> = {
+  recorded: 'Voice: recorded by a person',
+  bhashini: 'Voice: Bhashini (Indian-language speech)',
+  browser: "Voice: this device's built-in voice",
+  none: 'No natural voice for this language on this device, so the question is shown as text only.',
+}
+
 function Intake() {
-  const { api } = useApp()
+  const { api, demo } = useApp()
+  const [bhashini, setBhashini] = useState(false)
+  const [gender, setGender] = useState<Gender>(() => { try { return (localStorage.getItem('mm_voice') as Gender) || 'female' } catch { return 'female' } })
+  const [autoRead, setAutoRead] = useState(true)
+  const [voiceUsed, setVoiceUsed] = useState<VoiceSource | null>(null)
+  const [recording, setRecording] = useState<Recording | null>(null)
+  const [hearing, setHearing] = useState(false)
+  useEffect(() => { api.get<{ bhashini: boolean }>('/api/speech/status').then(d => setBhashini(d.bhashini)).catch(() => setBhashini(false)) }, [api])
+  useEffect(() => { try { localStorage.setItem('mm_voice', gender) } catch { /* private mode */ } }, [gender])
+  useEffect(() => () => stopSpeaking(), [])
   const [language, setLanguage] = useState<'kn' | 'en' | 'te'>('kn')
   const [session, setSession] = useState('')
   const [chat, setChat] = useState<Array<{ role: 'assistant' | 'user'; text: string }>>([])
@@ -111,15 +128,30 @@ function Intake() {
     setChat(c => [...c, { role: 'user', text }]); setMsg('')
     try { const d = await api.post<{ message: string; fields: Record<string, string>; status: string }>(`/api/intelligence/intake/${session}/message`, { message: text }); setChat(c => [...c, { role: 'assistant', text: d.message }]); setFields(d.fields || {}); if (d.status === 'completed') setDone(true) } catch (e) { setNote(e instanceof Error ? e.message : 'Message failed') }
   }
-  function listen() {
+  async function speak(text: string) { setVoiceUsed(await speakVoice(text, language, { api, bhashini, gender })) }
+  const lastAssistant = [...chat].reverse().find(m => m.role === 'assistant')?.text
+  useEffect(() => { if (autoRead && lastAssistant) void speak(lastAssistant) }, [lastAssistant]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function listen() {
+    if (bhashini && 'MediaRecorder' in window) {
+      if (recording) {
+        setRecording(null); setHearing(true)
+        try {
+          const audio = await recording.stop()
+          const d = await api.post<{ text: string }>('/api/speech/asr', { audio_base64: audio, language })
+          if (d.text) setMsg(d.text); else setNote('Could not hear an answer. Please try again or type it.')
+        } catch { setNote('Could not transcribe. Please try again or type the answer.') } finally { setHearing(false) }
+        return
+      }
+      stopSpeaking()
+      try { setRecording(await startRecording()) } catch { setNote('Microphone permission is needed to answer by voice.') }
+      return
+    }
     if (!Speech) return
     const rec = new Speech(); rec.lang = bcp
-    rec.onresult = ev => setMsg(ev.results[0][0].transcript); rec.onerror = () => setNote('Voice input failed — please type instead.'); rec.start()
+    rec.onresult = ev => setMsg(ev.results[0][0].transcript); rec.onerror = () => setNote('Voice input failed. Please type instead.'); rec.start()
   }
-  function speak(text: string) {
-    if (!('speechSynthesis' in window)) return
-    const u = new SpeechSynthesisUtterance(text); u.lang = bcp; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u)
-  }
+  const canListen = (bhashini && 'MediaRecorder' in window) || !!Speech
 
   return (
     <div className="intake">
@@ -128,7 +160,14 @@ function Intake() {
         <p>A guided conversation to collect household details in the family's language. An operator reviews the answers before any case is created.</p>
         <label className="field"><span>Language</span><select value={language} onChange={e => setLanguage(e.target.value as 'kn')} disabled={!!session && !done}><option value="kn">ಕನ್ನಡ Kannada</option><option value="en">English</option><option value="te">తెలుగు Telugu</option></select></label>
         <button className="btn primary" onClick={start}>{session ? 'Start over' : 'Start conversation'}</button>
-        <p className="fine"><b>Voice:</b> uses your browser's built-in speech recognition and playback where available (beta). Audio is not sent to or stored by Mane Maarga. <Tag tone="soon">Bhashini integration · coming soon</Tag></p>
+        <label className="field"><span>Voice</span><select value={gender} onChange={e => setGender(e.target.value as Gender)}><option value="female">ಮಹಿಳಾ ಧ್ವನಿ · Female</option><option value="male">ಪುರುಷ ಧ್ವನಿ · Male</option></select></label>
+        <label className="check"><input type="checkbox" checked={autoRead} onChange={e => setAutoRead(e.target.checked)} /> Read each question aloud</label>
+        <p className="fine">
+          {bhashini
+            ? <><Tag tone="confirmed">Bhashini connected</Tag> Speech is recognised and spoken by Bhashini, the Government of India's language platform. Audio is processed in memory and never stored.</>
+            : <><Tag>Bhashini not connected</Tag> {demo ? 'The browser demo cannot use Bhashini keys.' : 'Set the Bhashini keys on the server to enable it.'} Until then: recorded prompts if present, otherwise this device's own voice.</>}
+        </p>
+        {voiceUsed && <p className="fine">{VOICE_NOTE[voiceUsed]}</p>}
         {note && <Notice tone="warn" onClose={() => setNote('')}>{note}</Notice>}
       </div>
       <div className="intake-chat">
@@ -138,15 +177,15 @@ function Intake() {
               {chat.map((m, i) => (
                 <div key={i} className={`bubble ${m.role}`} lang={m.role === 'assistant' ? language : undefined}>
                   {m.text}
-                  {m.role === 'assistant' && 'speechSynthesis' in window && <button className="bubble-play" onClick={() => speak(m.text)} aria-label="Read aloud"><Volume2 size={14} /></button>}
+                  {m.role === 'assistant' && <button className="bubble-play" onClick={() => void speak(m.text)} aria-label="Read aloud"><Volume2 size={14} /></button>}
                 </div>
               ))}
               <div ref={end} />
             </div>
             {!done && (
               <form className="chat-input" onSubmit={e => { e.preventDefault(); void send() }}>
-                {Speech ? <button type="button" className="icon-btn" onClick={listen} aria-label="Speak your answer"><Mic size={18} /></button> : <span className="muted tiny">Voice not available in this browser</span>}
-                <input value={msg} onChange={e => setMsg(e.target.value)} placeholder="Type the answer…" aria-label="Answer" />
+                {canListen ? <button type="button" className={`icon-btn${recording ? ' recording' : ''}`} onClick={() => void listen()} disabled={hearing} aria-pressed={!!recording} aria-label={recording ? 'Stop and use this answer' : 'Speak your answer'}>{recording ? <Square size={16} /> : <Mic size={18} />}</button> : <span className="muted tiny">Voice not available in this browser</span>}
+                <input value={msg} onChange={e => setMsg(e.target.value)} placeholder={recording ? 'Listening… press stop when done' : hearing ? 'Writing down what you said…' : 'Type or speak the answer'} aria-label="Answer" />
                 <button className="icon-btn primary" aria-label="Send"><Send size={16} /></button>
               </form>
             )}

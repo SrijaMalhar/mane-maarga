@@ -124,14 +124,14 @@ INTAKE_FIELDS = ["beneficiary_name", "village", "taluk", "land_status", "househo
 
 
 KN_PROMPTS = {
-    "start": "ನಮಸ್ಕಾರ. ಮನೆ ನಿರ್ಮಾಣಕ್ಕೆ ಸಹಾಯ ಮಾಡಲು ಕೆಲವು ವಿವರಗಳನ್ನು ಕೇಳುತ್ತೇನೆ. ನಿಮ್ಮ ಹೆಸರು ಏನು?",
-    "beneficiary_name": "ನಿಮ್ಮ ಊರಿನ ಹೆಸರು ಏನು?",
-    "village": "ನಿಮ್ಮ ತಾಲ್ಲೂಕು ಯಾವುದು?",
-    "taluk": "ನಿಮ್ಮ ಬಳಿ ಮನೆ ಕಟ್ಟಲು ಜಾಗ/ಭೂಮಿ ಇದೆಯೇ? (ಹೌದು/ಇಲ್ಲ/ಗೊತ್ತಿಲ್ಲ)",
-    "land_status": "ಕುಟುಂಬದಲ್ಲಿ ಎಷ್ಟು ಜನ ಇದ್ದಾರೆ?",
-    "household_size": "ನಿಮಗೆ ಈಗ ಮುಖ್ಯವಾಗಿ ಯಾವ ಸಹಾಯ ಬೇಕು — ದಾಖಲೆಗಳು, ಯೋಜನೆ ಮಾಹಿತಿ, ಹಣಕಾಸು ಅಂದಾಜು ಅಥವಾ ನಿರ್ಮಾಣ ಹಂತಗಳು?",
-    "housing_need": "ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿಗಳು ನೀಡಲು ಇಚ್ಛಿಸಿದರೆ ಮಾತ್ರ ನೀಡಿ. ಬೇಡವಾದರೆ 'skip' ಎಂದು ಬರೆಯಿರಿ.",
-    "phone_last4": "ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ case ದಾಖಲಿಸಲು ಅಧಿಕಾರಿ ಸಹಾಯ ಮಾಡುತ್ತಾರೆ. ಇದು prototype intake; ಯಾವುದೇ ಸರ್ಕಾರಿ ಅರ್ಜಿ ಸಲ್ಲಿಸಲಾಗಿಲ್ಲ.",
+    "start": "ನಮಸ್ಕಾರ. ನಿಮ್ಮ ಮನೆ ಕೆಲಸಕ್ಕೆ ಸಹಾಯ ಮಾಡೋಕೆ ಕೆಲವು ವಿಷಯ ಕೇಳ್ತೀನಿ. ಮೊದಲು, ನಿಮ್ಮ ಹೆಸರು ಹೇಳಿ.",
+    "beneficiary_name": "ಸರಿ. ನಿಮ್ಮ ಊರು ಯಾವುದು?",
+    "village": "ಆ ಊರು ಯಾವ ತಾಲ್ಲೂಕಿಗೆ ಸೇರುತ್ತೆ?",
+    "taluk": "ಮನೆ ಕಟ್ಟೋಕೆ ನಿಮ್ಮದೇ ಜಾಗ ಇದೆಯಾ? ಹೌದು, ಇಲ್ಲ, ಅಥವಾ ಗೊತ್ತಿಲ್ಲ ಅಂತ ಹೇಳಿ.",
+    "land_status": "ಮನೆಯಲ್ಲಿ ಒಟ್ಟು ಎಷ್ಟು ಜನ ಇದ್ದೀರಿ?",
+    "household_size": "ಈಗ ಮೊದಲು ಯಾವ ಸಹಾಯ ಬೇಕು? ದಾಖಲೆ ಕೆಲಸ, ಯೋಜನೆಯ ಮಾಹಿತಿ, ಖರ್ಚಿನ ಅಂದಾಜು, ಅಥವಾ ಕಟ್ಟಡದ ಹಂತಗಳು?",
+    "housing_need": "ನಿಮಗೆ ಇಷ್ಟ ಇದ್ದರೆ ಮಾತ್ರ, ಫೋನ್ ನಂಬರಿನ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿ ಹೇಳಿ. ಬೇಡ ಅಂದರೆ, ಬೇಡ ಅನ್ನಿ.",
+    "phone_last4": "ತುಂಬಾ ಧನ್ಯವಾದ. ನಮ್ಮ ಸಿಬ್ಬಂದಿ ಈ ವಿವರ ನೋಡಿ ನಿಮ್ಮ ಕಡತ ತೆರೆಯುತ್ತಾರೆ. ಇನ್ನೂ ಯಾವ ಸರ್ಕಾರಿ ಅರ್ಜಿಯನ್ನೂ ಹಾಕಿಲ್ಲ.",
 }
 
 
@@ -234,14 +234,17 @@ def intake_message(session_token: str, payload: IntakeMessage, user: Authenticat
     field = state.get("next_field")
     answer = payload.message.strip()
     prompts = KN_PROMPTS if session.language == "kn" else TE_PROMPTS if session.language == "te" else EN_PROMPTS
-    if field == "phone_last4" and answer.lower() in {"skip", "ಸಮರ್ಪಕ", "ಬೇಡ", "no"}:
-        answer = ""
+    if field == "phone_last4":
+        # Spoken answers arrive in Kannada digits or words; normalise before checking.
+        answer = answer.translate(str.maketrans("೦೧೨೩೪೫೬೭೮೯", "0123456789")).replace(" ", "")
+        if answer.lower().rstrip(".") in {"skip", "no", "ಬೇಡ", "ಬೇಡಾ", "ಬೇಡ್ಲ", "ಇಲ್ಲ", "వద్దు"}:
+            answer = ""
     if field == "phone_last4" and answer and (not re.fullmatch("\\d{4}", answer)):
         return {
             "status": "in_progress",
             "message": "Please enter exactly four digits or type skip."
             if session.language != "kn"
-            else "ನಾಲ್ಕು ಅಂಕಿಗಳು ಅಥವಾ skip ಎಂದು ನಮೂದಿಸಿ.",
+            else "ದಯವಿಟ್ಟು ನಾಲ್ಕು ಅಂಕಿ ಹೇಳಿ, ಅಥವಾ ಬೇಡ ಅನ್ನಿ.",
             "next_field": field,
         }
     state["fields"][field] = answer

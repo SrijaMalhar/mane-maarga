@@ -1,0 +1,40 @@
+{
+  "_note": "Intake prompts to record. Save each as audio/<lang>/<key>.mp3 and list it in recorded[] below. Recorded human audio always plays before any synthetic voice.",
+  "recorded": {
+    "kn": [],
+    "te": [],
+    "en": []
+  },
+  "prompts": {
+    "kn": {
+      "start": "ನಮಸ್ಕಾರ. ನಿಮ್ಮ ಮನೆ ಕೆಲಸಕ್ಕೆ ಸಹಾಯ ಮಾಡೋಕೆ ಕೆಲವು ವಿಷಯ ಕೇಳ್ತೀನಿ. ಮೊದಲು, ನಿಮ್ಮ ಹೆಸರು ಹೇಳಿ.",
+      "beneficiary_name": "ಸರಿ. ನಿಮ್ಮ ಊರು ಯಾವುದು?",
+      "village": "ಆ ಊರು ಯಾವ ತಾಲ್ಲೂಕಿಗೆ ಸೇರುತ್ತೆ?",
+      "taluk": "ಮನೆ ಕಟ್ಟೋಕೆ ನಿಮ್ಮದೇ ಜಾಗ ಇದೆಯಾ? ಹೌದು, ಇಲ್ಲ, ಅಥವಾ ಗೊತ್ತಿಲ್ಲ ಅಂತ ಹೇಳಿ.",
+      "land_status": "ಮನೆಯಲ್ಲಿ ಒಟ್ಟು ಎಷ್ಟು ಜನ ಇದ್ದೀರಿ?",
+      "household_size": "ಈಗ ಮೊದಲು ಯಾವ ಸಹಾಯ ಬೇಕು? ದಾಖಲೆ ಕೆಲಸ, ಯೋಜನೆಯ ಮಾಹಿತಿ, ಖರ್ಚಿನ ಅಂದಾಜು, ಅಥವಾ ಕಟ್ಟಡದ ಹಂತಗಳು?",
+      "housing_need": "ನಿಮಗೆ ಇಷ್ಟ ಇದ್ದರೆ ಮಾತ್ರ, ಫೋನ್ ನಂಬರಿನ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿ ಹೇಳಿ. ಬೇಡ ಅಂದರೆ, ಬೇಡ ಅನ್ನಿ.",
+      "phone_last4": "ತುಂಬಾ ಧನ್ಯವಾದ. ನಮ್ಮ ಸಿಬ್ಬಂದಿ ಈ ವಿವರ ನೋಡಿ ನಿಮ್ಮ ಕಡತ ತೆರೆಯುತ್ತಾರೆ. ಇನ್ನೂ ಯಾವ ಸರ್ಕಾರಿ ಅರ್ಜಿಯನ್ನೂ ಹಾಕಿಲ್ಲ."
+    },
+    "te": {
+      "start": "నమస్కారం. మీ ఇల్లు నిర్మాణానికి సహాయం చేయడానికి కొన్ని వివరాలు అడుగుతాను. మీ పేరు ఏమిటి?",
+      "beneficiary_name": "మీ గ్రామం పేరు ఏమిటి?",
+      "village": "మీ మండలం ఏది?",
+      "taluk": "ఇల్లు కట్టడానికి మీకు స్థలం ఉందా? (అవును/లేదు/తెలియదు)",
+      "land_status": "మీ కుటుంబంలో ఎంత మంది ఉన్నారు?",
+      "household_size": "మొదట ఏ సహాయం కావాలి — పత్రాలు, పథకం సమాచారం, బడ్జెట్ అంచనా లేదా నిర్మాణ దశలు?",
+      "housing_need": "ఇష్టమైతే ఫోన్ నంబర్ చివరి నాలుగు అంకెలు ఇవ్వండి. లేకపోతే skip అని టైప్ చేయండి.",
+      "phone_last4": "ధన్యవాదాలు. ఆపరేటర్ వివరాలను పరిశీలించి కేసు నమోదు చేయడంలో సహాయం చేస్తారు. ఇది ప్రోటోటైప్; ప్రభుత్వ దరఖాస్తు సమర్పించబడలేదు."
+    },
+    "en": {
+      "start": "Hello. I'll collect a few details to help plan your house-building journey. What is your name?",
+      "beneficiary_name": "Which village are you from?",
+      "village": "Which taluk are you in?",
+      "taluk": "Do you have land/site for building? (yes/no/unsure)",
+      "land_status": "How many people are in your household?",
+      "household_size": "What help do you need first: documents, scheme information, budget estimate, or construction steps?",
+      "housing_need": "If you want, enter the last four digits of your phone number. Otherwise type skip.",
+      "phone_last4": "Thank you. An operator can review these details and create a case. This is prototype intake; no government application was submitted."
+    }
+  }
+}

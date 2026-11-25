@@ -241,7 +241,7 @@ const SCHEMES = [
 const INTAKE_FIELDS = ['beneficiary_name', 'village', 'taluk', 'land_status', 'household_size', 'housing_need', 'phone_last4']
 const PROMPTS: Record<string, Record<string, string>> = {
   en: { start: "Hello. I'll collect a few details to help plan your house-building journey. What is your name?", beneficiary_name: 'Which village are you from?', village: 'Which taluk are you in?', taluk: 'Do you have land/site for building? (yes/no/unsure)', land_status: 'How many people are in your household?', household_size: 'What help do you need first: documents, scheme information, budget estimate, or construction steps?', housing_need: 'If you want, enter the last four digits of your phone number. Otherwise type skip.', phone_last4: 'Thank you. An operator can review these details and create a case. This is prototype intake; no government application was submitted.' },
-  kn: { start: 'ನಮಸ್ಕಾರ. ಮನೆ ನಿರ್ಮಾಣಕ್ಕೆ ಸಹಾಯ ಮಾಡಲು ಕೆಲವು ವಿವರಗಳನ್ನು ಕೇಳುತ್ತೇನೆ. ನಿಮ್ಮ ಹೆಸರು ಏನು?', beneficiary_name: 'ನಿಮ್ಮ ಊರಿನ ಹೆಸರು ಏನು?', village: 'ನಿಮ್ಮ ತಾಲ್ಲೂಕು ಯಾವುದು?', taluk: 'ನಿಮ್ಮ ಬಳಿ ಮನೆ ಕಟ್ಟಲು ಜಾಗ/ಭೂಮಿ ಇದೆಯೇ? (ಹೌದು/ಇಲ್ಲ/ಗೊತ್ತಿಲ್ಲ)', land_status: 'ಕುಟುಂಬದಲ್ಲಿ ಎಷ್ಟು ಜನ ಇದ್ದಾರೆ?', household_size: 'ನಿಮಗೆ ಈಗ ಮುಖ್ಯವಾಗಿ ಯಾವ ಸಹಾಯ ಬೇಕು — ದಾಖಲೆಗಳು, ಯೋಜನೆ ಮಾಹಿತಿ, ಹಣಕಾಸು ಅಂದಾಜು ಅಥವಾ ನಿರ್ಮಾಣ ಹಂತಗಳು?', housing_need: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿಗಳು ನೀಡಲು ಇಚ್ಛಿಸಿದರೆ ಮಾತ್ರ ನೀಡಿ. ಬೇಡವಾದರೆ 'skip' ಎಂದು ಬರೆಯಿರಿ.", phone_last4: 'ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ case ದಾಖಲಿಸಲು ಅಧಿಕಾರಿ ಸಹಾಯ ಮಾಡುತ್ತಾರೆ. ಇದು prototype intake; ಯಾವುದೇ ಸರ್ಕಾರಿ ಅರ್ಜಿ ಸಲ್ಲಿಸಲಾಗಿಲ್ಲ.' },
+  kn: {start: "ನಮಸ್ಕಾರ. ನಿಮ್ಮ ಮನೆ ಕೆಲಸಕ್ಕೆ ಸಹಾಯ ಮಾಡೋಕೆ ಕೆಲವು ವಿಷಯ ಕೇಳ್ತೀನಿ. ಮೊದಲು, ನಿಮ್ಮ ಹೆಸರು ಹೇಳಿ.", beneficiary_name: "ಸರಿ. ನಿಮ್ಮ ಊರು ಯಾವುದು?", village: "ಆ ಊರು ಯಾವ ತಾಲ್ಲೂಕಿಗೆ ಸೇರುತ್ತೆ?", taluk: "ಮನೆ ಕಟ್ಟೋಕೆ ನಿಮ್ಮದೇ ಜಾಗ ಇದೆಯಾ? ಹೌದು, ಇಲ್ಲ, ಅಥವಾ ಗೊತ್ತಿಲ್ಲ ಅಂತ ಹೇಳಿ.", land_status: "ಮನೆಯಲ್ಲಿ ಒಟ್ಟು ಎಷ್ಟು ಜನ ಇದ್ದೀರಿ?", household_size: "ಈಗ ಮೊದಲು ಯಾವ ಸಹಾಯ ಬೇಕು? ದಾಖಲೆ ಕೆಲಸ, ಯೋಜನೆಯ ಮಾಹಿತಿ, ಖರ್ಚಿನ ಅಂದಾಜು, ಅಥವಾ ಕಟ್ಟಡದ ಹಂತಗಳು?", housing_need: "ನಿಮಗೆ ಇಷ್ಟ ಇದ್ದರೆ ಮಾತ್ರ, ಫೋನ್ ನಂಬರಿನ ಕೊನೆಯ ನಾಲ್ಕು ಅಂಕಿ ಹೇಳಿ. ಬೇಡ ಅಂದರೆ, ಬೇಡ ಅನ್ನಿ.", phone_last4: "ತುಂಬಾ ಧನ್ಯವಾದ. ನಮ್ಮ ಸಿಬ್ಬಂದಿ ಈ ವಿವರ ನೋಡಿ ನಿಮ್ಮ ಕಡತ ತೆರೆಯುತ್ತಾರೆ. ಇನ್ನೂ ಯಾವ ಸರ್ಕಾರಿ ಅರ್ಜಿಯನ್ನೂ ಹಾಕಿಲ್ಲ."},
 }
 PROMPTS.te = PROMPTS.en
 
@@ -299,6 +299,7 @@ function routes(s: Store): Array<[string, RegExp, Handler]> {
     ['POST', /^\/api\/cases\/(\d+)\/stages\/(\d+)\/evidence$/, (m, b) => { const c = caseOr404(m[1]); const f = b.__file as File; if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) throw new ApiError('Evidence must be JPEG, PNG or WebP', 415); const e = { id: s.seq++, case_id: c.id, stage_id: Number(m[2]), original_name: f.name, caption: '', verification_status: 'pending_review', uploaded_by: 'demo_visitor', uploaded_at: now() }; s.evidence.unshift(e); audit(s, 'construction_evidence_uploaded', c.id, `stage_id=${m[2]}; review_required`); return e }],
     ['GET', /^\/api\/cases\/(\d+)\/agent-plan$/, m => agentPlan(s, caseOr404(m[1]))],
     ['POST', /^\/api\/cases\/(\d+)\/agent\/run$/, m => agentRun(s, caseOr404(m[1]))],
+    ['GET', /^\/api\/speech\/status$/, () => ({ bhashini: false, languages: ['en', 'kn', 'te'], voices: ['female', 'male'] })],
     ['GET', /^\/api\/audit$/, (_, _b, q) => { const id = q.get('case_id'); return s.audit.filter(a => !id || a.case_id === Number(id)).slice(0, 500) }],
     ['POST', /^\/api\/engine\/ladder$/, (_, b) => ladder(Number(b.total_cost), Number(b.own_savings || 0), Number(b.scheme_loan || 0), Number(b.extra_grants || 0))],
     ['POST', /^\/api\/engine\/affordability$/, (_, b) => affordability(b)],
@@ -307,8 +308,8 @@ function routes(s: Store): Array<[string, RegExp, Handler]> {
     ['POST', /^\/api\/intelligence\/intake\/([\w-]+)\/message$/, (m, b) => {
       const it = s.intake[m[1]]; if (!it) throw new ApiError('Intake session not found', 404); if (it.status !== 'in_progress') throw new ApiError('Intake session is already complete', 409)
       const field = it.next as string; let ans = String(b.message || '').trim()
-      if (field === 'phone_last4' && ['skip', 'no', 'ಬೇಡ'].includes(ans.toLowerCase())) ans = ''
-      if (field === 'phone_last4' && ans && !/^\d{4}$/.test(ans)) return { status: 'in_progress', message: it.language === 'kn' ? 'ನಾಲ್ಕು ಅಂಕಿಗಳು ಅಥವಾ skip ಎಂದು ನಮೂದಿಸಿ.' : 'Please enter exactly four digits or type skip.', next_field: field, fields: it.fields }
+      if (field === 'phone_last4') { ans = ans.replace(/[೦-೯]/g, d => String('೦೧೨೩೪೫೬೭೮೯'.indexOf(d))).replace(/\s/g, ''); if (['skip', 'no', 'ಬೇಡ', 'ಬೇಡಾ', 'ಬೇಡ್ಲ', 'ಇಲ್ಲ'].includes(ans.toLowerCase().replace(/\.$/, ''))) ans = '' }
+      if (field === 'phone_last4' && ans && !/^\d{4}$/.test(ans)) return { status: 'in_progress', message: it.language === 'kn' ? 'ದಯವಿಟ್ಟು ನಾಲ್ಕು ಅಂಕಿ ಹೇಳಿ, ಅಥವಾ ಬೇಡ ಅನ್ನಿ.' : 'Please enter exactly four digits or type skip.', next_field: field, fields: it.fields }
       it.fields[field] = ans; const i = INTAKE_FIELDS.indexOf(field); it.next = INTAKE_FIELDS[i + 1] ?? null; if (!it.next) it.status = 'completed'
       return { status: it.status, message: PROMPTS[it.language][field] ?? 'Thank you.', next_field: it.next, fields: it.fields }
     }],

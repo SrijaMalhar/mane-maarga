@@ -14,6 +14,7 @@ const KEY = 'mm_demo_store_v1'
 const now = () => new Date().toISOString()
 
 /* The same PMAY-G Karnataka rule pack the API reads, synced from backend/app/engine/rules_data (see scripts/sync-rules.mjs). */
+import { formatINR } from './money'
 import KA_PMAYG from '../generated/rules/KA__pmayg__2024-25.json'
 const amount = (key: string) => KA_PMAYG.amounts.find(a => a.key === key)!
 const PACK = {
@@ -171,6 +172,42 @@ function extract(s: Store, docId: number): Row {
   return { id: s.seq++, document_id: docId, extraction_status: checks.some(x => x.status === 'mismatch') ? 'review_required' : 'extracted', document_type: type, extracted_fields: fields, checks, engine: 'demo-text', confidence: 0.55, extracted_at: now() }
 }
 
+/** Mirrors the backend's scripted agent (app/agents/scripts/case_review.yaml): same steps, same tools, same guard. */
+function agentRun(s: Store, c: Row) {
+  const steps: Row[] = []
+  const step = (phase: string, extra: Row = {}) => steps.push({ idx: steps.length + 1, phase, thought_summary: '', tool: null, args: {}, result: {}, error: null, message_en: '', message_kn: '', citations: [], ms: 0, ...extra })
+  const docs = s.docs.filter(d => d.case_id === c.id)
+  step('PLAN', { thought_summary: 'Read the case, check its documents, then build the money ladder and tell the family what cash they will need.' })
+  step('ACT', { tool: 'get_case', args: { case_id: c.id }, result: { beneficiary_name: c.beneficiary_name } })
+  step('ACT', { tool: 'check_documents', args: { case_id: c.id }, result: { document_count: docs.length } })
+  const est = Number(c.estimated_cost || 0)
+  const run: Row = { id: s.seq++, case_id: c.id, provider: 'mock (in-browser)', goal: 'Review this case and say what to do next.', language: 'en', created_by: 'demo_visitor', citations: [] }
+  if (est <= 0) {
+    step('ACT', { tool: 'build_money_ladder', args: { case_id: c.id }, error: 'missing_cost_estimate' })
+    const t = { id: s.seq++, case_id: c.id, title: 'Record a construction cost estimate', category: 'finance', description: 'The money ladder needs a cost estimate from the taluk engineer.', owner: '', due_date: null, status: 'open', created_at: now() }
+    s.tasks.push(t)
+    step('RECOVER', { tool: 'create_task', args: { case_id: c.id, title: t.title }, result: { task_id: t.id } })
+    step('CHECK')
+    Object.assign(run, { status: 'asked', message_en: 'This case has no cost estimate, so I cannot work out the cash needed per stage. I created a task to record one. Can you get the estimate from the engineer?', message_kn: 'ಈ ಕಡತದಲ್ಲಿ ವೆಚ್ಚದ ಅಂದಾಜು ಇಲ್ಲ, ಆದ್ದರಿಂದ ಪ್ರತಿ ಹಂತಕ್ಕೆ ಬೇಕಾದ ಹಣ ಲೆಕ್ಕಿಸಲು ಆಗುವುದಿಲ್ಲ. ಅದಕ್ಕಾಗಿ ಕಾರ್ಯ ರಚಿಸಿದ್ದೇನೆ. ಎಂಜಿನಿಯರ್‌ನಿಂದ ಅಂದಾಜು ಪಡೆಯಬಹುದೇ?' })
+    step('ASK', { message_en: run.message_en, message_kn: run.message_kn })
+  } else {
+    const l = ladder(est)
+    const peak = Math.max(...l.rungs.map((r: Row) => r.cash_gap_before_instalment))
+    step('ACT', { tool: 'build_money_ladder', args: { case_id: c.id }, result: { peak_cash_before_instalment: peak, peak_timing_gap: l.peak_timing_gap, funding_gap: l.funding_gap } })
+    step('ACT', { tool: 'draft_message', args: { case_id: c.id, kind: 'cash_needed', language: 'kn' }, result: { sent: false } })
+    step('CHECK')
+    const name = c.beneficiary_name
+    Object.assign(run, {
+      status: 'done', citations: [PACK.citations[0]],
+      message_en: `${name} will need about ${formatINR(peak)} in hand before an instalment arrives; the largest timing gap is ${formatINR(l.peak_timing_gap)} and the gap no scheme money covers is ${formatINR(l.funding_gap)}. Unit assistance is ${formatINR(PACK.unit_assistance)} (cited). The stage split is illustrative. A Kannada message to the family is drafted, not sent.`,
+      message_kn: `${name} ಅವರಿಗೆ ಕಂತು ಬರುವ ಮೊದಲು ಸುಮಾರು ${formatINR(peak)} ಕೈಯಲ್ಲಿ ಬೇಕು; ದೊಡ್ಡ ಸಮಯದ ಅಂತರ ${formatINR(l.peak_timing_gap)}, ಯೋಜನೆಯ ಹಣ ತುಂಬದ ಕೊರತೆ ${formatINR(l.funding_gap)}. ಘಟಕ ನೆರವು ${formatINR(PACK.unit_assistance)}. ಹಂತಗಳ ಹಂಚಿಕೆ ಉದಾಹರಣೆ ಮಾತ್ರ. ಕುಟುಂಬಕ್ಕೆ ಕನ್ನಡ ಸಂದೇಶ ಸಿದ್ಧವಾಗಿದೆ, ಕಳುಹಿಸಿಲ್ಲ.`,
+    })
+    step('DONE', { message_en: run.message_en, message_kn: run.message_kn, citations: run.citations })
+  }
+  audit(s, 'agent_run_finished', c.id, `run ${run.id}: ${run.status} via mock`)
+  return { ...run, steps }
+}
+
 function agentPlan(s: Store, c: Row) {
   const docs = s.docs.filter(d => d.case_id === c.id)
   const ex = s.extractions.filter(e => docs.some(d => d.id === e.document_id))
@@ -261,6 +298,7 @@ function routes(s: Store): Array<[string, RegExp, Handler]> {
     ['GET', /^\/api\/cases\/(\d+)\/construction-evidence$/, m => s.evidence.filter(e => e.case_id === caseOr404(m[1]).id)],
     ['POST', /^\/api\/cases\/(\d+)\/stages\/(\d+)\/evidence$/, (m, b) => { const c = caseOr404(m[1]); const f = b.__file as File; if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) throw new ApiError('Evidence must be JPEG, PNG or WebP', 415); const e = { id: s.seq++, case_id: c.id, stage_id: Number(m[2]), original_name: f.name, caption: '', verification_status: 'pending_review', uploaded_by: 'demo_visitor', uploaded_at: now() }; s.evidence.unshift(e); audit(s, 'construction_evidence_uploaded', c.id, `stage_id=${m[2]}; review_required`); return e }],
     ['GET', /^\/api\/cases\/(\d+)\/agent-plan$/, m => agentPlan(s, caseOr404(m[1]))],
+    ['POST', /^\/api\/cases\/(\d+)\/agent\/run$/, m => agentRun(s, caseOr404(m[1]))],
     ['GET', /^\/api\/audit$/, (_, _b, q) => { const id = q.get('case_id'); return s.audit.filter(a => !id || a.case_id === Number(id)).slice(0, 500) }],
     ['POST', /^\/api\/engine\/ladder$/, (_, b) => ladder(Number(b.total_cost), Number(b.own_savings || 0), Number(b.scheme_loan || 0), Number(b.extra_grants || 0))],
     ['POST', /^\/api\/engine\/affordability$/, (_, b) => affordability(b)],

@@ -24,7 +24,7 @@ export type AgentPlan = { case_id: number; mode: string; agent_version: string; 
 export type AuditEntry = { id: number; case_id: number | null; actor: string; action: string; detail: string; created_at: string | null }
 export type Consent = { id: number; consent_given: boolean; consent_scope: string; recorded_by: string; recorded_at: string | null }
 export type Rung = { stage: string; label: string; cost: number; instalment_after: number; cum_cost: number; cum_instalments: number; cash_gap_before_instalment: number; timing_gap: number }
-export type Ladder = { total_cost: number; subsidy: number; own_savings: number; scheme_loan: number; funding_gap: number; peak_timing_gap: number; rungs: Rung[]; assumptions: string[]; disclaimer: string }
+export type Ladder = { total_cost: number; subsidy: number; own_savings: number; scheme_loan: number; funding_gap: number; peak_timing_gap: number; rungs: Rung[]; assumptions: string[]; disclaimer: string; pack_id?: string; stages_verified?: boolean; citations?: string[] }
 export type Evidence = { id: number; stage_id: number; original_name: string; caption: string; verification_status: string; uploaded_by: string; uploaded_at: string | null }
 export type RecoveryTask = { id: number; title: string; description: string; category: string; status: string; owner: string; due_date: string | null }
 
@@ -66,3 +66,5 @@ export function makeClient(token: string, onUnauthorized: () => void) {
   }
 }
 export type Client = ReturnType<typeof makeClient>
+export type AgentStep = { idx: number; phase: 'PLAN' | 'ACT' | 'CHECK' | 'RECOVER' | 'ASK' | 'DONE'; thought_summary: string; tool: string | null; args: Record<string, unknown>; result: Record<string, unknown>; error: string | null; message_en: string; message_kn: string; citations: string[]; ms: number }
+export type AgentRun = { id: number; case_id: number; provider: string; goal: string; language: string; status: 'done' | 'asked' | 'blocked' | 'failed' | 'step_limit' | 'running'; message_en: string; message_kn: string; citations: string[]; created_by: string; steps: AgentStep[] }

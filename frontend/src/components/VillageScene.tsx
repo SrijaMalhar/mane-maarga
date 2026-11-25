@@ -77,7 +77,7 @@ export default function VillageScene({ className }: { className?: string }) {
         <path d="M248 388 H424" /><path d="M248 382 v12 M424 382 v12" />
         <path d="M444 280 V352" /><path d="M438 280 h12 M438 352 h12" />
       </g>
-      <g fontFamily="Manrope Variable, sans-serif" fontSize="11" fill="#1F3D2F" opacity=".75">
+      <g fontFamily="Anek Latin Variable, sans-serif" fontSize="11" fill="#1F3D2F" opacity=".75">
         <text x="380" y="404">6.0 m</text>
         <text x="452" y="320">2.9 m</text>
       </g>

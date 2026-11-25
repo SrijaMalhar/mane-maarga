@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { API_BASE, makeClient, type AuthUser, type CaseItem } from './lib/api'
 import { DEMO_USER, makeDemoClient, resetDemo } from './lib/demo'
+import Kit from './pages/Kit'
 import { AppContext, href, parseRoute, type Route } from './lib/app-context'
 import { I18nProvider } from './lib/i18n'
 import { Loading, useToast } from './components/ui'
@@ -122,5 +123,6 @@ function Workspace() {
 }
 
 export default function App() {
+  if (import.meta.env.DEV && window.location.hash === '#/kit') return <Kit />
   return <I18nProvider><Workspace /></I18nProvider>
 }

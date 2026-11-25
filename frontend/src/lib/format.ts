@@ -1,5 +1,5 @@
-const inrFmt = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })
-export const inr = (n: number | null | undefined) => inrFmt.format(Number(n || 0))
+import { formatINR } from './money'
+export const inr = (n: number | null | undefined) => formatINR(Number(n || 0))
 
 /** ₹1,20,000 → ₹1.2 L for tight spaces. */
 export function inrShort(n: number) {

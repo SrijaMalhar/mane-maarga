@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Plus } from 'lucide-react'
 import { CasePicker, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
+import { Footnote, Stamp } from '../components/ledger'
 import { type CaseItem, type FinanceSummary, type Funding, type FundingStatus, type FundingType, type Ladder } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
 import { useI18n } from '../lib/i18n'
@@ -152,7 +153,9 @@ function MoneyLadder({ c, estimate }: { c: CaseItem; estimate: number }) {
               </li>
             ))}
           </ol>
-          <p className="fine">{ladder.disclaimer} {ladder.assumptions.slice(0, 1).join(' ')}</p>
+          {ladder.citations && ladder.citations.length > 0 && <p className="fine">Amounts from {ladder.citations.map(c => <Stamp key={c}>{c}</Stamp>)}</p>}
+          {ladder.stages_verified === false && <Footnote n={1}>Stage split is illustrative until Karnataka's official instalment order is added to the rule pack.</Footnote>}
+          <p className="fine">{ladder.disclaimer}</p>
         </>
       )}
     </section>

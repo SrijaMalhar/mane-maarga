@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
-import { ArrowLeft, ArrowRight, FileUp, Pencil, Trash2, Sparkles, FileText, ShieldCheck, ShieldOff } from 'lucide-react'
+import { ArrowLeft, ArrowRight, FileUp, Pencil, Trash2, ClipboardCheck, FileText, ShieldCheck, ShieldOff } from 'lucide-react'
 import House, { statusLevel } from '../components/House'
 import { ConsentTag, DocStatus, Empty, Journey, Notice, Skeleton, StageTag, Tag } from '../components/ui'
 import { STATUSES, type AgentPlan, type CaseDocument, type CaseItem, type Consent, type FinanceSummary, type Stage } from '../lib/api'
@@ -163,11 +163,11 @@ export default function CaseFile({ id }: { id: number }) {
         </section>
 
         <section className="panel cf-insights" aria-labelledby="i-h">
-          <div className="panel-head"><h2 id="i-h">{t('case.insights')}</h2><Tag tone="ai" icon={<Sparkles size={12} />}>Rule-based suggestions</Tag></div>
+          <div className="panel-head"><h2 id="i-h">{t('case.insights')}</h2><Tag tone="ai" icon={<ClipboardCheck size={12} />}>Rule-based suggestions</Tag></div>
           {!plan ? (
             <div className="insight-start">
               <p className="muted">Checks documents, funding and construction records for gaps, and lists what to do next with the evidence behind each suggestion.</p>
-              <button className="btn ghost" onClick={insights} disabled={planBusy}><Sparkles size={15} />{planBusy ? 'Reviewing…' : 'Review this case'}</button>
+              <button className="btn ghost" onClick={insights} disabled={planBusy}><ClipboardCheck size={15} />{planBusy ? 'Reviewing…' : 'Review this case'}</button>
             </div>
           ) : (
             <>

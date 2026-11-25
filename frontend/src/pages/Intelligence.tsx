@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Mic, Send, Volume2, Sparkles, ExternalLink, ShieldAlert } from 'lucide-react'
+import { Mic, Send, Volume2, ClipboardCheck, ExternalLink, ShieldAlert } from 'lucide-react'
 import Mascot from '../components/Mascot'
+import AgentRunPanel from '../components/AgentRunPanel'
 import { CasePicker, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
 import { type AgentPlan, type RecoveryTask } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
@@ -21,7 +22,7 @@ export default function Intelligence({ initialCase }: { initialCase?: number }) 
     <div className="intel">
       <PageHead eyebrow="Decision support" title={t('intel.title')} lead={t('intel.lead')} actions={<CasePicker cases={cases} value={caseId} onChange={setCaseId} />} />
       <div className="intel-banner"><ShieldAlert size={18} aria-hidden /><p>{t('banner.intel')}</p></div>
-      {caseId ? <CaseAnalysis key={caseId} caseId={caseId} /> : <div className="panel"><Empty title={t('list.empty')} /></div>}
+      {caseId ? <><CaseAnalysis key={caseId} caseId={caseId} /><AgentRunPanel key={`run-${caseId}`} caseId={caseId} /></> : <div className="panel"><Empty title={t('list.empty')} /></div>}
       <section className="intel-tools">
         <div className="seg" role="tablist" aria-label="Tools">
           {tools.map(([k, label]) => <button key={k} role="tab" aria-selected={tool === k} aria-pressed={tool === k} onClick={() => setTool(k)}>{label}</button>)}
@@ -50,7 +51,7 @@ function CaseAnalysis({ caseId }: { caseId: number }) {
     <section className="analysis" aria-labelledby="an-h">
       <div className="analysis-head">
         <div><p className="eyebrow">Case analysis</p><h2 id="an-h">{c?.beneficiary_name ?? `Case #${caseId}`}</h2>{c && <p className="muted">{c.village}, {c.taluk} · <a href={href({ name: 'case', id: caseId })}>open case file</a></p>}</div>
-        <button className="btn primary" onClick={run} disabled={busy}><Sparkles size={16} />{busy ? 'Reviewing records…' : plan ? 'Review again' : 'Review this case'}</button>
+        <button className="btn primary" onClick={run} disabled={busy}><ClipboardCheck size={16} />{busy ? 'Reviewing records…' : plan ? 'Review again' : 'Review this case'}</button>
       </div>
       {err && <Notice tone="error">{err}</Notice>}
       {!plan ? <p className="muted">Runs four checks — documents, finance, construction and blockers — and lists recommended actions with the records behind them. Each run is written to the audit trail.</p> : (

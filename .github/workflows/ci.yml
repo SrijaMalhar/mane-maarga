@@ -45,6 +45,9 @@ jobs:
       - name: Lint frontend
         working-directory: frontend
         run: npm run lint
+      - name: Style lint (no hype, emoji, gradients; Kannada complete)
+        working-directory: frontend
+        run: npm run lint:style
       - name: Rule packs match the backend
         working-directory: frontend
         run: npm run check:rules

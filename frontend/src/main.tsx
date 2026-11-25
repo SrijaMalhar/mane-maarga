@@ -1,10 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
-import '@fontsource-variable/fraunces'
-import '@fontsource-variable/manrope'
-import '@fontsource-variable/noto-sans-kannada'
-import '@fontsource-variable/noto-serif-kannada'
+import '@fontsource-variable/anek-latin'
+import '@fontsource-variable/anek-kannada'
+import '@fontsource/tiro-kannada/kannada-400.css'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
 import './style.css'
 
 class AppErrorBoundary extends React.Component<{children:React.ReactNode},{hasError:boolean}> {

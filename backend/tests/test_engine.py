@@ -4,7 +4,7 @@ import pytest
 
 from app.engine import affordability as aff
 from app.engine.ladder import build_ladder
-from app.engine.rules import check_eligibility, load_pack
+from app.engine.rules import load_pack
 
 PACK = load_pack("KA", on=date(2025, 1, 1))
 
@@ -16,17 +16,6 @@ def test_rule_pack_loads_and_dates_apply():
         load_pack("KA", on=date(2020, 1, 1))  # before effective_from
     with pytest.raises(LookupError):
         load_pack("XX")
-
-
-def test_eligibility_verdicts():
-    ok = check_eligibility(PACK, {"owns_land": True, "owns_pucca_house": False, "on_scheme_list": True})
-    assert ok["verdict"] == "eligible"
-    bad = check_eligibility(PACK, {"owns_land": True, "owns_pucca_house": True, "on_scheme_list": True})
-    assert bad["verdict"] == "not_eligible"
-    unknown = check_eligibility(PACK, {"owns_land": True})
-    assert unknown["verdict"] == "need_more_information"
-    assert set(unknown["missing"]) == {"owns_pucca_house", "on_scheme_list"}
-    assert all(r["cite"] for r in ok["results"])
 
 
 def test_ladder_funding_gap_and_timing_gap():

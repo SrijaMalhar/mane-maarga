@@ -1,0 +1,480 @@
+{
+  "pack_id": "KA-PMAYG-2024-25",
+  "version": "2.0.0",
+  "state": "KA",
+  "scheme": "PMAY-G",
+  "budget_year": "2024-25",
+  "effective_from": "2024-04-01",
+  "effective_to": null,
+  "kn_reviewed": false,
+  "notes": [
+    "Covers the PMAY-G phase approved for FY 2024-25 to 2028-29 at the existing rates; in force until a newer pack replaces it.",
+    "Clauses with verified=false rest on a secondary source or an unconfirmed reading and must be checked against the official order before being relied on.",
+    "Kannada text was written by the team and is awaiting review by a native speaker (kn_reviewed=false).",
+    "Exclusion: PIB lists 'households with monthly income over Rs 15,000'; some reports say 'any member earning over Rs 15,000'. This pack follows the PIB wording until the Awaas+ 2024 order is obtained."
+  ],
+  "amounts": [
+    {
+      "id": "KA-PMAYG-2024-25:AM-01",
+      "key": "unit_assistance",
+      "value": 120000,
+      "unit": "INR",
+      "verified": true,
+      "text_en": "Unit assistance of Rs 1,20,000 for house construction in plain areas.",
+      "text_kn": "ಬಯಲು ಪ್ರದೇಶದಲ್ಲಿ ಮನೆ ನಿರ್ಮಾಣಕ್ಕೆ ₹1,20,000 ಘಟಕ ನೆರವು.",
+      "source": {
+        "title": "Lok Sabha Unstarred Question 1336, Funds for construction of houses under PMAY-G (answered 11 Feb 2025)",
+        "url": "https://eparlib.sansad.in/bitstream/123456789/3006401/1/AU1336_CA4fLm.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Answer to parts (b) and (c)",
+        "quote": "the unit assistance of Rs. 1.20 lakh in plain areas"
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:AM-02",
+      "key": "scheme_loan_max",
+      "value": 70000,
+      "unit": "INR",
+      "verified": true,
+      "text_en": "Eligible beneficiaries can take an institutional loan of up to Rs 70,000.",
+      "text_kn": "ಅರ್ಹ ಫಲಾನುಭವಿಗಳು ಬ್ಯಾಂಕಿನಿಂದ ₹70,000 ವರೆಗೆ ಸಾಲ ಪಡೆಯಬಹುದು.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Institutional Loan for Construction",
+        "quote": "Loan up to ₹70,000 is available to eligible beneficiaries"
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:AM-03",
+      "key": "scheme_loan_rate_reduction_points",
+      "value": 3,
+      "unit": "points",
+      "verified": true,
+      "text_en": "That loan carries an interest rate reduced by 3 percentage points; the lender's base rate is not stated.",
+      "text_kn": "ಈ ಸಾಲದ ಬಡ್ಡಿ ದರದಲ್ಲಿ 3 ಶೇಕಡಾ ಅಂಶ ರಿಯಾಯಿತಿ ಇದೆ; ಬ್ಯಾಂಕಿನ ಮೂಲ ದರವನ್ನು ತಿಳಿಸಿಲ್ಲ.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Institutional Loan for Construction",
+        "quote": "at a 3% reduced interest rate"
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:AM-04",
+      "key": "toilet_grant",
+      "value": 12000,
+      "unit": "INR",
+      "verified": true,
+      "text_en": "Up to Rs 12,000 for building a toilet, through Swachh Bharat Mission (Gramin).",
+      "text_kn": "ಶೌಚಾಲಯ ನಿರ್ಮಾಣಕ್ಕೆ ಸ್ವಚ್ಛ ಭಾರತ ಮಿಷನ್ (ಗ್ರಾಮೀಣ) ಅಡಿಯಲ್ಲಿ ₹12,000 ವರೆಗೆ ನೆರವು.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Convergence with Government Schemes, Swachh Bharat Mission-Gramin",
+        "quote": "Beneficiaries receive up to ₹12,000 to construct toilets"
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:AM-05",
+      "key": "min_house_size",
+      "value": 25,
+      "unit": "sq_m",
+      "verified": true,
+      "text_en": "The house must be at least 25 square metres, including a dedicated area for hygienic cooking.",
+      "text_kn": "ಮನೆಯ ಕನಿಷ್ಠ ವಿಸ್ತೀರ್ಣ 25 ಚದರ ಮೀಟರ್, ಸ್ವಚ್ಛ ಅಡುಗೆಗೆ ಪ್ರತ್ಯೇಕ ಸ್ಥಳ ಸೇರಿ.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Key Features of PMAY-G",
+        "quote": "A minimum unit (house) size of 25 sq. mt., including a dedicated area for hygienic cooking."
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:AM-06",
+      "key": "mgnrega_person_days",
+      "value": 90,
+      "unit": "person_days",
+      "verified": false,
+      "text_en": "90 person-days of unskilled wage work under MGNREGS for building the house (95 in hilly or difficult areas, as read from '90/95').",
+      "text_kn": "ಮನೆ ಕಟ್ಟಲು ನರೇಗಾ ಅಡಿಯಲ್ಲಿ 90 ದಿನಗಳ ಅಕುಶಲ ಕೂಲಿ ಕೆಲಸ (ಗುಡ್ಡಗಾಡು ಅಥವಾ ಕಠಿಣ ಪ್ರದೇಶಗಳಲ್ಲಿ 95).",
+      "source": {
+        "title": "Lok Sabha Unstarred Question 1336, Funds for construction of houses under PMAY-G (answered 11 Feb 2025)",
+        "url": "https://eparlib.sansad.in/bitstream/123456789/3006401/1/AU1336_CA4fLm.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Answer to parts (b) and (c)",
+        "quote": "90/95 man days of unskilled labour wages"
+      }
+    }
+  ],
+  "stages": {
+    "verified": false,
+    "note": "ILLUSTRATIVE split of cost and instalments per stage. Karnataka's official stage-wise instalment order has not been obtained; secondary sources disagree. Replace from the RGRHCL order before any real use.",
+    "items": [
+      {
+        "id": "plinth",
+        "label_en": "Plinth",
+        "label_kn": "ತಳಪಾಯ",
+        "cost_share": 0.25,
+        "instalment_share": 0.25
+      },
+      {
+        "id": "lintel",
+        "label_en": "Lintel",
+        "label_kn": "ಲಿಂಟಲ್ ಮಟ್ಟ",
+        "cost_share": 0.3,
+        "instalment_share": 0.35
+      },
+      {
+        "id": "roof",
+        "label_en": "Roof",
+        "label_kn": "ಛಾವಣಿ",
+        "cost_share": 0.3,
+        "instalment_share": 0.25
+      },
+      {
+        "id": "finish",
+        "label_en": "Finishing + keys",
+        "label_kn": "ಅಂತಿಮ ಕೆಲಸ ಮತ್ತು ಕೀಲಿ",
+        "cost_share": 0.15,
+        "instalment_share": 0.15
+      }
+    ]
+  },
+  "eligibility_rules": [
+    {
+      "id": "KA-PMAYG-2024-25:EL-01",
+      "verified": true,
+      "facts": [
+        "housing_condition"
+      ],
+      "logic": {
+        "in": [
+          {
+            "var": "housing_condition"
+          },
+          [
+            "houseless",
+            "kutcha",
+            "dilapidated"
+          ]
+        ]
+      },
+      "text_en": "The household is houseless, or lives in a kutcha or dilapidated house, in a rural area.",
+      "text_kn": "ಗ್ರಾಮೀಣ ಪ್ರದೇಶದಲ್ಲಿ ಮನೆ ಇಲ್ಲದ, ಅಥವಾ ಕಚ್ಚಾ ಅಥವಾ ಶಿಥಿಲ ಮನೆಯಲ್ಲಿ ವಾಸಿಸುವ ಕುಟುಂಬ.",
+      "source": {
+        "title": "District administration (S3WaaS, Government of India): Pradhan Mantri Awas Yojana - Rural",
+        "url": "https://s3e6c2dc3dee4a51dcec3a876aa2339a78.s3waas.gov.in/en/scheme/pradhan-mantri-awas-yojana-rural",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Eligibility/Criteria",
+        "quote": "Houseless households and households living in kutcha or dilapidated houses in rural areas."
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:EL-02",
+      "verified": true,
+      "facts": [
+        "on_beneficiary_list"
+      ],
+      "logic": {
+        "==": [
+          {
+            "var": "on_beneficiary_list"
+          },
+          true
+        ]
+      },
+      "text_en": "The household is on the Permanent Wait List (SECC 2011) or the Awaas+ list.",
+      "text_kn": "ಕುಟುಂಬದ ಹೆಸರು ಶಾಶ್ವತ ಕಾಯುವ ಪಟ್ಟಿ (SECC 2011) ಅಥವಾ ಆವಾಸ್+ ಪಟ್ಟಿಯಲ್ಲಿ ಇರಬೇಕು.",
+      "source": {
+        "title": "Lok Sabha Unstarred Question 1336, Funds for construction of houses under PMAY-G (answered 11 Feb 2025)",
+        "url": "https://eparlib.sansad.in/bitstream/123456789/3006401/1/AU1336_CA4fLm.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Answer, page 1",
+        "quote": "Permanent Wait List (PWL) &Awaas+ list"
+      }
+    }
+  ],
+  "exclusion_rules": [
+    {
+      "id": "KA-PMAYG-2024-25:EX-01",
+      "verified": true,
+      "facts": [
+        "kcc_limit"
+      ],
+      "logic": {
+        ">=": [
+          {
+            "var": "kcc_limit"
+          },
+          50000
+        ]
+      },
+      "text_en": "Excluded: the household has a Kisan Credit Card with a limit of Rs 50,000 or more.",
+      "text_kn": "₹50,000 ಅಥವಾ ಹೆಚ್ಚಿನ ಮಿತಿಯ ಕಿಸಾನ್ ಕ್ರೆಡಿಟ್ ಕಾರ್ಡ್ ಇರುವ ಕುಟುಂಬ ಅರ್ಹವಲ್ಲ.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Exclusion Criteria",
+        "quote": "Households with a Kisan Credit Card having a credit limit of ₹50,000 or above."
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:EX-02",
+      "verified": true,
+      "facts": [
+        "has_government_employee"
+      ],
+      "logic": {
+        "==": [
+          {
+            "var": "has_government_employee"
+          },
+          true
+        ]
+      },
+      "text_en": "Excluded: a member of the household is a government employee.",
+      "text_kn": "ಕುಟುಂಬದಲ್ಲಿ ಸರ್ಕಾರಿ ನೌಕರರಿದ್ದರೆ ಅರ್ಹವಲ್ಲ.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Exclusion Criteria",
+        "quote": "Government employees or those with non-agricultural enterprises."
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:EX-03",
+      "verified": true,
+      "facts": [
+        "has_registered_non_agri_enterprise"
+      ],
+      "logic": {
+        "==": [
+          {
+            "var": "has_registered_non_agri_enterprise"
+          },
+          true
+        ]
+      },
+      "text_en": "Excluded: the household runs a registered non-agricultural enterprise.",
+      "text_kn": "ನೋಂದಾಯಿತ ಕೃಷಿಯೇತರ ಉದ್ಯಮ ನಡೆಸುವ ಕುಟುಂಬ ಅರ್ಹವಲ್ಲ.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Exclusion Criteria",
+        "quote": "Government employees or those with non-agricultural enterprises."
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:EX-04",
+      "verified": true,
+      "facts": [
+        "household_monthly_income"
+      ],
+      "logic": {
+        ">": [
+          {
+            "var": "household_monthly_income"
+          },
+          15000
+        ]
+      },
+      "text_en": "Excluded: household monthly income is over Rs 15,000.",
+      "text_kn": "ಕುಟುಂಬದ ಮಾಸಿಕ ಆದಾಯ ₹15,000 ಕ್ಕಿಂತ ಹೆಚ್ಚಿದ್ದರೆ ಅರ್ಹವಲ್ಲ.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Exclusion Criteria",
+        "quote": "Households with monthly income over ₹15,000 or those paying income tax."
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:EX-05",
+      "verified": true,
+      "facts": [
+        "pays_income_tax"
+      ],
+      "logic": {
+        "==": [
+          {
+            "var": "pays_income_tax"
+          },
+          true
+        ]
+      },
+      "text_en": "Excluded: a member of the household pays income tax.",
+      "text_kn": "ಆದಾಯ ತೆರಿಗೆ ಪಾವತಿಸುವ ಕುಟುಂಬ ಅರ್ಹವಲ್ಲ.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Exclusion Criteria",
+        "quote": "Households with monthly income over ₹15,000 or those paying income tax."
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:EX-06",
+      "verified": false,
+      "facts": [
+        "pays_professional_tax"
+      ],
+      "logic": {
+        "==": [
+          {
+            "var": "pays_professional_tax"
+          },
+          true
+        ]
+      },
+      "text_en": "Excluded: a member of the household pays professional tax (secondary source; confirm in the official order).",
+      "text_kn": "ವೃತ್ತಿ ತೆರಿಗೆ ಪಾವತಿಸುವ ಕುಟುಂಬ ಅರ್ಹವಲ್ಲ (ಅಧಿಕೃತ ಆದೇಶದಲ್ಲಿ ಖಚಿತಪಡಿಸಬೇಕು).",
+      "source": {
+        "title": "Business Today: PMAY-G automatic exclusion norms relaxed (11 Sep 2024), secondary source",
+        "url": "https://www.businesstoday.in/india/story/pmay-g-automatic-exclusion-norms-relaxed-details-on-centres-rural-housing-scheme-here-445380-2024-09-11",
+        "accessed": "2026-11-25",
+        "official": false,
+        "locator": "Paragraph 3",
+        "quote": "any member of the family paying income tax/professional tax"
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:EX-07",
+      "verified": true,
+      "facts": [
+        "irrigated_land_acres"
+      ],
+      "logic": {
+        ">": [
+          {
+            "var": "irrigated_land_acres"
+          },
+          2.5
+        ]
+      },
+      "text_en": "Excluded: the household owns more than 2.5 acres of irrigated land.",
+      "text_kn": "2.5 ಎಕರೆಗಿಂತ ಹೆಚ್ಚು ನೀರಾವರಿ ಜಮೀನು ಹೊಂದಿರುವ ಕುಟುಂಬ ಅರ್ಹವಲ್ಲ.",
+      "source": {
+        "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+        "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Section: Exclusion Criteria",
+        "quote": "irrigated land (more than 2.5 acres)"
+      }
+    },
+    {
+      "id": "KA-PMAYG-2024-25:EX-08",
+      "verified": false,
+      "facts": [
+        "unirrigated_land_acres"
+      ],
+      "logic": {
+        ">=": [
+          {
+            "var": "unirrigated_land_acres"
+          },
+          5
+        ]
+      },
+      "text_en": "Excluded: the household owns 5 acres or more of unirrigated land (secondary source; confirm in the official order).",
+      "text_kn": "5 ಎಕರೆ ಅಥವಾ ಹೆಚ್ಚು ನೀರಾವರಿ ಇಲ್ಲದ ಜಮೀನು ಹೊಂದಿರುವ ಕುಟುಂಬ ಅರ್ಹವಲ್ಲ (ಅಧಿಕೃತ ಆದೇಶದಲ್ಲಿ ಖಚಿತಪಡಿಸಬೇಕು).",
+      "source": {
+        "title": "Devdiscourse: Union Cabinet expands PMAY-G scheme with revised eligibility criteria (4 Dec 2024), secondary source",
+        "url": "https://www.devdiscourse.com/article/law-order/3180100-union-cabinet-expands-pmay-g-scheme-2-crore-additional-houses-to-be-built-by-2029-with-revised-eligibility-criteria",
+        "accessed": "2026-11-25",
+        "official": false,
+        "locator": "Automatic Exclusion Parameters",
+        "quote": "Owning more than 2.5 acres of irrigated land or 5 acres of unirrigated land."
+      }
+    }
+  ],
+  "timelines": [
+    {
+      "id": "KA-PMAYG-2024-25:TM-01",
+      "verified": true,
+      "value": 7,
+      "text_en": "The first instalment must reach the beneficiary's bank account within seven working days of the sanction order.",
+      "text_kn": "ಮಂಜೂರಾತಿ ಆದೇಶ ಹೊರಡಿಸಿದ ದಿನದಿಂದ ಏಳು ಕೆಲಸದ ದಿನಗಳೊಳಗೆ ಮೊದಲ ಕಂತು ಫಲಾನುಭವಿಯ ಬ್ಯಾಂಕ್ ಖಾತೆಗೆ ಬರಬೇಕು.",
+      "source": {
+        "title": "CAG Report No. 8 of 2025, Performance Audit of PMAY, Chapter III (quoting PMAY-G Framework for Implementation para 5.4.1)",
+        "url": "https://cag.gov.in/uploads/download_audit_report/2025/Ch-III_PA_PMAY-ReportNo-8_English_05-15-2025-signed-copy-0694bb785317ca8.46857843.pdf",
+        "accessed": "2026-11-25",
+        "official": true,
+        "locator": "Chapter III, para on PMAY-G FFI 5.4.1",
+        "quote": "within a week (seven working days) from the date of issue of sanction order"
+      }
+    }
+  ],
+  "land_route": [],
+  "sources": [
+    {
+      "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural, Building a Better Future for Rural India (19 Nov 2024, PRID 2074713), backgrounder",
+      "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/nov/doc20241119437801.pdf",
+      "accessed": "2026-11-25",
+      "official": true
+    },
+    {
+      "title": "PIB, Ministry of Rural Development: Pradhan Mantri Awas Yojana - Rural (19 Nov 2024, PRID 2074713)",
+      "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2074713",
+      "accessed": "2026-11-25",
+      "official": true
+    },
+    {
+      "title": "Lok Sabha Unstarred Question 1336, Funds for construction of houses under PMAY-G (answered 11 Feb 2025)",
+      "url": "https://eparlib.sansad.in/bitstream/123456789/3006401/1/AU1336_CA4fLm.pdf",
+      "accessed": "2026-11-25",
+      "official": true
+    },
+    {
+      "title": "CAG Report No. 8 of 2025, Performance Audit of PMAY, Chapter III (quoting PMAY-G Framework for Implementation para 5.4.1)",
+      "url": "https://cag.gov.in/uploads/download_audit_report/2025/Ch-III_PA_PMAY-ReportNo-8_English_05-15-2025-signed-copy-0694bb785317ca8.46857843.pdf",
+      "accessed": "2026-11-25",
+      "official": true
+    },
+    {
+      "title": "District administration (S3WaaS, Government of India): Pradhan Mantri Awas Yojana - Rural",
+      "url": "https://s3e6c2dc3dee4a51dcec3a876aa2339a78.s3waas.gov.in/en/scheme/pradhan-mantri-awas-yojana-rural",
+      "accessed": "2026-11-25",
+      "official": true
+    },
+    {
+      "title": "PIB, Cabinet approves implementation of PMAY-G during FY 2024-25 to 2028-29 (9 Aug 2024, PRID 2043921)",
+      "url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2043921",
+      "accessed": "2026-11-25",
+      "official": true
+    },
+    {
+      "title": "Devdiscourse: Union Cabinet expands PMAY-G scheme with revised eligibility criteria (4 Dec 2024), secondary source",
+      "url": "https://www.devdiscourse.com/article/law-order/3180100-union-cabinet-expands-pmay-g-scheme-2-crore-additional-houses-to-be-built-by-2029-with-revised-eligibility-criteria",
+      "accessed": "2026-11-25",
+      "official": false
+    },
+    {
+      "title": "Business Today: PMAY-G automatic exclusion norms relaxed (11 Sep 2024), secondary source",
+      "url": "https://www.businesstoday.in/india/story/pmay-g-automatic-exclusion-norms-relaxed-details-on-centres-rural-housing-scheme-here-445380-2024-09-11",
+      "accessed": "2026-11-25",
+      "official": false
+    }
+  ]
+}

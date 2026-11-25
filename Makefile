@@ -3,7 +3,7 @@ PY ?= python3
 BACKEND := backend
 FRONTEND := frontend
 
-.PHONY: help dev down test lint fmt typecheck eval seed demo build
+.PHONY: help dev down test lint fmt typecheck eval seed demo build rules-lint
 
 help:  ## Show this list
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -19,11 +19,14 @@ test:  ## Run backend tests and the frontend type-check and build
 	cd $(FRONTEND) && npm run build
 
 lint:  ## Lint and type-check backend and frontend
-	cd $(BACKEND) && ruff check app tests benchmarks && ruff format --check app tests benchmarks && mypy
+	cd $(BACKEND) && ruff check app tests benchmarks scripts && ruff format --check app tests benchmarks scripts && mypy
 	cd $(FRONTEND) && npm run lint
 
+rules-lint:  ## Validate every rule pack: schema, sources, Kannada text, clause IDs
+	cd $(BACKEND) && $(PY) scripts/rules_lint.py
+
 fmt:  ## Auto-format backend code
-	cd $(BACKEND) && ruff check app tests benchmarks --fix && ruff format app tests benchmarks
+	cd $(BACKEND) && ruff check app tests benchmarks scripts --fix && ruff format app tests benchmarks scripts
 
 eval:  ## Run every benchmark and write results to backend/benchmarks/results/
 	mkdir -p $(BACKEND)/benchmarks/results

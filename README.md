@@ -48,6 +48,8 @@ Mane Maarga helps case workers take rural families in Karnataka from their first
 
 Under PMAY-G, a family in the plains receives ₹1.20 lakh, released in instalments after each construction stage is verified. The bills come due before the instalment arrives, and that timing gap is where families stall. Mane Maarga shows the gap stage by stage. It keeps confirmed, proposed and estimated money separate, so none of it is counted twice.
 
+Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.md) maps each part of the problem to its evidence, the feature that answers it, and where to see it.
+
 ## Screenshots
 
 <table>

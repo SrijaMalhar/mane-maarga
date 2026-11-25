@@ -16,6 +16,7 @@ GET /api/cases/{case_id}/recovery-tasks
 GET /api/cases/{case_id}/stages
 GET /api/documents/{document_id}/download
 GET /api/documents/{document_id}/extraction
+GET /api/engine/clauses/{clause_id}
 GET /api/intelligence/evaluation/runs
 GET /api/intelligence/intake/{session_token}
 GET /api/intelligence/overview
@@ -43,6 +44,7 @@ POST /api/cases/{case_id}/stages
 POST /api/cases/{case_id}/stages/{stage_id}/evidence
 POST /api/documents/{document_id}/extract
 POST /api/engine/affordability
+POST /api/engine/eligibility
 POST /api/engine/ladder
 POST /api/intelligence/evaluation/synthetic
 POST /api/intelligence/intake

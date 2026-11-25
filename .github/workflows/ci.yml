@@ -20,9 +20,12 @@ jobs:
       - name: Lint and type-check
         working-directory: backend
         run: |
-          ruff check app tests benchmarks
-          ruff format --check app tests benchmarks
+          ruff check app tests benchmarks scripts
+          ruff format --check app tests benchmarks scripts
           mypy
+      - name: Rule packs (schema, sources, Kannada)
+        working-directory: backend
+        run: python scripts/rules_lint.py
       - name: Run tests
         working-directory: backend
         run: python -m pytest -q

@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SrijaMalhar/mane-maarga/rules_data/schema.json",
+  "title": "Mane Maarga rule pack",
+  "description": "One scheme, one state, one budget period. Every clause carries English and Kannada text, machine logic where it applies, and the source it came from.",
+  "type": "object",
+  "required": [
+    "pack_id",
+    "version",
+    "state",
+    "scheme",
+    "budget_year",
+    "effective_from",
+    "effective_to",
+    "amounts",
+    "stages",
+    "eligibility_rules",
+    "exclusion_rules",
+    "timelines",
+    "land_route",
+    "sources"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "pack_id": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}-[A-Z0-9]+-[0-9]{4}-[0-9]{2}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "state": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$"
+    },
+    "scheme": {
+      "type": "string"
+    },
+    "budget_year": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}$"
+    },
+    "effective_from": {
+      "type": "string",
+      "format": "date"
+    },
+    "effective_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "kn_reviewed": {
+      "type": "boolean",
+      "description": "True once a native Kannada speaker has checked every text_kn."
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "amounts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/amount"
+      }
+    },
+    "stages": {
+      "type": "object",
+      "required": [
+        "verified",
+        "note",
+        "items"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "verified": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/stage"
+          }
+        }
+      }
+    },
+    "eligibility_rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "exclusion_rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "timelines": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/clause"
+      }
+    },
+    "land_route": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/clause"
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Every document the pack draws on.",
+      "items": {
+        "$ref": "#/$defs/document"
+      }
+    }
+  },
+  "$defs": {
+    "clause_id": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}-[A-Z0-9]+-[0-9]{4}-[0-9]{2}:[A-Z]{2}-[0-9]{2}$"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "title",
+        "url",
+        "locator",
+        "accessed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 3
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 2,
+          "description": "Page, paragraph or section where the fact appears."
+        },
+        "quote": {
+          "type": "string",
+          "description": "A short exact quote from the source."
+        },
+        "accessed": {
+          "type": "string",
+          "format": "date"
+        },
+        "official": {
+          "type": "boolean",
+          "description": "False for secondary sources such as news reports."
+        }
+      }
+    },
+    "clause": {
+      "type": "object",
+      "required": [
+        "id",
+        "text_en",
+        "text_kn",
+        "source",
+        "verified"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/clause_id"
+        },
+        "text_en": {
+          "type": "string",
+          "minLength": 5
+        },
+        "text_kn": {
+          "type": "string",
+          "minLength": 5
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "True only when the source is an official document that states the clause."
+        },
+        "value": {
+          "type": "number"
+        }
+      }
+    },
+    "amount": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/clause"
+        }
+      ],
+      "required": [
+        "key",
+        "value",
+        "unit"
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "enum": [
+            "INR",
+            "sq_m",
+            "person_days",
+            "points"
+          ]
+        }
+      }
+    },
+    "rule": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/clause"
+        }
+      ],
+      "required": [
+        "logic",
+        "facts"
+      ],
+      "properties": {
+        "logic": {
+          "type": "object",
+          "description": "JSON-logic over case facts. Eligibility: true means the rule passes. Exclusion: true means the family is excluded."
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "required": [
+        "id",
+        "label_en",
+        "label_kn",
+        "cost_share",
+        "instalment_share"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label_en": {
+          "type": "string"
+        },
+        "label_kn": {
+          "type": "string"
+        },
+        "cost_share": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "instalment_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "document": {
+      "type": "object",
+      "required": [
+        "title",
+        "url",
+        "accessed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 3
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "accessed": {
+          "type": "string",
+          "format": "date"
+        },
+        "official": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

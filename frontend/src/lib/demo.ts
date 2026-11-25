@@ -14,12 +14,16 @@ const KEY = 'mm_demo_store_v1'
 const now = () => new Date().toISOString()
 
 /* The same PMAY-G Karnataka rule pack the API reads, synced from backend/app/engine/rules_data (see scripts/sync-rules.mjs). */
-import KA_PMAYG from '../generated/rules/karnataka_pmayg_2024_25.json'
+import KA_PMAYG from '../generated/rules/KA__pmayg__2024-25.json'
+const amount = (key: string) => KA_PMAYG.amounts.find(a => a.key === key)!
 const PACK = {
-  unit_assistance: KA_PMAYG.unit_assistance,
-  scheme_loan_max: KA_PMAYG.scheme_loan.max_amount,
-  stages: KA_PMAYG.stages,
-  stage_note: KA_PMAYG.stage_note,
+  pack_id: KA_PMAYG.pack_id,
+  unit_assistance: amount('unit_assistance').value,
+  scheme_loan_max: amount('scheme_loan_max').value,
+  citations: [amount('unit_assistance').id, amount('scheme_loan_max').id],
+  stages_verified: KA_PMAYG.stages.verified,
+  stages: KA_PMAYG.stages.items.map(s => ({ ...s, label: s.label_en })),
+  stage_note: KA_PMAYG.stages.note,
 }
 const DISCLAIMER = 'Indicative calculation from illustrative assumptions. Not an eligibility, credit or payment decision; verify current scheme rules and lender terms before relying on it.'
 
@@ -119,7 +123,7 @@ function ladder(total: number, savings = 0, loan = 0, grants = 0) {
   })
   const funding_gap = Math.max(0, total - (base + PACK.unit_assistance))
   rungs.forEach((r, i) => { r.cash_gap_before_instalment = Math.round(gaps[i]); r.timing_gap = Math.round(Math.max(0, gaps[i] - funding_gap)) })
-  return { total_cost: Math.round(total), subsidy: PACK.unit_assistance, own_savings: savings, scheme_loan: loan, funding_gap: Math.round(funding_gap), peak_timing_gap: Math.max(...rungs.map(r => r.timing_gap)), rungs, assumptions: [PACK.stage_note], disclaimer: DISCLAIMER }
+  return { total_cost: Math.round(total), subsidy: PACK.unit_assistance, own_savings: savings, scheme_loan: loan, funding_gap: Math.round(funding_gap), peak_timing_gap: Math.max(...rungs.map(r => r.timing_gap)), rungs, assumptions: PACK.stages_verified ? [] : [PACK.stage_note], pack_id: PACK.pack_id, stages_verified: PACK.stages_verified, citations: PACK.citations, disclaimer: DISCLAIMER }
 }
 
 const emi = (p: number, rate: number, m: number) => { if (p <= 0) return 0; const r = rate / 12; return r === 0 ? p / m : (p * r) / (1 - (1 + r) ** -m) }

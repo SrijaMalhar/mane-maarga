@@ -1,7 +1,16 @@
 {
   "_note": "Intake prompts to record. Save each as audio/<lang>/<key>.mp3 and list it in recorded[] below. Recorded human audio always plays before any synthetic voice.",
   "recorded": {
-    "kn": [],
+    "kn": [
+      "start",
+      "beneficiary_name",
+      "village",
+      "taluk",
+      "land_status",
+      "household_size",
+      "housing_need",
+      "phone_last4"
+    ],
     "te": [],
     "en": []
   },
@@ -36,5 +45,8 @@
       "housing_need": "If you want, enter the last four digits of your phone number. Otherwise type skip.",
       "phone_last4": "Thank you. An operator can review these details and create a case. This is prototype intake; no government application was submitted."
     }
+  },
+  "voices": {
+    "kn": "Indic Parler-TTS · Anu (AI4Bharat)"
   }
 }

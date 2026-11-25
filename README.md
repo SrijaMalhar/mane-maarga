@@ -264,7 +264,8 @@ mane-maarga/
 - [ ] Indic OCR for Kannada land records (beyond Tesseract)
 - [x] Agent runtime with Lyzr provider, citation guard and server-side approval gate
 - [x] Bhashini speech recognition and synthesis for voice intake, with a female or male voice
-- [ ] Expressive Kannada intake prompts: render with Indic Parler-TTS or record a local speaker ([how](docs/voice.md))
+- [x] Expressive Kannada intake prompts (Indic Parler-TTS, voice: Anu)
+- [ ] Re-record the intake prompts with a local speaker, such as an ASHA worker ([how](docs/voice.md))
 - [x] In-browser demo mode for the hosted preview
 - [ ] Hosted API for the live preview
 - [ ] Frontend tests and monitoring

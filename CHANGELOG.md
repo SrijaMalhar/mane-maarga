@@ -2,6 +2,9 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Voice, part 3 · 25 Nov 2026 · The Kannada questions now have a warm voice
+- All eight Kannada intake questions are recorded with Indic Parler-TTS (AI4Bharat), speaker Anu, rendered in Colab with a tone set for each line. They are loudness-normalised for phone speakers and play before any live synthesis, including in the hosted demo with no keys.
+
 ## Voice, part 2 · 25 Nov 2026 · Bhashini on the live demo and an expressive voice
 - Vercel functions (`frontend/api/speech/status|tts|asr`) bring Bhashini to the hosted demo with no backend. Keys are Vercel environment variables; the functions only answer the site's own pages and are rate-limited.
 - `scripts/render_voice_prompts.py` renders the fixed intake questions once with Indic Parler-TTS, with the tone described per line (warm greeting, patient questions, grateful thanks). The audio ships with the site and plays before any live synthesis.

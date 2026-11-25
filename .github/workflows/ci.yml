@@ -17,9 +17,17 @@ jobs:
           cache-dependency-path: backend/requirements-dev.txt
       - name: Install backend dependencies
         run: pip install -r backend/requirements-dev.txt
+      - name: Lint and type-check
+        working-directory: backend
+        run: |
+          ruff check app tests benchmarks
+          ruff format --check app tests benchmarks
+          mypy
       - name: Run tests
         working-directory: backend
         run: python -m pytest -q
+      - name: Run benchmarks
+        run: make eval
 
   frontend:
     runs-on: ubuntu-latest
@@ -31,6 +39,9 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm install
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
       - name: Build frontend
         working-directory: frontend
         run: npm run build

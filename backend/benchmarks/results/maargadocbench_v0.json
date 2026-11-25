@@ -1,0 +1,320 @@
+{
+  "benchmark": "MaargaDocBench",
+  "version": "0.1.0",
+  "documents": 500,
+  "via_pdf": false,
+  "field_f1": 0.9944,
+  "field_precision": 0.9953,
+  "field_recall": 0.9935,
+  "per_field": {
+    "survey_number": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "village": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "taluk": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "extent": {
+      "precision": 0.9588,
+      "recall": 0.9433,
+      "f1": 0.951
+    },
+    "beneficiary_name": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "document_number": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "mismatch_recall": 1.0,
+  "mismatch_precision": 0.6485,
+  "variant_false_alarm_rate": 1.0,
+  "doc_type_accuracy": 1.0,
+  "by_condition": {
+    "clean": {
+      "docs": 116,
+      "field_f1": 0.6667,
+      "flag_rate": 0.0,
+      "mismatch_recall": null
+    },
+    "ocr_noise": {
+      "docs": 100,
+      "field_f1": 0.6547,
+      "flag_rate": 0.55,
+      "mismatch_recall": 1.0
+    },
+    "missing_field": {
+      "docs": 100,
+      "field_f1": 0.6667,
+      "flag_rate": 0.0,
+      "mismatch_recall": null
+    },
+    "variant": {
+      "docs": 84,
+      "field_f1": 0.6667,
+      "flag_rate": 1.0,
+      "mismatch_recall": null
+    },
+    "true_mismatch": {
+      "docs": 100,
+      "field_f1": 0.6667,
+      "flag_rate": 1.0,
+      "mismatch_recall": 1.0
+    }
+  },
+  "targets": {
+    "field_f1": 0.9,
+    "mismatch_recall": 0.9
+  },
+  "sample_failures": [
+    {
+      "doc_id": "mdb-7-00000",
+      "condition": "clean",
+      "planted": "",
+      "flagged": false,
+      "should_flag": false,
+      "extracted": {
+        "survey_number": "13/2",
+        "village": "Akkur",
+        "taluk": "Channapatna",
+        "extent": "1.5 acre",
+        "beneficiary_name": "Gowramma B"
+      },
+      "truth": {
+        "survey_number": "13/2",
+        "village": "Akkur",
+        "taluk": "Channapatna",
+        "extent": "1.5 acre",
+        "beneficiary_name": "Gowramma B"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00001",
+      "condition": "ocr_noise",
+      "planted": "document_number: 'KA-HOS-2025-8314' -> 'KA-HOS-2O25-8314'",
+      "flagged": false,
+      "should_flag": false,
+      "extracted": {
+        "village": "Nandagudi",
+        "taluk": "Hosakote",
+        "beneficiary_name": "Siddaraju",
+        "document_number": "KA-HOS-2O25-8314"
+      },
+      "truth": {
+        "document_number": "KA-HOS-2O25-8314",
+        "beneficiary_name": "Siddaraju",
+        "village": "Nandagudi",
+        "taluk": "Hosakote"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00002",
+      "condition": "missing_field",
+      "planted": "survey_number missing",
+      "flagged": false,
+      "should_flag": false,
+      "extracted": {
+        "village": "Kudur",
+        "taluk": "Magadi",
+        "extent": "0.20 acre",
+        "beneficiary_name": "Mahadeva D"
+      },
+      "truth": {
+        "village": "Kudur",
+        "taluk": "Magadi",
+        "extent": "0.20 acre",
+        "beneficiary_name": "Mahadeva D"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00003",
+      "condition": "variant",
+      "planted": "beneficiary_name: 'Manjunath N' ~ 'Manjunatha N' (same entity)",
+      "flagged": true,
+      "should_flag": false,
+      "extracted": {
+        "village": "Bidadi",
+        "taluk": "Ramanagara",
+        "beneficiary_name": "Manjunatha N",
+        "document_number": "KA-RAM-2025-9456"
+      },
+      "truth": {
+        "document_number": "KA-RAM-2025-9456",
+        "beneficiary_name": "Manjunatha N",
+        "village": "Bidadi",
+        "taluk": "Ramanagara"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00004",
+      "condition": "true_mismatch",
+      "planted": "taluk: case 'Kanakapura' vs document 'Channapatna'",
+      "flagged": true,
+      "should_flag": true,
+      "extracted": {
+        "survey_number": "37/9",
+        "village": "Maralawadi",
+        "taluk": "Channapatna",
+        "extent": "0.05 acre",
+        "beneficiary_name": "Gowramma S"
+      },
+      "truth": {
+        "survey_number": "37/9",
+        "village": "Maralawadi",
+        "taluk": "Channapatna",
+        "extent": "0.05 acre",
+        "beneficiary_name": "Gowramma S"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00005",
+      "condition": "clean",
+      "planted": "",
+      "flagged": false,
+      "should_flag": false,
+      "extracted": {
+        "village": "Kalya",
+        "taluk": "Magadi",
+        "beneficiary_name": "Ravi Kumar S",
+        "document_number": "KA-MAG-2025-9359"
+      },
+      "truth": {
+        "document_number": "KA-MAG-2025-9359",
+        "beneficiary_name": "Ravi Kumar S",
+        "village": "Kalya",
+        "taluk": "Magadi"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00006",
+      "condition": "ocr_noise",
+      "planted": "survey_number: '183/2' -> 'l83/2'",
+      "flagged": false,
+      "should_flag": false,
+      "extracted": {
+        "survey_number": "l83/2",
+        "village": "Kalya",
+        "taluk": "Magadi",
+        "extent": "1.5 acre",
+        "beneficiary_name": "Siddaraju M"
+      },
+      "truth": {
+        "survey_number": "l83/2",
+        "village": "Kalya",
+        "taluk": "Magadi",
+        "extent": "1.5 acre",
+        "beneficiary_name": "Siddaraju M"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00007",
+      "condition": "missing_field",
+      "planted": "taluk missing",
+      "flagged": false,
+      "should_flag": false,
+      "extracted": {
+        "village": "Maralawadi",
+        "beneficiary_name": "Mahadeva S",
+        "document_number": "KA-KAN-2025-9594"
+      },
+      "truth": {
+        "document_number": "KA-KAN-2025-9594",
+        "beneficiary_name": "Mahadeva S",
+        "village": "Maralawadi"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00008",
+      "condition": "variant",
+      "planted": "beneficiary_name: 'Venkatesh B' ~ 'Venkatesha B' (same entity)",
+      "flagged": true,
+      "should_flag": false,
+      "extracted": {
+        "survey_number": "179/4",
+        "village": "Kailancha",
+        "taluk": "Ramanagara",
+        "extent": "0.05 acre",
+        "beneficiary_name": "Venkatesha B"
+      },
+      "truth": {
+        "survey_number": "179/4",
+        "village": "Kailancha",
+        "taluk": "Ramanagara",
+        "extent": "0.05 acre",
+        "beneficiary_name": "Venkatesha B"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00009",
+      "condition": "true_mismatch",
+      "planted": "taluk: case 'Hosakote' vs document 'Channapatna'",
+      "flagged": true,
+      "should_flag": true,
+      "extracted": {
+        "village": "Nandagudi",
+        "taluk": "Channapatna",
+        "beneficiary_name": "Venkatesh R",
+        "document_number": "KA-HOS-2025-1935"
+      },
+      "truth": {
+        "document_number": "KA-HOS-2025-1935",
+        "beneficiary_name": "Venkatesh R",
+        "village": "Nandagudi",
+        "taluk": "Channapatna"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00010",
+      "condition": "clean",
+      "planted": "",
+      "flagged": false,
+      "should_flag": false,
+      "extracted": {
+        "survey_number": "108/1",
+        "village": "Kootagal",
+        "taluk": "Ramanagara",
+        "extent": "0.05 acre",
+        "beneficiary_name": "Puttamma K"
+      },
+      "truth": {
+        "survey_number": "108/1",
+        "village": "Kootagal",
+        "taluk": "Ramanagara",
+        "extent": "0.05 acre",
+        "beneficiary_name": "Puttamma K"
+      }
+    },
+    {
+      "doc_id": "mdb-7-00011",
+      "condition": "ocr_noise",
+      "planted": "village: 'Kodihalli' -> 'Kodihalll'",
+      "flagged": true,
+      "should_flag": true,
+      "extracted": {
+        "village": "Kodihalll",
+        "taluk": "Kanakapura",
+        "beneficiary_name": "Yashoda S",
+        "document_number": "KA-KAN-2025-5738"
+      },
+      "truth": {
+        "document_number": "KA-KAN-2025-5738",
+        "beneficiary_name": "Yashoda S",
+        "village": "Kodihalll",
+        "taluk": "Kanakapura"
+      }
+    }
+  ],
+  "seed": 7
+}

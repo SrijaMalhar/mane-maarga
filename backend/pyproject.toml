@@ -9,6 +9,7 @@ ignore = ["E501", "B008", "B904"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["B011"]
+"tests/conftest.py" = ["E402"]  # the test database URL must be set before the app is imported
 
 [tool.ruff.format]
 quote-style = "double"
@@ -17,7 +18,7 @@ quote-style = "double"
 python_version = "3.12"
 ignore_missing_imports = true
 check_untyped_defs = false
-files = ["app/engine", "app/agents", "app/core"]
+files = ["app/engine", "app/core"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

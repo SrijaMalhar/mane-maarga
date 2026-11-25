@@ -27,7 +27,7 @@ const PACK = {
 }
 const DISCLAIMER = 'Indicative calculation from illustrative assumptions. Not an eligibility, credit or payment decision; verify current scheme rules and lender terms before relying on it.'
 
-type Row = Record<string, any> // eslint-disable-line @typescript-eslint/no-explicit-any
+type Row = Record<string, any>  
 type Store = { seq: number; cases: Row[]; consent: Row[]; docs: Row[]; docText: Record<number, string[]>; extractions: Row[]; funding: Row[]; stages: Row[]; evidence: Row[]; tasks: Row[]; audit: Row[]; users: Row[]; intake: Record<string, Row> }
 
 export const DEMO_USER: AuthUser = { id: 1, username: 'demo_visitor', email: 'demo@example.test', role: 'admin', is_active: true }

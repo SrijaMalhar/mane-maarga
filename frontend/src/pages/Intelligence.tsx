@@ -155,8 +155,13 @@ function Intake() {
     if (!Speech) return
     const rec = new Speech(); rec.lang = bcp
     rec.onresult = ev => setMsg(ev.results[0][0].transcript)
-    rec.onerror = ev => setNote(ev?.error === 'not-allowed' || ev?.error === 'service-not-allowed'
-      ? 'Microphone or speech permission was refused. Allow it in the browser settings, or type the answer.'
+    const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent) || /iphone|ipad/i.test(navigator.userAgent)
+    rec.onerror = ev => setNote(isSafari && language !== 'en'
+      ? "Safari and iPhone browsers can't understand Kannada or Telugu speech. Open this page in Chrome on a laptop or Android phone, or type the answer."
+      : ev?.error === 'service-not-allowed'
+      ? "This browser can't recognise speech in this language. Try Chrome, or type the answer."
+      : ev?.error === 'not-allowed'
+      ? 'Microphone permission was refused. Click the icon left of the address bar, allow the microphone, and reload.'
       : language === 'en' ? 'Voice input failed. Please type instead.'
       : "This browser can't recognise Kannada or Telugu speech on its own (Safari can't). It will work once Bhashini is connected; for now, type the answer or use Chrome.")
     rec.start()

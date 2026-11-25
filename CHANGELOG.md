@@ -2,6 +2,13 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Voice · 25 Nov 2026 · Bhashini and a more human Kannada voice
+- Bhashini client (`app/speech/bhashini.py`): config call, then ASR or TTS compute. Keys stay on the server; config is cached for an hour and spoken questions are cached. `POST /api/speech/tts`, `POST /api/speech/asr` (16 kHz WAV, about 1 minute maximum), `GET /api/speech/status`.
+- The voice now sounds less machine-made: TTS at 22.05 kHz instead of 8 kHz, female or male voice, slightly slower playback, and text spoken the way people say it (no brackets or slashes, rupees read as a word). Kannada is never read with an English voice. Recordings by a real person play first when present (`docs/voice.md`).
+- Kannada intake questions rewritten in everyday spoken Kannada, without English words like "case", "prototype" or "skip". Spoken phone answers in Kannada digits and "ಬೇಡ" are understood.
+- The browser records the answer as 16 kHz mono WAV for Bhashini; it falls back to the browser's own recognition when Bhashini is not connected.
+- 5 new tests: 102 passing.
+
 ## Site · 25 Nov 2026 · Ink, Lime and Laterite
 - Fonts: Anek Latin and Anek Kannada for the interface, Tiro Kannada for formal Kannada, IBM Plex Mono for figures and clause IDs (Fraunces, Manrope and Noto removed).
 - Semantic colour tokens (lime, charcoal, laterite, neem, stamp, redpen, turmeric), a 13–64 px type scale, Kannada line height 1.7, and a high-contrast sunlight mode. Old token names stay as aliases.

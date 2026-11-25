@@ -25,7 +25,7 @@ Bhashini's standard voices are trained on read speech. They pronounce Kannada we
 Intake asks the same eight questions every time, so they don't have to be synthesised live. They can be rendered once, with feeling, and played back:
 
 - **Best:** a real person reads them (see below).
-- **Next best:** `scripts/render_voice_prompts.py` renders them with **Indic Parler-TTS** (AI4Bharat, open source). You describe how each line should sound, and Kannada is one of the languages where it follows emotion in the description. The greeting is warm and smiling, the questions are friendly and patient, and the thank-you is grateful. Run it once on Google Colab's free GPU:
+- **Next best:** `scripts/render_voice_prompts.py` renders them with **Indic Parler-TTS** (AI4Bharat, open source). You describe how each line should sound, and Kannada is one of the languages where it follows emotion in the description. The greeting is warm and smiling, the questions are friendly and patient, and the thank-you is grateful. Easiest: open [the Colab notebook](https://colab.research.google.com/github/SrijaMalhar/mane-maarga/blob/main/notebooks/render_kannada_voice.ipynb), run the cells, listen, pick the best takes, and it pushes the audio for you. Or by hand on any GPU:
   ```
   pip install git+https://github.com/huggingface/parler-tts.git soundfile
   python scripts/render_voice_prompts.py --speaker Anu --takes 3     # female; or --speaker Suresh

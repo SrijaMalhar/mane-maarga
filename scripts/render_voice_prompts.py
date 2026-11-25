@@ -55,6 +55,7 @@ def main() -> None:
     ap.add_argument("--takes", type=int, default=1)
     ap.add_argument("--pick", default="", help="choose takes after listening, e.g. start=2,village=3")
     ap.add_argument("--only", default="", help="comma-separated keys to render")
+    ap.add_argument("--render-only", action="store_true", help="render takes for listening; keep nothing yet")
     args = ap.parse_args()
 
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
@@ -83,6 +84,9 @@ def main() -> None:
                 sf.write(out / f"{key}.{n}.wav", audio.cpu().numpy().squeeze(), model.config.sampling_rate)
                 print(f"rendered {args.lang}/{key}.{n}.wav")
 
+    if args.render_only:
+        print("takes rendered; listen, then run again with --pick")
+        return
     chosen = dict(item.split("=") for item in args.pick.split(",") if item) if args.pick else {}
     kept = []
     for key in keys:

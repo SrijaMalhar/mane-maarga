@@ -30,7 +30,7 @@ def show(title: str, run: dict) -> None:
         line = f"{s['idx']:>2} {s['phase']:<7}"
         if s["tool"]:
             outcome = f"error={s['error']}" if s["error"] else json.dumps(s["result"], ensure_ascii=False)[:90]
-            line += f" {s['tool']}({json.dumps(s["args"], ensure_ascii=False)[:50]}) -> {outcome}"
+            line += f" {s['tool']}({json.dumps(s['args'], ensure_ascii=False)[:50]}) -> {outcome}"
         elif s["phase"] == "CHECK":
             line += f" citation guard: {'pass' if not s['error'] else '; '.join(s['result']['problems'])}"
         else:
@@ -42,8 +42,14 @@ def show(title: str, run: dict) -> None:
 def main() -> None:
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
-    a = Case(beneficiary_name="Lakshmamma K (sample)", village="Hosahalli", taluk="Kunigal", status="planning",
-             estimated_cost=300000, sanctioned_amount=120000)
+    a = Case(
+        beneficiary_name="Lakshmamma K (sample)",
+        village="Hosahalli",
+        taluk="Kunigal",
+        status="planning",
+        estimated_cost=300000,
+        sanctioned_amount=120000,
+    )
     b = Case(beneficiary_name="Manjunath S (sample)", village="Bidadi", taluk="Ramanagara", status="intake")
     db.add_all([a, b])
     db.commit()

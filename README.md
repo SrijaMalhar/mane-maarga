@@ -33,7 +33,7 @@ Mane Maarga helps case workers take rural families in Karnataka from their first
 
 - **Live preview:** open [mane-maarga.vercel.app](https://mane-maarga.vercel.app), choose **Access the platform**, then **Explore with sample data**. No server is needed: a clearly labelled demo mode runs the workspace in your browser with invented “(sample)” families, using the same rules as the API (money ladder, 30% cap, no double counting). Nothing leaves the browser tab.
 - **Full stack:** to sign in against the real API with document text extraction, [run it locally](#run-it-locally).
-- **What to explore:** add a family → upload a land record → compare the extracted fields with the case → check the money ladder → review the case insights.
+- **What to explore:** add a family → upload a land record → compare the extracted fields with the case → check the money ladder → open **Intelligence** and choose **Run the agent** to watch it plan, call tools and pass the citation guard.
 
 <div align="center">
 <img src="docs/assets/demo.gif" width="880" alt="Screen recording: the overview, the beneficiary list, a case file, the verification desk flagging a village-name mismatch, the financial plan and money ladder, and the case analysis" />
@@ -67,6 +67,13 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 </tr>
 </table>
 
+### The agent, step by step
+
+<div align="center">
+<img src="docs/assets/screenshots/agent-run.png" width="880" alt="Agent run trace: PLAN, four tool calls, a citation-guard CHECK and the answer in English and Kannada with a stamped clause ID" />
+<br /><sub>Every rupee in the answer came from a tool result; the stamped clause ID links the ₹1,20,000 to its source. Try <code>make demo</code> for the recovery and blocked runs.</sub>
+</div>
+
 ## What works today
 
 | Area | What is built |
@@ -75,9 +82,12 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 | **Document verification** | PDF/PNG/JPEG upload (10 MB, file signatures checked), authenticated preview, text extraction with `pypdf` and Tesseract (English + Kannada), field-by-field comparison with the case, and a verify / reject / request-correction decision. |
 | **Scheme-aware finance** | Funding sources marked proposed, confirmed, received or rejected. Duplicate confirmed scheme references are blocked. A dated PMAY-G Karnataka rule pack drives the **money ladder**, and a **30% repayment cap** counts every existing loan, including the PMAY-G scheme loan. |
 | **Construction tracking** | A stage plan costed from the estimate, stage status, and photo evidence held for review. The house drawing fills in as stages are verified. |
-| **Decision support** | Rule-based checks of documents, finance, construction and blockers. Each recommendation lists its evidence and requires human approval. Also included: conversational intake in Kannada, English and Telugu, scheme reference links, a budget estimate and follow-up tasks. |
+| **Cited rules** | A dated Karnataka PMAY-G rule pack: 17 clauses, each with an ID, English and Kannada text, and its source (PIB, Lok Sabha, CAG). Eligibility and the 8 exclusion rules run in code; a missing fact gives *needs information*, never a guess. `make rules-lint` rejects any clause without a source or Kannada text. See [PROBLEM.md](PROBLEM.md). |
+| **Agent runtime** | A PLAN → ACT → CHECK → RECOVER → ASK → DONE loop over 11 typed, audited tools. The model chooses; the server runs the tool. A citation guard withholds any answer whose figures or clauses can't be traced. Runs on a scripted mock with no key, or on Lyzr Agent Studio. |
+| **Approval gate** | Agents can only *request* a status change, offer or payment. Only an administrator's decision changes a case, and both steps are audited. |
+| **Decision support** | Rule-based checks of documents, finance, construction and blockers, each with its evidence. Also: conversational intake in Kannada, English and Telugu, scheme reference links, a budget estimate and follow-up tasks. |
 | **Accountability** | JWT sessions with admin, operator and viewer roles, an audit trail of every sensitive action, rate-limited sign-in, and security headers with request IDs. |
-| **Accessibility** | A full Kannada/English interface using self-hosted Noto Kannada fonts, keyboard navigation and visible focus, status shown by icon and text (never colour alone), reduced-motion support, and phone layouts. |
+| **Accessibility** | A full Kannada/English interface (self-hosted Anek and Tiro Kannada fonts, Kannada line height 1.7), a high-contrast sunlight mode, keyboard navigation and visible focus, status shown by icon and text (never colour alone), reduced-motion support, and phone layouts. |
 
 ## How a family moves through it
 
@@ -102,12 +112,17 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    UI["React + TS<br/>Kannada / English"] -- "REST · JWT" --> API["FastAPI<br/>cases · documents · finance engine · audit"]
+    UI["React + TS<br/>Kannada / English"] -- "REST · JWT" --> API["FastAPI<br/>cases · documents · audit"]
+    API --> ENG["Engine<br/>rule packs · ladder · 30% cap"]
+    API --> RT["Agent runtime<br/>tools · citation guard"]
+    RT -- "one JSON decision per turn" --> LLM["Mock script or Lyzr"]
+    RT --> ENG
+    RT --> GATE["Approval requests<br/>(admin decides)"]
     API --> DB[("PostgreSQL")]
     API --> OCR["pypdf + Tesseract"]
 ```
 
-The finance engine (`backend/app/engine`) is pure Python with no I/O. It reads a dated rule pack such as `karnataka_pmayg_2024_25.json`, so a change in scheme rules is a data change with a source citation, not a code change.
+The engine (`backend/app/engine`) is pure Python with no I/O. It reads dated rule packs at `rules_data/<STATE>/<scheme>/<year>.json`, so a change in scheme rules is a data change with a source citation, not a code change. The model never computes money or eligibility: it picks a tool, the server runs it, and the guard checks the answer. Details: [ARCHITECTURE.md](ARCHITECTURE.md) and the [ADRs](docs/adr/).
 
 ## Benchmark: MaargaDocBench
 
@@ -138,11 +153,11 @@ What these numbers do and don't say:
 
 Mane Maarga works with vulnerable families and public money, so the line between help and decision is part of the design:
 
-- **People decide.** Suggestions never approve eligibility, credit, payment or a status change. The approval gate is part of every analysis response.
+- **People decide.** Agents can only create a pending approval request; eligibility, credit, payment and status changes need an administrator. A test calls every tool and proves none changes status or money.
 - **Extraction is unverified until a reviewer confirms it.** Extracted fields are labelled as such, mismatches are flagged, and only a person can mark a document verified.
 - **Money rules are transparent.** Proposed funding is never counted as confirmed. Existing loans are liabilities, not funding. The ladder's stage split is marked illustrative until it's checked against the PMAY-G guidelines.
 - **Suggestions carry their evidence.** Each recommended action names the documents or figures behind it and the check that produced it.
-- **No external model is connected today.** Case analysis is deterministic and rule-based, and the UI says so.
+- **The model explains; code decides.** With Lyzr connected, the model only chooses tools and writes the explanation. A citation guard withholds any answer with a figure not from a tool result or a clause that doesn't exist, and every run is stored step by step. Without keys, a labelled scripted mock runs instead.
 - **Sensitive actions are auditable,** and consent can be withdrawn at any time.
 
 ## Security and privacy
@@ -191,10 +206,13 @@ Key settings in `.env` (see `.env.example`):
 | `CORS_ORIGINS` | The web app's origin(s), comma-separated. |
 | `VITE_API_BASE_URL` | The API URL the frontend calls. |
 | `MANE_MAARGA_BOOTSTRAP_ENABLED` | Allows first-administrator setup (off by default in production). |
+| `MANE_MAARGA_AGENT_PROVIDER` | `mock` (default, no key) or `lyzr`. |
+| `MANE_MAARGA_LYZR_API_KEY`, `MANE_MAARGA_LYZR_AGENT_ID` | Lyzr Agent Studio credentials, used only when the provider is `lyzr`. |
+| `MANE_MAARGA_SERVICE_TOKEN` | Opens `/api/tools/*` to machine callers; unset keeps them closed. |
 
 To stop everything: `docker compose down`. Your database and uploads stay in Docker volumes. Removing them (`docker compose down -v`) **permanently deletes all records**.
 
-**Tests:** `docker compose exec api python -m pytest -q`. There are 56 backend tests covering auth, roles, uploads, extraction, funding rules, the money ladder and affordability. CI runs them, plus a frontend build, on every push.
+**Tests:** `make test` (or `docker compose exec api python -m pytest -q`). There are 97 backend tests covering auth, roles, uploads, extraction, funding rules, the money ladder, affordability, every eligibility exclusion, every tool, and the agent runtime. CI also runs ruff, mypy, `rules-lint`, the benchmark, ESLint, a style lint (no hype words, emoji or gradients; every string in Kannada) and the frontend build on every push. `make demo` prints agent traces without any key.
 
 Production Compose, operations and the release checklist are in [`docs/`](docs/).
 
@@ -204,22 +222,27 @@ Production Compose, operations and the release checklist are in [`docs/`](docs/)
 mane-maarga/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # API: auth, cases, documents, funding, stages, intelligence
-│   │   ├── engine/              # finance engine + dated rule packs (money ladder, affordability)
-│   │   ├── agents.py            # rule-based case analysis with an approval gate
+│   │   ├── main.py              # app factory (≈40 lines)
+│   │   ├── api/                 # one router per area, incl. engine, tools, agent
+│   │   ├── core/                # config, security, audit, observability
+│   │   ├── engine/              # rule packs (cited, dated), eligibility, money ladder, affordability
+│   │   ├── agents/              # tools, runtime, providers (mock, Lyzr), citation guard, prompts
 │   │   └── document_ai.py       # text extraction and case comparison
 │   ├── alembic/                 # migrations
 │   ├── benchmarks/              # MaargaDocBench (synthetic document benchmark)
-│   └── tests/                   # 56 tests
+│   ├── scripts/                 # rules_lint.py, agent_demo.py
+│   └── tests/                   # 97 tests
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/               # Overview, Beneficiaries, CaseFile, Verification, Finance, …
-│   │   ├── components/          # Mascot, house and village drawings, Shell, shared UI
+│   │   ├── components/          # Mascot, drawings, Shell, ledger kit (LedgerTable, Stamp, RedPen, InkRung), agent trace
 │   │   └── lib/                 # API client, i18n (Kannada/English), formatting
 │   ├── public/images/mascot/    # mascot SVGs (exported from the React component)
-│   └── scripts/export-mascot.mjs
+│   └── scripts/                 # export-mascot, sync-rules, anti-ai-lint
 ├── scripts/                     # seed_demo.py, backup.sh
-├── docs/                        # deployment, operations, release checklist, README assets
+├── docs/                        # ADRs, deployment, operations, release checklist, README assets
+├── PROBLEM.md                   # problem → evidence → feature → where to see it
+├── ARCHITECTURE.md
 ├── docker-compose.yml
 └── docker-compose.prod.yml
 ```
@@ -234,11 +257,11 @@ mane-maarga/
 - [x] Construction stages with photo evidence
 - [x] Kannada / English interface
 - [ ] Replace the illustrative stage split with the official PMAY-G instalment schedule
-- [ ] Scheme eligibility rules with citations, reviewed by a person
+- [x] Scheme eligibility and exclusion rules with clause-level citations (Kannada review pending)
 - [x] MaargaDocBench v0: synthetic document benchmark with planted errors
 - [ ] Kannada-aware name matcher (cut the variant false-alarm rate)
 - [ ] Indic OCR for Kannada land records (beyond Tesseract)
-- [ ] Lyzr agent integration behind the existing approval gate
+- [x] Agent runtime with Lyzr provider, citation guard and server-side approval gate
 - [ ] Bhashini speech for Kannada voice intake (browser speech is used today, labelled beta)
 - [x] In-browser demo mode for the hosted preview
 - [ ] Hosted API for the live preview

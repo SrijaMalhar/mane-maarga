@@ -2,6 +2,14 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Site · 25 Nov 2026 · Ink, Lime and Laterite
+- Fonts: Anek Latin and Anek Kannada for the interface, Tiro Kannada for formal Kannada, IBM Plex Mono for figures and clause IDs (Fraunces, Manrope and Noto removed).
+- Semantic colour tokens (lime, charcoal, laterite, neem, stamp, redpen, turmeric), a 13–64 px type scale, Kannada line height 1.7, and a high-contrast sunlight mode. Old token names stay as aliases.
+- Ledger kit: `LedgerTable`, `Stamp`, `RedPen`, `Footnote`, `InkRung`; dev-only reference sheet at `#/kit`. The money ladder now stamps the clauses behind its amounts.
+- Agent run panel in Intelligence (also in browser demo mode) showing each step and the guarded answer in English and Kannada.
+- `npm run lint:style` in CI: no hype words, emoji, smooth gradients, glass blur or sparkles icon, and every English string has Kannada. Removed the blur effects and shimmer it found.
+- `lib/money.ts` formatINR with Indian grouping; README screenshots retaken.
+
 ## Day 4 · 25 Nov 2026 · The agent loop
 - `app/agents/runtime.py`: PLAN, ACT, CHECK, RECOVER, ASK, DONE, at most 12 steps. The model returns one JSON decision per turn; the server runs every tool.
 - Providers: `mock` (YAML scripts, figures filled only from tool results) and `lyzr` (Lyzr Agent Studio inference API, 2 retries). Unconfigured Lyzr gives a clear 400.

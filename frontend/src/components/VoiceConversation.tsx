@@ -31,7 +31,15 @@ export default function VoiceConversation() {
   const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
   useEffect(() => () => { audio.current?.pause(); cancelAnimationFrame(raf.current); window.clearTimeout(timer.current); void ctx.current?.ac.close() }, [])
-  useEffect(() => { list.current?.querySelector('.vc-line.now')?.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' }) }, [at, shown, reduced])
+  useEffect(() => {
+    // Scroll only the conversation box, never the page under the reader.
+    const box = list.current
+    const line = box?.querySelector<HTMLElement>('.vc-line.now')
+    if (!box || !line) return
+    const top = line.offsetTop - 16
+    const bottom = top + line.offsetHeight + 32
+    if (top < box.scrollTop || bottom > box.scrollTop + box.clientHeight) box.scrollTo({ top: Math.max(0, bottom - box.clientHeight), behavior: reduced ? 'auto' : 'smooth' })
+  }, [at, shown, reduced])
 
   function draw() {
     const an = ctx.current?.an, a = audio.current

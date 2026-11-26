@@ -169,7 +169,7 @@ function extract(s: Store, docId: number): Row {
   const lower = text.toLowerCase()
   const type = /rtc|record of rights|survey/.test(lower) ? 'land_record' : /sanction|pmay/.test(lower) ? 'scheme_sanction' : 'unknown'
   const checks = (['beneficiary_name', 'village', 'taluk'] as const).filter(k => fields[k]).map(k => {
-    const match = norm(fields[k]) === norm(String(c[k]))
+    const match = norm(fields[k]) === norm(String(c[k]).replace(/\s*\(sample\)$/i, ''))
     return { field: k, status: match ? 'match' : 'mismatch', extracted: fields[k], case_value: c[k], severity: match ? 'info' : 'review' }
   })
   return { id: s.seq++, document_id: docId, extraction_status: checks.some(x => x.status === 'mismatch') ? 'review_required' : 'extracted', document_type: type, extracted_fields: fields, checks, engine: 'demo-text', confidence: 0.55, extracted_at: now() }

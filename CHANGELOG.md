@@ -9,6 +9,8 @@ Dates are build days of the Mane Maarga Master Plan v2. Each line names what cha
 - Financial planning: opens on a family with an estimate; the money ladder is full width, seeded from the family's recorded savings and loans, with the tightest stage marked. Sources are a table; the repayment check folds away.
 - Verification: the document-vs-case-file comparison is the main view, mismatches in red pen, decision buttons under the answer; the preview folds away.
 - Checked with screenshots at 1440px and 390px; tsc, ESLint, style lint and build pass. README screenshots retaken.
+- README: a new GIF tells one family's story in four Kannada chapters (ask, check, plan, approve), with the money ladder recomputing live as savings and the scheme loan are typed. The six full-app screenshots are replaced by three focused crops, one per page.
+- The voice conversation scrolls only its own box, never the page; ladder bars animate when amounts change (off under reduced motion). The demo no longer flags "(sample)" in a family's name as a document mismatch.
 
 ## Data · 26 Nov 2026 · Real public figures in the demo
 - `backend/app/public_data/ka_pmayg_progress.json`: Karnataka and all-India PMAY-G targets, sanctions and completions from Lok Sabha Q.3722 (as on 7 Aug 2025), Q.428 (17 Jul 2025), Q.931 (9 Dec 2022) and PIB (Mar 2025), each with its link. Served at `GET /api/public-data/pmayg/karnataka` with derived figures computed in code.

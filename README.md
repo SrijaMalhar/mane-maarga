@@ -37,7 +37,7 @@ Mane Maarga helps case workers take rural families in Karnataka from their first
 - **What to explore:** add a family → upload a land record → compare the extracted fields with the case → check the money ladder → open **Intelligence** and choose **Run the agent** to watch it plan, call tools and pass the citation guard.
 
 <div align="center">
-<img src="docs/assets/demo.gif" width="880" alt="Screen recording: Karnataka's real PMAY-G figures, the money ladder, the citation guard, the demo overview, a family approving a ₹70,000 loan on their phone with a one-time code, and the agent's step-by-step run" />
+<img src="docs/assets/demo.gif" width="880" alt="A 39-second story in four chapters with Kannada title cards: 3,62,342 Karnataka houses unfinished; ಕೇಳು, the intake asked aloud in Kannada; ಪರಿಶೀಲಿಸು, a land record checked against the case with a red-pen mismatch; ಲೆಕ್ಕ, the money ladder recomputing as savings and the scheme loan are added; ಒಪ್ಪಿಗೆ, the family approving a ₹70,000 loan on their phone with a one-time code" />
 <br /><sub>Recorded from the running app. Karnataka figures, scheme rules and villages are real and cited; the families are invented to protect privacy.</sub>
 </div>
 
@@ -76,20 +76,18 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 
 ## Screenshots
 
-<table>
-<tr>
-<td width="50%"><img src="docs/assets/screenshots/dashboard.png" alt="Overview: how many families need a decision today, the six-stage journey, and each family with the one action it needs" /><br /><sub><b>Overview</b> · who needs a decision today, and what to do for each</sub></td>
-<td width="50%"><img src="docs/assets/screenshots/beneficiaries.png" alt="Beneficiary list with journey progress dots, estimates, gaps and consent status" /><br /><sub><b>Beneficiaries</b> · search, filters, and compact, detailed or village views</sub></td>
-</tr>
-<tr>
-<td width="50%"><img src="docs/assets/screenshots/beneficiary-details.png" alt="Case file for a sample family showing the house drawing, journey timeline, documents and finances" /><br /><sub><b>Case file</b> · the family's whole housing journey on one page</sub></td>
-<td width="50%"><img src="docs/assets/screenshots/verification.png" alt="Verification desk: the document compared with the case file field by field, a mismatch struck through in red, and the decision buttons" /><br /><sub><b>Verification desk</b> · document vs case file; the reviewer decides</sub></td>
-</tr>
-<tr>
-<td width="50%"><img src="docs/assets/screenshots/financial-planning.png" alt="Financial planning: the cash the family needs before the next instalment, then the money ladder by construction stage" /><br /><sub><b>Financial planning</b> · the cash needed before each instalment</sub></td>
-<td width="50%"><img src="docs/assets/screenshots/intelligence.png" alt="Case analysis listing recommended next steps with their evidence and the human-approval gate" /><br /><sub><b>Intelligence</b> · suggestions with evidence; a person approves every decision</sub></td>
-</tr>
-</table>
+### Three pages, three answers
+
+Each working page opens on the one sentence a field officer needs, with the figures behind it beside it.
+
+<img src="docs/assets/screenshots/dashboard.png" width="880" alt="Overview: 5 families need a decision from you today; the six-stage journey; each family listed with the one action it needs, such as Record consent or Plan the gap" />
+<sub><b>Overview.</b> Who needs a decision today, and the one thing to do for each.</sub>
+
+<img src="docs/assets/screenshots/financial-planning.png" width="880" alt="Financial planning: Lakshmamma needs ₹2,18,000 in hand before the finishing instalment arrives; the money ladder by construction stage with the tightest stage marked" />
+<sub><b>Financial planning.</b> The cash a family must find before each instalment, computed in code from cited rules.</sub>
+
+<img src="docs/assets/screenshots/verification.png" width="880" alt="Verification desk: 1 of 3 fields differ from the case file; the village name struck through in red pen; decision buttons" />
+<sub><b>Verification.</b> The land record against the case file, field by field. A person decides.</sub>
 
 ### The family approves, on their own phone
 

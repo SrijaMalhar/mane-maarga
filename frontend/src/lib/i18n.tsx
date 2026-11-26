@@ -46,7 +46,7 @@ const en = {
   'stage.planned': 'Planned', 'stage.in_progress': 'In progress', 'stage.blocked': 'Blocked', 'stage.verified': 'Verified', 'stage.completed': 'Completed',
   'funding.proposed': 'Proposed', 'funding.confirmed': 'Confirmed', 'funding.received': 'Received', 'funding.rejected': 'Rejected',
   'task.open': 'Open', 'task.in_progress': 'In progress', 'task.blocked': 'Blocked', 'task.completed': 'Completed', 'task.cancelled': 'Cancelled',
-  'banner.demo': 'Sample data · You\'re exploring with invented families. Changes stay in this browser tab and nothing is sent to a server.',
+  'banner.demo': 'Demo · Karnataka figures, scheme rules and villages are real and cited; the families are invented to protect privacy. Changes stay in this browser tab.',
   'banner.reset': 'Reset', 'banner.leave': 'Leave demo',
   'banner.intel': 'Case analysis below runs fixed rules over the case records. The agent run uses the same tools, and a check withholds any answer whose figures it cannot trace. Nothing is submitted, approved or paid without the family or an administrator.',
 
@@ -114,7 +114,7 @@ const kn: Partial<Record<Key, string>> = {
   'stage.planned': 'ಯೋಜಿತ', 'stage.in_progress': 'ನಡೆಯುತ್ತಿದೆ', 'stage.blocked': 'ತಡೆ', 'stage.verified': 'ಪರಿಶೀಲಿತ', 'stage.completed': 'ಪೂರ್ಣ',
   'funding.proposed': 'ಪ್ರಸ್ತಾಪಿತ', 'funding.confirmed': 'ದೃಢೀಕೃತ', 'funding.received': 'ಸ್ವೀಕರಿಸಲಾಗಿದೆ', 'funding.rejected': 'ತಿರಸ್ಕೃತ',
   'task.open': 'ತೆರೆದಿದೆ', 'task.in_progress': 'ನಡೆಯುತ್ತಿದೆ', 'task.blocked': 'ತಡೆ', 'task.completed': 'ಪೂರ್ಣ', 'task.cancelled': 'ರದ್ದು',
-  'banner.demo': 'ಮಾದರಿ ದತ್ತಾಂಶ · ನೀವು ಕಲ್ಪಿತ ಕುಟುಂಬಗಳೊಂದಿಗೆ ನೋಡುತ್ತಿದ್ದೀರಿ. ಬದಲಾವಣೆಗಳು ಈ ಬ್ರೌಸರ್ ಟ್ಯಾಬ್‌ನಲ್ಲೇ ಉಳಿಯುತ್ತವೆ; ಯಾವುದೂ ಸರ್ವರ್‌ಗೆ ಹೋಗುವುದಿಲ್ಲ.',
+  'banner.demo': 'ಡೆಮೊ · ಕರ್ನಾಟಕದ ಅಂಕಿಅಂಶ, ಯೋಜನೆಯ ನಿಯಮ ಮತ್ತು ಗ್ರಾಮಗಳು ನಿಜವಾದವು, ಆಧಾರ ಸಹಿತ; ಗೌಪ್ಯತೆಗಾಗಿ ಕುಟುಂಬಗಳು ಕಲ್ಪಿತ. ಬದಲಾವಣೆಗಳು ಈ ಬ್ರೌಸರ್ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಮಾತ್ರ ಇರುತ್ತವೆ.',
   'banner.reset': 'ಮರುಹೊಂದಿಸಿ', 'banner.leave': 'ಡೆಮೊದಿಂದ ಹೊರಬನ್ನಿ',
   'banner.intel': 'ಕೆಳಗಿನ ಕಡತ ವಿಶ್ಲೇಷಣೆ ನಿಗದಿತ ನಿಯಮಗಳಿಂದ ನಡೆಯುತ್ತದೆ. ಏಜೆಂಟ್ ಅದೇ ಸಾಧನಗಳನ್ನು ಬಳಸುತ್ತದೆ; ಆಧಾರ ಸಿಗದ ಅಂಕಿ ಇರುವ ಉತ್ತರವನ್ನು ತಡೆಹಿಡಿಯಲಾಗುತ್ತದೆ. ಕುಟುಂಬ ಅಥವಾ ನಿರ್ವಾಹಕರ ಒಪ್ಪಿಗೆ ಇಲ್ಲದೆ ಏನನ್ನೂ ಸಲ್ಲಿಸುವುದಿಲ್ಲ, ಅನುಮೋದಿಸುವುದಿಲ್ಲ ಅಥವಾ ಪಾವತಿಸುವುದಿಲ್ಲ.',
   'list.title': 'ಫಲಾನುಭವಿಗಳು', 'list.lead': 'ಪ್ರತಿ ಕೇಸ್, ಅದರ ಹಂತ ಮತ್ತು ಅದು ಯಾವುದಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದೆ.',

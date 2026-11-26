@@ -49,8 +49,8 @@ export default function AuthScreen({ mode, onAuthenticated, onRetry, onBack, onD
           {mode === 'offline' ? (
             <>
               <h1>Explore Mane Maarga</h1>
-              <p className="lead">This preview isn't connected to a live server. Open the workspace with sample families instead. Everything stays in this browser tab, and every name is invented.</p>
-              <button className="btn primary wide" onClick={onDemo}><BookOpen size={16} />Explore with sample data</button>
+              <p className="lead">The demo runs on Karnataka's real PMAY-G figures, its real scheme rules and real villages. The families in it are invented, because real families' records are private. Everything stays in this browser tab.</p>
+              <button className="btn primary wide" onClick={onDemo}><BookOpen size={16} />Open the demo</button>
               <details className="auth-details">
                 <summary>Running your own server?</summary>
                 <p>The API at <code>{API_BASE}</code> isn't responding. Start it with <code>docker compose up --build</code>, then <button className="link-btn" onClick={onRetry}>try again</button>.</p>
@@ -67,7 +67,7 @@ export default function AuthScreen({ mode, onAuthenticated, onRetry, onBack, onD
                 {error && <Notice tone="error">{error}</Notice>}
                 <button className="btn primary wide" disabled={busy}>{busy ? '…' : bootstrap ? t('auth.create') : t('auth.signin')}</button>
               </form>
-              <button className="btn ghost wide" type="button" onClick={onDemo}><BookOpen size={16} />Explore with sample data instead</button>
+              <button className="btn ghost wide" type="button" onClick={onDemo}><BookOpen size={16} />Open the demo instead</button>
               <p className="auth-note"><LockKeyhole size={14} /> Sessions expire after 60 minutes. Use synthetic records until a production security review is complete.</p>
             </>
           )}

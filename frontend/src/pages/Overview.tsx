@@ -1,3 +1,4 @@
+import PublicFigures from '../components/PublicFigures'
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, Plus } from 'lucide-react'
 import House, { statusLevel } from '../components/House'
@@ -35,6 +36,8 @@ export default function Overview() {
       <PageHead eyebrow={t('overview.eyebrow')} title={casesLoading && !n ? '…' : title} lead={t('overview.lead')}
         actions={canEdit && <button className="btn primary" onClick={() => openCaseForm()}><Plus size={16} />{t('overview.add')}</button>} />
       {casesError && <Notice tone="error">{casesError} <button className="link-btn" onClick={() => void reloadCases()}>{t('common.retry')}</button></Notice>}
+
+      <PublicFigures variant="compact" />
 
       {/* Journey strip: one column per stage, a house drawn to that stage, and the families in it */}
       <section className="strip" aria-label={t('overview.journey')}>

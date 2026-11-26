@@ -1,0 +1,77 @@
+{
+  "dataset_id": "KA-PMAYG-PROGRESS",
+  "title_en": "PMAY-G in Karnataka, from public government records",
+  "title_kn": "ಕರ್ನಾಟಕದಲ್ಲಿ ಪಿಎಂಎವೈ-ಜಿ, ಸಾರ್ವಜನಿಕ ಸರ್ಕಾರಿ ದಾಖಲೆಗಳಿಂದ",
+  "notes": [
+    "Cumulative figures since PMAY-G began on 1 April 2016, as published in answers to Parliament and by PIB.",
+    "Targets were re-allocated between these dates, so targets are not compared across rows.",
+    "A district-wise table (Lok Sabha AU931, Annexure-I) was left out because its period is not stated clearly enough to compare."
+  ],
+  "latest": {
+    "as_on": "2025-08-07",
+    "source": "LS3722",
+    "karnataka": {
+      "targets": 944140,
+      "sanctioned": 520862,
+      "completed": 158520
+    },
+    "india": {
+      "targets": 41231890,
+      "sanctioned": 38489500,
+      "completed": 28247038
+    }
+  },
+  "new_phase": {
+    "as_on": "2025-07-17",
+    "source": "LS428",
+    "label_en": "Houses sanctioned in Karnataka since FY 2024-25 (new phase)",
+    "karnataka_sanctioned": 262300,
+    "india_sanctioned": 8978196
+  },
+  "series": [
+    {
+      "as_on": "2022-12-09",
+      "source": "LS931",
+      "sanctioned": 161873,
+      "completed": 101676
+    },
+    {
+      "as_on": "2024-03-31",
+      "source": "PIB2025",
+      "sanctioned": 236124,
+      "completed": 145892
+    },
+    {
+      "as_on": "2025-08-07",
+      "source": "LS3722",
+      "sanctioned": 520862,
+      "completed": 158520
+    }
+  ],
+  "sources": {
+    "LS3722": {
+      "title": "Lok Sabha Unstarred Question 3722, Identification of eligible families (answered 12 Aug 2025), Annexure",
+      "url": "https://eparlib.sansad.in/bitstream/123456789/2995468/1/AU3722_13vkmB.pdf",
+      "accessed": "2026-11-26",
+      "short": "Lok Sabha Q. 3722, Aug 2025"
+    },
+    "LS428": {
+      "title": "Lok Sabha Unstarred Question 428, Beneficiaries under PMAY-G (answered 22 Jul 2025), Annexure",
+      "url": "https://eparlib.sansad.in/bitstream/123456789/2997003/1/AU428_6h72Ak.pdf",
+      "accessed": "2026-11-26",
+      "short": "Lok Sabha Q. 428, Jul 2025"
+    },
+    "PIB2025": {
+      "title": "PIB backgrounder, PMAY-G progress for targets allocated till FY 2023-24 (March 2025), Annexure II",
+      "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/mar/doc2025312518801.pdf",
+      "accessed": "2026-11-26",
+      "short": "PIB, Mar 2025"
+    },
+    "LS931": {
+      "title": "Lok Sabha Unstarred Question 931 (answered 13 Dec 2022), Annexure-III",
+      "url": "https://eparlib.nic.in/bitstream/123456789/1466790/1/AU931.pdf",
+      "accessed": "2026-11-26",
+      "short": "Lok Sabha Q. 931, Dec 2022"
+    }
+  }
+}

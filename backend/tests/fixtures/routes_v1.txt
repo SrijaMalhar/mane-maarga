@@ -25,6 +25,7 @@ GET /api/intelligence/overview
 GET /api/intelligence/schemes
 GET /api/intelligence/state-packs
 GET /api/outbox
+GET /api/public-data/pmayg/karnataka
 GET /api/public/approvals/{token}
 GET /api/schemes
 GET /api/speech/status

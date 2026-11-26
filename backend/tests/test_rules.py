@@ -113,3 +113,12 @@ def test_eligibility_endpoint_returns_verdict_and_clauses(client):
     clause = client.get(f"/api/engine/clauses/{P}:EX-04").json()
     assert clause["text_kn"] and clause["source"]["url"].startswith("https://")
     assert client.get(f"/api/engine/clauses/{P}:EX-99").status_code == 404
+
+
+def test_public_karnataka_figures_are_cited_and_derived_in_code(client):
+    body = client.get("/api/public-data/pmayg/karnataka").json()
+    k = body["latest"]["karnataka"]
+    assert body["derived"]["karnataka_not_yet_complete"] == k["sanctioned"] - k["completed"] == 362342
+    assert body["derived"]["karnataka_completion_pct"] == 30.4 and body["derived"]["india_completion_pct"] == 73.4
+    for point in [body["latest"], body["new_phase"], *body["series"]]:
+        assert body["sources"][point["source"]]["url"].startswith("https://")

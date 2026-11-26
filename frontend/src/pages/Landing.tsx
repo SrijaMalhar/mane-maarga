@@ -7,6 +7,7 @@ import { RedPen, Stamp } from '../components/ledger'
 import { LanguageSwitch, useI18n } from '../lib/i18n'
 import { formatINR } from '../lib/money'
 import { ladder } from '../lib/demo'
+import PublicFigures from '../components/PublicFigures'
 import KA from '../generated/rules/KA__pmayg__2024-25.json'
 
 const journey = [
@@ -180,7 +181,7 @@ export default function Landing({ onEnter }: { onEnter: () => void }) {
           <span><b>Mane Maarga</b><small lang="kn">ಮನೆ ಮಾರ್ಗ</small></span>
         </a>
         <nav className="l-links" aria-label="Page sections">
-          <a href="#different">What is different</a><a href="#journey">Journey</a><a href="#never">Safeguards</a>
+          <a href="#facts">The problem</a><a href="#different">What is different</a><a href="#journey">Journey</a><a href="#never">Safeguards</a>
         </nav>
         <div className="l-nav-right"><LanguageSwitch /><button className="btn primary small" onClick={onEnter}>{t('landing.cta.access')}</button></div>
       </header>
@@ -203,10 +204,12 @@ export default function Landing({ onEnter }: { onEnter: () => void }) {
         </figure>
       </section>
 
+      <div className="l-facts" id="facts"><PublicFigures /></div>
+
       <section className="l-diff" id="different" aria-labelledby="diff-title">
         <header className="l-diff-head">
           <h2 id="diff-title">What only Mane Maarga does</h2>
-          <p>Six things a housing case worker will not find in a spreadsheet or a scheme portal. Each one below is a real piece of the product, with the numbers it actually produces.</p>
+          <p>Six things that help a family get from a sanction to a finished home. Each one below is a real piece of the product, with the numbers it actually produces.</p>
         </header>
         {showcase.map((s, i) => (
           <article className={`feature${i % 2 ? ' flip' : ''}`} id={s.id} key={s.id} aria-labelledby={`${s.id}-t`}>
@@ -250,7 +253,7 @@ export default function Landing({ onEnter }: { onEnter: () => void }) {
           <p>Every family deserves a safe home.</p>
         </div>
         <div className="l-footer-end">
-          <button className="btn light" onClick={onEnter}>Try it with sample families</button>
+          <button className="btn light" onClick={onEnter}>Open the demo</button>
           <small>A prototype for rural housing assistance in Karnataka. <a href="https://github.com/SrijaMalhar/mane-maarga">Source on GitHub</a></small>
         </div>
       </footer>

@@ -10,7 +10,7 @@
 import type { AuthUser, Client } from './api'
 import { ApiError } from './api'
 
-const KEY = 'mm_demo_store_v2'
+const KEY = 'mm_demo_store_v3'
 const now = () => new Date().toISOString()
 
 /* The same PMAY-G Karnataka rule pack the API reads, synced from backend/app/engine/rules_data (see scripts/sync-rules.mjs). */
@@ -66,7 +66,10 @@ function seed(): Store {
   ;([[1, 2], [7, 1], [5, 4]] as const).forEach(([cid, done]) => {
     const est = s.cases[cid - 1].estimated_cost
     ;[['plinth', 'Plinth', .25], ['lintel', 'Walls to lintel', .3], ['roof', 'Roof', .3], ['finish', 'Finishing and keys', .15]].forEach(([code, name, share], i) => {
-      s.stages.push({ id: s.seq++, case_id: cid, stage_code: code, stage_name: name, planned_cost: Math.round(est * (share as number)), planned_start: null, planned_end: null, notes: '', status: i < done ? 'verified' : i === done && done < 4 ? 'in_progress' : 'planned', created_by: 'demo_visitor', created_at: now() })
+      const st = { id: s.seq++, case_id: cid, stage_code: code, stage_name: name, planned_cost: Math.round(est * (share as number)), planned_start: null, planned_end: null, notes: '', status: i < done ? 'verified' : i === done && done < 4 ? 'in_progress' : 'planned', created_by: 'demo_visitor', created_at: now() }
+      s.stages.push(st)
+      // Verified stages carry the accepted photo that allowed it.
+      if (i < done) s.evidence.push({ id: s.seq++, case_id: cid, stage_id: st.id, original_name: `${code}-site.jpg`, caption: '', sample: code, verification_status: 'accepted', uploaded_by: 'field_officer_magadi', uploaded_at: now(), reviewed_by: 'demo_visitor', review_note: '', reviewed_at: now() })
     })
   })
   s.tasks.push({ id: s.seq++, case_id: 1, title: 'Confirm roof material quote with mason', description: '', category: 'construction', status: 'open', owner: '', due_date: null, created_at: now() })
@@ -86,6 +89,8 @@ function db(): Store {
 }
 function save() { try { sessionStorage.setItem(KEY, JSON.stringify(store)) } catch { /* quota or disabled */ } }
 export function resetDemo() { store = seed(); save(); blobs.clear() }
+/** Sample site photos: drawings bundled with the demo, one per standard stage. */
+export const SAMPLE_PHOTO: Record<string, string> = { plinth: '/demo/site-plinth.jpg', lintel: '/demo/site-walls.jpg', roof: '/demo/site-roof.jpg', finish: '/demo/site-finishing.jpg' }
 const blobs = new Map<number, Blob>()
 
 function audit(s: Store, action: string, case_id: number | null, detail = '', actor = 'demo_visitor') { s.audit.unshift({ id: s.seq++, case_id, actor, action, detail, created_at: now() }) }
@@ -364,9 +369,23 @@ function routes(s: Store): Array<[string, RegExp, Handler]> {
     }],
     ['GET', /^\/api\/cases\/(\d+)\/stages$/, m => s.stages.filter(x => x.case_id === caseOr404(m[1]).id)],
     ['POST', /^\/api\/cases\/(\d+)\/stages$/, (m, b) => { const c = caseOr404(m[1]); if (!(Number(b.planned_cost) > 0)) throw new ApiError('planned_cost: must be greater than 0', 422); const st: Row = { id: s.seq++, case_id: c.id, planned_start: null, planned_end: null, notes: '', ...b, status: 'planned', created_by: 'demo_visitor', created_at: now() }; s.stages.push(st); audit(s, 'construction_stage_created', c.id, `stage_id=${st.id}; code=${st.stage_code}`); return st }],
-    ['PATCH', /^\/api\/stages\/(\d+)\/status$/, (m, b) => { const st = s.stages.find(x => x.id === Number(m[1])); if (!st) throw new ApiError('Construction stage not found', 404); st.status = b.status; audit(s, 'construction_stage_status_updated', st.case_id, `stage_id=${st.id}; status=${b.status}`); return st }],
+    ['PATCH', /^\/api\/stages\/(\d+)\/status$/, (m, b) => { const st = s.stages.find(x => x.id === Number(m[1])); if (!st) throw new ApiError('Construction stage not found', 404); if (b.status === 'verified' && st.status !== 'verified' && !s.evidence.some(e => e.stage_id === st.id && e.verification_status === 'accepted')) throw new ApiError('Accept a site photo for this stage before marking it verified.', 409); st.status = b.status; audit(s, 'construction_stage_status_updated', st.case_id, `stage_id=${st.id}; status=${b.status}`); return st }],
     ['GET', /^\/api\/cases\/(\d+)\/construction-evidence$/, m => s.evidence.filter(e => e.case_id === caseOr404(m[1]).id)],
-    ['POST', /^\/api\/cases\/(\d+)\/stages\/(\d+)\/evidence$/, (m, b) => { const c = caseOr404(m[1]); const f = b.__file as File; if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) throw new ApiError('Evidence must be JPEG, PNG or WebP', 415); const e = { id: s.seq++, case_id: c.id, stage_id: Number(m[2]), original_name: f.name, caption: '', verification_status: 'pending_review', uploaded_by: 'demo_visitor', uploaded_at: now() }; s.evidence.unshift(e); audit(s, 'construction_evidence_uploaded', c.id, `stage_id=${m[2]}; review_required`); return e }],
+    ['POST', /^\/api\/cases\/(\d+)\/stages\/(\d+)\/evidence$/, (m, b) => {
+      const c = caseOr404(m[1]); const st = s.stages.find(x => x.id === Number(m[2]) && x.case_id === c.id); if (!st) throw new ApiError('Case or stage not found', 404)
+      const f = b.__file as File | undefined
+      if (f && !['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) throw new ApiError('Evidence must be JPEG, PNG or WebP', 415)
+      const e: Row = { id: s.seq++, case_id: c.id, stage_id: st.id, original_name: f ? f.name : `${st.stage_code}-site.jpg`, caption: '', sample: f ? undefined : st.stage_code, verification_status: 'pending_review', uploaded_by: f ? 'demo_visitor' : 'field_officer_magadi', uploaded_at: now(), reviewed_by: null, review_note: '', reviewed_at: null }
+      if (f) blobs.set(e.id, f)
+      s.evidence.unshift(e); audit(s, 'construction_evidence_uploaded', c.id, `stage_id=${st.id}; review_required`); return e
+    }],
+    ['PATCH', /^\/api\/construction-evidence\/(\d+)\/review$/, (m, b) => {
+      const e = s.evidence.find(x => x.id === Number(m[1])); if (!e) throw new ApiError('Photo not found', 404)
+      if (!['accepted', 'retake'].includes(b.status)) throw new ApiError('status: accepted or retake', 422)
+      if (b.status === 'retake' && !String(b.note ?? '').trim()) throw new ApiError('Say what the retake should show.', 422)
+      Object.assign(e, { verification_status: b.status, review_note: String(b.note ?? '').trim(), reviewed_by: 'demo_visitor', reviewed_at: now() })
+      audit(s, 'construction_evidence_reviewed', e.case_id, `evidence_id=${e.id}; stage_id=${e.stage_id}; status=${b.status}`); return e
+    }],
     ['GET', /^\/api\/cases\/(\d+)\/agent-plan$/, m => agentPlan(s, caseOr404(m[1]))],
     ['POST', /^\/api\/cases\/(\d+)\/agent\/run$/, m => agentRun(s, caseOr404(m[1]))],
     ['GET', /^\/api\/cases\/(\d+)\/agent\/runs$/, m => (s.runs ?? []).filter(r => r.case_id === caseOr404(m[1]).id).reverse()],
@@ -558,6 +577,13 @@ export function makeDemoClient(): Client {
     return dispatch((init.method ?? 'GET').toUpperCase(), path, parse(init)) as Promise<T>
   }
   async function raw(path: string, init: RequestInit = {}): Promise<Response> {
+    const ph = path.match(/^\/api\/construction-evidence\/(\d+)\/file$/)
+    if (ph) {
+      const e = db().evidence.find(x => x.id === Number(ph[1])); const blob = e ? blobs.get(e.id) : undefined
+      if (blob) return new Response(blob, { status: 200, headers: { 'Content-Type': blob.type } })
+      if (e?.sample && SAMPLE_PHOTO[e.sample]) return fetch(SAMPLE_PHOTO[e.sample])
+      return new Response(null, { status: 404 })
+    }
     const dl = path.match(/^\/api\/documents\/(\d+)\/download$/)
     if (dl) {
       const id = Number(dl[1]); const lines = db().docText[id]; const blob = blobs.get(id) ?? (lines ? pdf(lines) : null)

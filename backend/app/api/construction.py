@@ -1,9 +1,12 @@
 """Construction stages and stage photo evidence."""
 
 import secrets
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Literal
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -51,6 +54,16 @@ def update_stage_status(stage_id: int, payload: StageStatusUpdate, user: Operato
     stage = db.get(ConstructionStage, stage_id)
     if not stage:
         raise HTTPException(status_code=404, detail="Construction stage not found")
+    if payload.status == "verified" and stage.status != "verified":
+        accepted = (
+            db.query(ConstructionEvidence)
+            .filter(ConstructionEvidence.stage_id == stage_id, ConstructionEvidence.verification_status == "accepted")
+            .count()
+        )
+        if not accepted:
+            raise HTTPException(
+                status_code=409, detail="Accept a site photo for this stage before marking it verified."
+            )
     stage.status = payload.status
     if payload.notes:
         stage.notes = payload.notes
@@ -101,6 +114,7 @@ def upload_construction_evidence(
     path = folder / stored
     path.write_bytes(content)
     record = ConstructionEvidence(
+        verification_status="pending_review",
         case_id=case_id,
         stage_id=stage_id,
         stored_name=stored,
@@ -146,9 +160,60 @@ def list_construction_evidence(case_id: int, user: Authenticated, db: Session = 
             "stage_id": r.stage_id,
             "original_name": r.original_name,
             "caption": r.caption,
-            "verification_status": r.verification_status,
+            "verification_status": "pending_review" if r.verification_status == "pending" else r.verification_status,
             "uploaded_by": r.uploaded_by,
             "uploaded_at": r.uploaded_at,
+            "reviewed_by": r.reviewed_by,
+            "review_note": r.review_note,
+            "reviewed_at": r.reviewed_at,
         }
         for r in rows
     ]
+
+
+def _evidence_or_404(db: Session, evidence_id: int) -> ConstructionEvidence:
+    ev = db.get(ConstructionEvidence, evidence_id)
+    if ev is None:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    return ev
+
+
+@router.get("/api/construction-evidence/{evidence_id}/file")
+def evidence_file(evidence_id: int, user: Authenticated, db: Session = Depends(get_db)):
+    ev = _evidence_or_404(db, evidence_id)
+    path = (config.UPLOAD_DIR / str(ev.case_id) / "evidence" / ev.stored_name).resolve()
+    if not path.is_relative_to(config.UPLOAD_DIR.resolve()) or not path.exists():
+        raise HTTPException(status_code=404, detail="Photo file is missing")
+    return FileResponse(path, media_type=ev.content_type, filename=ev.original_name)
+
+
+class EvidenceReview(BaseModel):
+    status: Literal["accepted", "retake"]
+    note: str = Field(default="", max_length=500)
+
+
+@router.patch("/api/construction-evidence/{evidence_id}/review")
+def review_evidence(evidence_id: int, body: EvidenceReview, user: Operator, db: Session = Depends(get_db)):
+    """A person looks at the photo and accepts it or asks for a retake. The system never judges the image."""
+    ev = _evidence_or_404(db, evidence_id)
+    if body.status == "retake" and not body.note.strip():
+        raise HTTPException(status_code=422, detail="Say what the retake should show.")
+    ev.verification_status = body.status
+    ev.review_note = body.note.strip()
+    ev.reviewed_by = user.username
+    ev.reviewed_at = datetime.now(UTC)
+    write_audit(
+        db,
+        "construction_evidence_reviewed",
+        ev.case_id,
+        f"evidence_id={ev.id}; stage_id={ev.stage_id}; status={body.status}",
+        user.username,
+    )
+    db.commit()
+    return {
+        "id": ev.id,
+        "stage_id": ev.stage_id,
+        "verification_status": ev.verification_status,
+        "reviewed_by": ev.reviewed_by,
+        "review_note": ev.review_note,
+    }

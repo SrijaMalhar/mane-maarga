@@ -17,6 +17,7 @@ GET /api/cases/{case_id}/finance-summary
 GET /api/cases/{case_id}/funding
 GET /api/cases/{case_id}/recovery-tasks
 GET /api/cases/{case_id}/stages
+GET /api/construction-evidence/{evidence_id}/file
 GET /api/documents/{document_id}/download
 GET /api/documents/{document_id}/extraction
 GET /api/engine/clauses/{clause_id}
@@ -36,6 +37,7 @@ GET /health
 GET /metrics
 GET /ready
 PATCH /api/cases/{case_id}
+PATCH /api/construction-evidence/{evidence_id}/review
 PATCH /api/documents/{document_id}/verification
 PATCH /api/recovery-tasks/{task_id}
 PATCH /api/stages/{stage_id}/status

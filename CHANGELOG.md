@@ -2,6 +2,13 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Site photos · 27 Nov 2026 · A person checks every stage
+- Site photos are now shown and reviewed, not just stored. `GET /api/construction-evidence/{id}/file` serves a photo to signed-in users; `PATCH /api/construction-evidence/{id}/review` records accepted or retake, who reviewed it and when. A retake must say what to show. Migration `0006_photo_review`.
+- A stage can be marked verified only after one of its photos is accepted; the API answers 409 otherwise.
+- Construction page: thumbnails with their review state, a review dialog (photo, who uploaded it, "Accept the photo" or "Ask for a retake"), and one next step per stage: review the photo, mark verified, or add a photo.
+- Demo: "Use a sample photo" adds one of four drawn site photos (plinth, walls, roof, finished house), each labelled as a drawing, not a photo. They are made by `scripts/render_sample_site_photos.py`. Verified stages in the demo carry the accepted photo that allowed them. The demo store key moved to v3 so old sessions reseed.
+- Tests: the stage test now checks the 409, upload, file download, retake note, accept and verify. 121 pass. Checked in the browser at 1360px and 390px.
+
 ## Day 6 · 27 Nov 2026 · The flight recorder
 - Every agent step is sealed: `seal = sha256(previous seal + canonical step)`, from a genesis of zeros; the run's outcome (status, message, citations) is sealed last. Migration `0005_flight_recorder` adds the columns; runs from before it show as unsealed.
 - `GET /api/agent/runs/{id}/recording` returns the run with each tool's side effect, the rule pack in force and a fresh check of the chain: intact, or broken at the first changed step or at the outcome.

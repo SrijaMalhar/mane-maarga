@@ -299,8 +299,29 @@ def test_construction_stage_timing_shortfall(client):
     summary = client.get(f"/api/cases/{case_id}/finance-summary").json()
     assert summary["stages"][0]["cash_shortfall_before_stage"] == 120000
     assert summary["stages"][1]["cash_shortfall_before_stage"] == 300000
-    updated = client.patch(f"/api/stages/{stage1.json()['id']}/status", json={"status": "verified"})
+    sid = stage1.json()["id"]
+    blocked = client.patch(f"/api/stages/{sid}/status", json={"status": "verified"})
+    assert blocked.status_code == 409 and "site photo" in blocked.json()["detail"]
+    png = b"\x89PNG\r\n\x1a\n" + b"0" * 64
+    ev = client.post(f"/api/cases/{case_id}/stages/{sid}/evidence", files={"file": ("plinth.png", png, "image/png")})
+    assert ev.status_code == 201 and ev.json()["verification_status"] == "pending_review"
+    eid = ev.json()["id"]
+    assert client.get(f"/api/construction-evidence/{eid}/file").content == png
+    no_note = client.patch(f"/api/construction-evidence/{eid}/review", json={"status": "retake"})
+    assert no_note.status_code == 422
+    assert (
+        client.patch(
+            f"/api/construction-evidence/{eid}/review", json={"status": "retake", "note": "Show the plinth edge"}
+        ).json()["review_note"]
+        == "Show the plinth edge"
+    )
+    assert client.patch(f"/api/stages/{sid}/status", json={"status": "verified"}).status_code == 409
+    accepted = client.patch(f"/api/construction-evidence/{eid}/review", json={"status": "accepted"}).json()
+    assert accepted["verification_status"] == "accepted" and accepted["reviewed_by"]
+    updated = client.patch(f"/api/stages/{sid}/status", json={"status": "verified"})
     assert updated.status_code == 200 and updated.json()["status"] == "verified"
+    listed = client.get(f"/api/cases/{case_id}/construction-evidence").json()
+    assert listed[0]["verification_status"] == "accepted" and listed[0]["reviewed_at"]
 
 
 def test_scheme_catalog_does_not_claim_eligibility(client):

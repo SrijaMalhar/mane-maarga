@@ -148,9 +148,12 @@ class ConstructionEvidence(Base):
     original_name: Mapped[str] = mapped_column(String(255), nullable=False)
     content_type: Mapped[str] = mapped_column(String(120), nullable=False)
     caption: Mapped[str] = mapped_column(Text, default="")
-    verification_status: Mapped[str] = mapped_column(String(30), default="pending")
+    verification_status: Mapped[str] = mapped_column(String(30), default="pending_review")
     uploaded_by: Mapped[str] = mapped_column(String(120), nullable=False)
     uploaded_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    reviewed_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    review_note: Mapped[str] = mapped_column(Text, default="")
+    reviewed_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class RecoveryTask(Base):

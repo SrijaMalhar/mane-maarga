@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
-import { Camera, Hammer } from 'lucide-react'
+import { Camera, CheckCircle2, Hammer, ImagePlus, RotateCcw, ShieldCheck } from 'lucide-react'
 import House from '../components/House'
-import { CasePicker, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
+import { CasePicker, Dialog, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
 import { type CaseItem, type Evidence, type Stage, type StageStatus } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
 import { useI18n } from '../lib/i18n'
-import { dateShort, inr, human } from '../lib/format'
+import { SAMPLE_PHOTO } from '../lib/demo'
+import { dateShort, inr } from '../lib/format'
+import type { Client } from '../lib/api'
 
 /** Illustrative PMAY-G split used by the finance engine's Karnataka rule pack. */
 const PLAN = [
@@ -31,9 +33,76 @@ export default function Construction({ initialCase }: { initialCase?: number }) 
   )
 }
 
+const PHOTO_STATUS: Record<string, string> = { pending_review: 'Waiting for review', accepted: 'Accepted', retake: 'Retake asked' }
+
+/** Loads a photo through the API (so the session is checked) and gives back an object URL. */
+function usePhoto(api: Client, id: number) {
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    let u: string | null = null; let live = true
+    api.raw(`/api/construction-evidence/${id}/file`).then(async r => { if (!r.ok || !live) return; u = URL.createObjectURL(await r.blob()); setUrl(u) }).catch(() => {})
+    return () => { live = false; if (u) URL.revokeObjectURL(u) }
+  }, [api, id])
+  return url
+}
+
+function Thumb({ e, onOpen }: { e: Evidence; onOpen: () => void }) {
+  const { api } = useApp()
+  const url = usePhoto(api, e.id)
+  return (
+    <button className={`ev-thumb ev-${e.verification_status}`} onClick={onOpen} aria-label={`Open photo ${e.original_name}, ${PHOTO_STATUS[e.verification_status] ?? e.verification_status}`}>
+      {url ? <img src={url} alt="" /> : <span className="ev-ph" />}
+      <span className="ev-badge">{PHOTO_STATUS[e.verification_status] ?? e.verification_status}</span>
+    </button>
+  )
+}
+
+/** A person looks at the photo and decides. The system never judges the image. */
+function ReviewPhoto({ e, stage, onClose, onDone }: { e: Evidence; stage: Stage; onClose: () => void; onDone: (msg: string) => void }) {
+  const { api, canEdit } = useApp()
+  const { lang } = useI18n()
+  const url = usePhoto(api, e.id)
+  const [note, setNote] = useState('')
+  const [asking, setAsking] = useState(false)
+  const [err, setErr] = useState('')
+  async function decide(status: 'accepted' | 'retake') {
+    try { await api.patch(`/api/construction-evidence/${e.id}/review`, { status, note }); onDone(status === 'accepted' ? `Photo accepted. ${stage.stage_name} can now be marked verified.` : 'Retake asked') } catch (er) { setErr(er instanceof Error ? er.message : 'Could not save the review') }
+  }
+  return (
+    <Dialog title={stage.stage_name} eyebrow="Site photo" onClose={onClose} wide>
+      <div className="ev-review">
+        <div className="ev-big">{url ? <img src={url} alt={`Site photo for ${stage.stage_name}: ${e.original_name}`} /> : <Skeleton lines={8} />}</div>
+        <div className="ev-side">
+          <dl className="ev-meta">
+            <div><dt>Taken for</dt><dd>{stage.stage_name}</dd></div>
+            <div><dt>Uploaded by</dt><dd>{e.uploaded_by}, {dateShort(e.uploaded_at, lang)}</dd></div>
+            <div><dt>Review</dt><dd>{PHOTO_STATUS[e.verification_status]}{e.reviewed_by && `, by ${e.reviewed_by}`}</dd></div>
+            {e.review_note && <div><dt>Retake should show</dt><dd>{e.review_note}</dd></div>}
+          </dl>
+          <p className="ev-ask">Does this photo show <b>{stage.stage_name.toLowerCase()}</b> finished, on this family's plot?</p>
+          <p className="fine">You decide, not the software. Accepting it lets you mark the stage verified, which moves the house drawing and the money ladder on.</p>
+          {err && <Notice tone="error">{err}</Notice>}
+          {canEdit && (asking ? (
+            <div className="ev-retake">
+              <label className="field"><span>What should the retake show?</span><textarea rows={3} value={note} onChange={x => setNote(x.target.value)} placeholder="e.g. Stand back so the whole plinth and the neighbour's wall are in frame" /></label>
+              <div className="form-actions"><button className="btn ghost" onClick={() => setAsking(false)}>Back</button><button className="btn primary" onClick={() => decide('retake')} disabled={!note.trim()}>Ask for a retake</button></div>
+            </div>
+          ) : (
+            <div className="form-actions start">
+              <button className="btn primary" onClick={() => decide('accepted')}><CheckCircle2 size={16} />Accept the photo</button>
+              <button className="btn ghost" onClick={() => setAsking(true)}><RotateCcw size={16} />Ask for a retake</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Dialog>
+  )
+}
+
 function CaseBuild({ c }: { c: CaseItem }) {
-  const { api, canEdit, toast } = useApp()
-  const { t, lang } = useI18n()
+  const { api, canEdit, toast, demo } = useApp()
+  const [open, setOpen] = useState<number | null>(null)
+  const { t } = useI18n()
   const [stages, setStages] = useState<Stage[] | null>(null)
   const [evidence, setEvidence] = useState<Evidence[]>([])
   const [err, setErr] = useState('')
@@ -55,7 +124,10 @@ function CaseBuild({ c }: { c: CaseItem }) {
   async function upload(s: Stage, e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]; e.target.value = ''
     if (!file) return
-    try { const fd = new FormData(); fd.append('file', file); await api.post(`/api/cases/${c.id}/stages/${s.id}/evidence`, fd); await load(); toast('Photo added — pending review') } catch (er) { toast(er instanceof Error ? er.message : 'Upload failed', 'error') }
+    try { const fd = new FormData(); fd.append('file', file); await api.post(`/api/cases/${c.id}/stages/${s.id}/evidence`, fd); await load(); toast('Photo added. It waits for a reviewer.') } catch (er) { toast(er instanceof Error ? er.message : 'Upload failed', 'error') }
+  }
+  async function sample(s: Stage) {
+    try { await api.post(`/api/cases/${c.id}/stages/${s.id}/evidence`, {}); await load(); toast('Sample photo added from the field officer. Open it to review.') } catch (er) { toast(er instanceof Error ? er.message : 'Could not add the sample', 'error') }
   }
 
   if (err) return <Notice tone="error">{err}</Notice>
@@ -81,7 +153,8 @@ function CaseBuild({ c }: { c: CaseItem }) {
         <div>
           <p className="build-pct">{pct}<span>%</span></p>
           <p className="muted">{doneCount} of {stages.length} stages verified or complete</p>
-          <p className="fine">Progress counts only stages a reviewer marked verified or complete. Photos are evidence for review — the system does not judge construction from images.</p>
+          <p className="fine">A stage counts once a reviewer has accepted a site photo and marked it verified. The software never judges a photo; a person does.</p>
+          <ol className="ev-flow" aria-label="How a stage is verified"><li><Camera size={15} aria-hidden />Field officer adds a site photo</li><li><ShieldCheck size={15} aria-hidden />Reviewer accepts it or asks for a retake</li><li><CheckCircle2 size={15} aria-hidden />Stage marked verified; the house fills in</li></ol>
         </div>
       </section>
       <ol className="stage-track">
@@ -98,14 +171,29 @@ function CaseBuild({ c }: { c: CaseItem }) {
                 </label>
               )}
               <div className="stage-ev">
-                <span className="muted">{ev.length} photo{ev.length === 1 ? '' : 's'}</span>
-                {ev.slice(0, 2).map(e => <small key={e.id}>{e.original_name} · {human(e.verification_status)} · {dateShort(e.uploaded_at, lang)}</small>)}
-                {canEdit && <label className="link-btn"><Camera size={14} />Add photo<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e => upload(s, e)} /></label>}
+                {ev.length > 0 && <div className="ev-row">{ev.slice(0, 3).map(e => <Thumb key={e.id} e={e} onOpen={() => setOpen(e.id)} />)}</div>}
+                {(() => {
+                  const accepted = ev.some(e => e.verification_status === 'accepted')
+                  const pending = ev.find(e => e.verification_status === 'pending_review')
+                  const retake = ev.find(e => e.verification_status === 'retake')
+                  if (s.status === 'verified' || s.status === 'completed') return <p className="ev-next done"><CheckCircle2 size={15} aria-hidden />Verified against {ev.filter(e => e.verification_status === 'accepted').length || 'an'} accepted photo</p>
+                  if (accepted) return canEdit ? <button className="btn primary small" onClick={() => setStatus(s, 'verified')}><ShieldCheck size={15} />Mark verified</button> : <p className="ev-next">Photo accepted</p>
+                  if (pending) return canEdit ? <button className="btn small" onClick={() => setOpen(pending.id)}>Review the photo</button> : <p className="ev-next">Waiting for review</p>
+                  if (retake) return <p className="ev-next warn">Retake asked: {retake.review_note}</p>
+                  return <p className="ev-next muted">{s.status === 'planned' ? 'Not started' : 'Needs a site photo'}</p>
+                })()}
+                {canEdit && s.status !== 'verified' && s.status !== 'completed' && (
+                  <div className="ev-add">
+                    <label className="link-btn"><Camera size={14} />Add photo<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e => upload(s, e)} /></label>
+                    {demo && SAMPLE_PHOTO[s.stage_code] && <button className="link-btn" onClick={() => sample(s)}><ImagePlus size={14} />Use a sample photo</button>}
+                  </div>
+                )}
               </div>
             </li>
           )
         })}
       </ol>
+      {open !== null && (() => { const e = evidence.find(x => x.id === open); const st = e && stages.find(x => x.id === e.stage_id); return e && st ? <ReviewPhoto e={e} stage={st} onClose={() => setOpen(null)} onDone={msg => { setOpen(null); toast(msg); void load() }} /> : null })()}
     </div>
   )
 }

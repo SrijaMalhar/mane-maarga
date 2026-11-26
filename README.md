@@ -80,14 +80,18 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 
 Each working page opens on the one sentence a field officer needs, with the figures behind it beside it.
 
-<img src="docs/assets/screenshots/dashboard.png" width="880" alt="Overview: 5 families need a decision from you today; the six-stage journey; each family listed with the one action it needs, such as Record consent or Plan the gap" />
-<sub><b>Overview.</b> Who needs a decision today, and the one thing to do for each.</sub>
+<div align="center">
 
-<img src="docs/assets/screenshots/financial-planning.png" width="880" alt="Financial planning: Lakshmamma needs ₹2,18,000 in hand before the finishing instalment arrives; the money ladder by construction stage with the tightest stage marked" />
-<sub><b>Financial planning.</b> The cash a family must find before each instalment, computed in code from cited rules.</sub>
+<img src="docs/assets/screenshots/dashboard.png" width="560" alt="Overview: 5 families need a decision from you today; the six-stage journey; each family listed with the one action it needs, such as Record consent or Plan the gap" />
+<br /><sub><b>Overview.</b> Who needs a decision today, and the one thing to do for each.</sub>
 
-<img src="docs/assets/screenshots/verification.png" width="880" alt="Verification desk: 1 of 3 fields differ from the case file; the village name struck through in red pen; decision buttons" />
-<sub><b>Verification.</b> The land record against the case file, field by field. A person decides.</sub>
+<img src="docs/assets/screenshots/financial-planning.png" width="560" alt="Financial planning: Lakshmamma needs ₹2,18,000 in hand before the finishing instalment arrives; the money ladder by construction stage with the tightest stage marked" />
+<br /><sub><b>Financial planning.</b> The cash a family must find before each instalment, computed in code from cited rules.</sub>
+
+<img src="docs/assets/screenshots/verification.png" width="560" alt="Verification desk: 1 of 3 fields differ from the case file; the village name struck through in red pen; decision buttons" />
+<br /><sub><b>Verification.</b> The land record against the case file, field by field. A person decides.</sub>
+
+</div>
 
 ### The family approves, on their own phone
 

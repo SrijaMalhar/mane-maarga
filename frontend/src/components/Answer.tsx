@@ -6,7 +6,7 @@ export type Fig = { label: ReactNode; value: ReactNode; tone?: 'warn' | 'good' |
 
 export default function Answer({ kn, children, figs = [], action }: { kn?: string; children: ReactNode; figs?: Fig[]; action?: ReactNode }) {
   return (
-    <section className="answer">
+    <section className={figs.length ? 'answer' : 'answer solo'}>
       <div className="answer-say">
         {kn && <p className="answer-kn" lang="kn">{kn}</p>}
         <p className="answer-text">{children}</p>

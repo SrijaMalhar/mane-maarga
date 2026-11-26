@@ -1018,3 +1018,4 @@ label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1)
 }
 .lad-bars i { transition: width 420ms cubic-bezier(.2,.7,.2,1); }
 @media (prefers-reduced-motion: reduce) { .lad-bars i { transition: none; } }
+.answer.solo { grid-template-columns: minmax(0, 1fr); }

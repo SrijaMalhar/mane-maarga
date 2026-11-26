@@ -50,7 +50,7 @@ Mane Maarga helps case workers take rural families in Karnataka from their first
 **The problem, in public figures.** As on 7 Aug 2025, Karnataka had sanctioned 5,20,862 PMAY-G houses and completed 1,58,520 of them: **30.4%, against 73.4% across India**. That leaves **3,62,342 sanctioned houses not yet finished** ([Lok Sabha Q. 3722](https://eparlib.sansad.in/bitstream/123456789/2995468/1/AU3722_13vkmB.pdf)). A sanction is not a home.
 
 <div align="center">
-<img src="docs/assets/screenshots/karnataka-figures.png" width="880" alt="Karnataka PMAY-G figures: 3,62,342 sanctioned houses not yet finished; 30.4% completion against 73.4% across India; sanctions growing faster than completions from Dec 2022 to Aug 2025, each figure linked to Lok Sabha or PIB" />
+<img src="docs/assets/screenshots/karnataka-figures.png" width="640" alt="Karnataka PMAY-G figures: 3,62,342 sanctioned houses not yet finished; 30.4% completion against 73.4% across India; sanctions growing faster than completions from Dec 2022 to Aug 2025, each figure linked to Lok Sabha or PIB" />
 <br /><sub>From <code>backend/app/public_data/ka_pmayg_progress.json</code>: every figure links to the Lok Sabha answer or PIB document it came from, and derived numbers are computed in code.</sub>
 </div>
 
@@ -70,7 +70,7 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 | **Red-pen document checks** | Land records are compared with the case field by field; a reviewer decides on every mismatch. | Verification |
 
 <div align="center">
-<img src="docs/assets/screenshots/landing-voice.png" width="880" alt="The landing page voice section: the recorded Kannada intake questions playing in order with example answers, the current line highlighted with its English meaning, and a live waveform" />
+<img src="docs/assets/screenshots/landing-voice.png" width="640" alt="The landing page voice section: the recorded Kannada intake questions playing in order with example answers, the current line highlighted with its English meaning, and a live waveform" />
 <br /><sub>On the landing page, the Kannada intake plays as a short conversation in the recorded voice.</sub>
 </div>
 
@@ -96,14 +96,14 @@ Each working page opens on the one sentence a field officer needs, with the figu
 ### The family approves, on their own phone
 
 <div align="center">
-<img src="docs/assets/screenshots/family-approval.png" width="880" alt="Three phone screens in Kannada: the loan the family is asked to accept with the amount and lender, the one-time code entry, and the confirmation that it was done" />
+<img src="docs/assets/screenshots/family-approval.png" width="640" alt="Three phone screens in Kannada: the loan the family is asked to accept with the amount and lender, the one-time code entry, and the confirmation that it was done" />
 <br /><sub>Money, loans, submissions and document sharing wait for the family's one-time code. The page says in Kannada what will happen, how much, and to whom. In the demo the SMS is simulated and pops up on the phone.</sub>
 </div>
 
 ### The agent, step by step
 
 <div align="center">
-<img src="docs/assets/screenshots/agent-run.png" width="880" alt="Agent run trace: PLAN, four tool calls, a citation-guard CHECK and the answer in English and Kannada with a stamped clause ID" />
+<img src="docs/assets/screenshots/agent-run.png" width="640" alt="Agent run trace: PLAN, four tool calls, a citation-guard CHECK and the answer in English and Kannada with a stamped clause ID" />
 <br /><sub>Every rupee in the answer came from a tool result; the stamped clause ID links the ₹1,20,000 to its source. Try <code>make demo</code> for the recovery and blocked runs.</sub>
 </div>
 

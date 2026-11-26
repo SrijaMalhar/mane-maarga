@@ -1,4 +1,5 @@
 DELETE /api/cases/{case_id}
+GET /api/agent/runs/{run_id}/recording
 GET /api/audit
 GET /api/auth/me
 GET /api/auth/status
@@ -38,6 +39,7 @@ PATCH /api/cases/{case_id}
 PATCH /api/documents/{document_id}/verification
 PATCH /api/recovery-tasks/{task_id}
 PATCH /api/stages/{stage_id}/status
+POST /api/agent/runs/{run_id}/replay
 POST /api/approvals/{approval_id}/decide
 POST /api/approvals/{approval_id}/execute
 POST /api/approvals/{approval_id}/link

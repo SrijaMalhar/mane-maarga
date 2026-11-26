@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { LogOut, MoreHorizontal, RotateCcw, X } from 'lucide-react'
 import Mascot from './Mascot'
-import { IconBuild, IconFinance, IconInsight, IconLedger, IconOverview, IconPeople, IconTeam, IconVerify } from './NavIcons'
+import { IconBuild, IconFinance, IconInsight, IconLedger, IconOverview, IconPeople, IconRecorder, IconTeam, IconVerify } from './NavIcons'
 import { href, useApp, type Route } from '../lib/app-context'
 import { LanguageSwitch, useI18n } from '../lib/i18n'
 
@@ -18,6 +18,7 @@ export default function Shell({ route, onSignOut, children, demo = false, onRese
     { key: 'finance', label: t('nav.finance'), Icon: IconFinance },
     { key: 'construction', label: t('nav.construction'), Icon: IconBuild },
     { key: 'intelligence', label: t('nav.intelligence'), Icon: IconInsight },
+    { key: 'recorder', label: t('nav.recorder'), Icon: IconRecorder },
     { key: 'audit', label: t('nav.audit'), Icon: IconLedger, adminOnly: true },
     { key: 'team', label: t('nav.team'), Icon: IconTeam, adminOnly: true },
   ].filter(i => !i.adminOnly || isAdmin) as Item[]

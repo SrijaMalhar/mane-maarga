@@ -29,7 +29,7 @@ const PACK = {
 const DISCLAIMER = 'Indicative calculation from illustrative assumptions. Not an eligibility, credit or payment decision; verify current scheme rules and lender terms before relying on it.'
 
 type Row = Record<string, any>  
-type Store = { seq: number; approvals?: Row[]; outbox?: Row[]; cases: Row[]; consent: Row[]; docs: Row[]; docText: Record<number, string[]>; extractions: Row[]; funding: Row[]; stages: Row[]; evidence: Row[]; tasks: Row[]; audit: Row[]; users: Row[]; intake: Record<string, Row> }
+type Store = { seq: number; runs?: Row[]; approvals?: Row[]; outbox?: Row[]; cases: Row[]; consent: Row[]; docs: Row[]; docText: Record<number, string[]>; extractions: Row[]; funding: Row[]; stages: Row[]; evidence: Row[]; tasks: Row[]; audit: Row[]; users: Row[]; intake: Record<string, Row> }
 
 export const DEMO_USER: AuthUser = { id: 1, username: 'demo_visitor', email: 'demo@example.test', role: 'admin', is_active: true }
 
@@ -175,18 +175,81 @@ function extract(s: Store, docId: number): Row {
   return { id: s.seq++, document_id: docId, extraction_status: checks.some(x => x.status === 'mismatch') ? 'review_required' : 'extracted', document_type: type, extracted_fields: fields, checks, engine: 'demo-text', confidence: 0.55, extracted_at: now() }
 }
 
+/** What each read-only tool returns for a case right now. The agent and the replay both use this. */
+function toolResult(s: Store, c: Row, tool: string): { result: Row; error: string | null } {
+  if (tool === 'get_case') return { result: { beneficiary_name: c.beneficiary_name }, error: null }
+  if (tool === 'check_documents') return { result: { document_count: s.docs.filter(d => d.case_id === c.id).length }, error: null }
+  if (tool === 'draft_message') return { result: { sent: false }, error: null }
+  if (tool === 'build_money_ladder') {
+    const est = Number(c.estimated_cost || 0)
+    if (est <= 0) return { result: {}, error: 'missing_cost_estimate' }
+    const l = ladder(est)
+    return { result: { peak_cash_before_instalment: Math.max(...l.rungs.map((r: Row) => r.cash_gap_before_instalment)), peak_timing_gap: l.peak_timing_gap, funding_gap: l.funding_gap }, error: null }
+  }
+  return { result: {}, error: 'unknown_tool' }
+}
+const SIDE_EFFECT: Record<string, 'none' | 'write' | 'gated'> = { get_case: 'none', check_documents: 'none', build_money_ladder: 'none', draft_message: 'none', create_task: 'write', request_approval: 'gated' }
+
+/* ---------- Flight Recorder: the same hash chain as app/agents/recorder.py ---------- */
+const GENESIS = '0'.repeat(64)
+const canon = (v: unknown): string => {
+  if (Array.isArray(v)) return `[${v.map(canon).join(',')}]`
+  if (v && typeof v === 'object') return `{${Object.keys(v as Row).sort().map(k => `${JSON.stringify(k)}:${canon((v as Row)[k])}`).join(',')}}`
+  return JSON.stringify(v ?? null)
+}
+async function sha(text: string) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('')
+}
+const stepContent = (x: Row) => ({ idx: x.idx, phase: x.phase, thought: x.thought_summary ?? '', tool: x.tool, args: x.args, result: x.result, error: x.error, message_en: x.message_en ?? '', message_kn: x.message_kn ?? '', citations: x.citations ?? [], ms: Number(x.ms ?? 0).toFixed(2) })
+const runContent = (r: Row) => ({ id: r.id, case_id: r.case_id, provider: r.provider, goal: r.goal, status: r.status, message_en: r.message_en ?? '', message_kn: r.message_kn ?? '', citations: r.citations ?? [] })
+async function sealRun(r: Row) {
+  let prev = GENESIS
+  for (const x of r.steps) { x.seal = await sha(prev + canon(stepContent(x))); prev = x.seal }
+  r.seal = await sha(prev + canon(runContent(r)))
+}
+async function verifyRun(r: Row) {
+  let prev = GENESIS
+  for (const [n, x] of (r.steps as Row[]).entries()) {
+    const want = await sha(prev + canon(stepContent(x)))
+    if (want !== x.seal) return { state: 'broken', checked: n, of: r.steps.length, broken_at: x.idx, seal: r.seal }
+    prev = want
+  }
+  if (r.seal !== await sha(prev + canon(runContent(r)))) return { state: 'broken', checked: r.steps.length, of: r.steps.length, broken_at: 'outcome', seal: r.seal }
+  return { state: 'intact', checked: r.steps.length, of: r.steps.length, broken_at: null, seal: r.seal }
+}
+const changedKeys = (a: Row, b: Row) => [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(k => canon(a[k]) !== canon(b[k])).sort()
+function replayRun(s: Store, r: Row) {
+  const c = s.cases.find(x => x.id === r.case_id)
+  const steps = (r.steps as Row[]).map(x => {
+    const row: Row = { idx: x.idx, phase: x.phase, tool: x.tool }
+    if (!x.tool) return { ...row, outcome: 'no_tool' }
+    const fx = SIDE_EFFECT[x.tool]
+    if (fx !== 'none') return { ...row, outcome: 'not_rerun', why: fx === 'write' ? 'changes data' : 'needs approval' }
+    if (!c) return { ...row, outcome: 'differs', changed: ['case'], error_then: x.error, error_now: 'case_not_found' }
+    const now = toolResult(s, c, x.tool)
+    if (x.error || now.error) return { ...row, outcome: x.error === now.error ? 'same' : 'differs', changed: x.error === now.error ? [] : ['error'], error_then: x.error, error_now: now.error }
+    const changed = changedKeys(x.result, now.result)
+    return { ...row, outcome: changed.length ? 'differs' : 'same', changed }
+  })
+  const reran = steps.filter(x => x.outcome === 'same' || x.outcome === 'differs')
+  const differs = reran.filter(x => x.outcome === 'differs').length
+  const summary = { reran: reran.length, same: reran.length - differs, differs }
+  audit(s, 'agent_run_replayed', r.case_id, `run ${r.id}: ${canon(summary)}`)
+  return { run_id: r.id, summary, steps }
+}
+
 /** Mirrors the backend's scripted agent (app/agents/scripts/case_review.yaml): same steps, same tools, same guard. */
-function agentRun(s: Store, c: Row) {
+async function agentRun(s: Store, c: Row) {
   const steps: Row[] = []
   const step = (phase: string, extra: Row = {}) => steps.push({ idx: steps.length + 1, phase, thought_summary: '', tool: null, args: {}, result: {}, error: null, message_en: '', message_kn: '', citations: [], ms: 0, ...extra })
-  const docs = s.docs.filter(d => d.case_id === c.id)
   step('PLAN', { thought_summary: 'Read the case, check its documents, then build the money ladder and tell the family what cash they will need.' })
-  step('ACT', { tool: 'get_case', args: { case_id: c.id }, result: { beneficiary_name: c.beneficiary_name } })
-  step('ACT', { tool: 'check_documents', args: { case_id: c.id }, result: { document_count: docs.length } })
+  step('ACT', { tool: 'get_case', args: { case_id: c.id }, result: toolResult(s, c, 'get_case').result, ms: 3.1 })
+  step('ACT', { tool: 'check_documents', args: { case_id: c.id }, result: toolResult(s, c, 'check_documents').result, ms: 5.4 })
   const est = Number(c.estimated_cost || 0)
   const run: Row = { id: s.seq++, case_id: c.id, provider: 'mock (in-browser)', goal: 'Review this case and say what to do next.', language: 'en', created_by: 'demo_visitor', citations: [] }
   if (est <= 0) {
-    step('ACT', { tool: 'build_money_ladder', args: { case_id: c.id }, error: 'missing_cost_estimate' })
+    step('ACT', { tool: 'build_money_ladder', args: { case_id: c.id }, error: 'missing_cost_estimate', ms: 1.8 })
     const t = { id: s.seq++, case_id: c.id, title: 'Record a construction cost estimate', category: 'finance', description: 'The money ladder needs a cost estimate from the taluk engineer.', owner: '', due_date: null, status: 'open', created_at: now() }
     s.tasks.push(t)
     step('RECOVER', { tool: 'create_task', args: { case_id: c.id, title: t.title }, result: { task_id: t.id } })
@@ -196,8 +259,8 @@ function agentRun(s: Store, c: Row) {
   } else {
     const l = ladder(est)
     const peak = Math.max(...l.rungs.map((r: Row) => r.cash_gap_before_instalment))
-    step('ACT', { tool: 'build_money_ladder', args: { case_id: c.id }, result: { peak_cash_before_instalment: peak, peak_timing_gap: l.peak_timing_gap, funding_gap: l.funding_gap } })
-    step('ACT', { tool: 'draft_message', args: { case_id: c.id, kind: 'cash_needed', language: 'kn' }, result: { sent: false } })
+    step('ACT', { tool: 'build_money_ladder', args: { case_id: c.id }, result: toolResult(s, c, 'build_money_ladder').result, ms: 12.6 })
+    step('ACT', { tool: 'draft_message', args: { case_id: c.id, kind: 'cash_needed', language: 'kn' }, result: { sent: false }, ms: 4.2 })
     step('CHECK')
     const name = c.beneficiary_name
     Object.assign(run, {
@@ -207,8 +270,11 @@ function agentRun(s: Store, c: Row) {
     })
     step('DONE', { message_en: run.message_en, message_kn: run.message_kn, citations: run.citations })
   }
+  const full: Row = { ...run, steps, created_at: now(), finished_at: now() }
+  await sealRun(full)
+  s.runs = [...(s.runs ?? []), full]
   audit(s, 'agent_run_finished', c.id, `run ${run.id}: ${run.status} via mock`)
-  return { ...run, steps }
+  return full
 }
 
 function agentPlan(s: Store, c: Row) {
@@ -263,6 +329,7 @@ function pdf(lines: string[]): Blob {
 /* ---------------- router ---------------- */
 type Handler = (m: RegExpMatchArray, body: Row, q: URLSearchParams) => unknown
 function routes(s: Store): Array<[string, RegExp, Handler]> {
+  const runOr404 = (id: string) => { const r = (s.runs ?? []).find(x => x.id === Number(id)); if (!r) throw new ApiError('Run not found', 404); return r }
   const caseOr404 = (id: string) => { const c = s.cases.find(x => x.id === Number(id)); if (!c) throw new ApiError('Case not found', 404); return c }
   const docOr404 = (id: string) => { const d = s.docs.find(x => x.id === Number(id)); if (!d) throw new ApiError('Document not found', 404); return d }
   return [
@@ -302,6 +369,20 @@ function routes(s: Store): Array<[string, RegExp, Handler]> {
     ['POST', /^\/api\/cases\/(\d+)\/stages\/(\d+)\/evidence$/, (m, b) => { const c = caseOr404(m[1]); const f = b.__file as File; if (!['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) throw new ApiError('Evidence must be JPEG, PNG or WebP', 415); const e = { id: s.seq++, case_id: c.id, stage_id: Number(m[2]), original_name: f.name, caption: '', verification_status: 'pending_review', uploaded_by: 'demo_visitor', uploaded_at: now() }; s.evidence.unshift(e); audit(s, 'construction_evidence_uploaded', c.id, `stage_id=${m[2]}; review_required`); return e }],
     ['GET', /^\/api\/cases\/(\d+)\/agent-plan$/, m => agentPlan(s, caseOr404(m[1]))],
     ['POST', /^\/api\/cases\/(\d+)\/agent\/run$/, m => agentRun(s, caseOr404(m[1]))],
+    ['GET', /^\/api\/cases\/(\d+)\/agent\/runs$/, m => (s.runs ?? []).filter(r => r.case_id === caseOr404(m[1]).id).reverse()],
+    ['GET', /^\/api\/agent\/runs\/(\d+)\/recording$/, async m => {
+      const r = runOr404(m[1])
+      return { ...r, steps: r.steps.map((x: Row) => ({ ...x, side_effect: x.tool ? SIDE_EFFECT[x.tool] ?? null : null })), rule_pack: { id: PACK.pack_id, effective_from: KA_PMAYG.effective_from }, verification: await verifyRun(r) }
+    }],
+    ['POST', /^\/api\/agent\/runs\/(\d+)\/replay$/, m => replayRun(s, runOr404(m[1]))],
+    // Demo only: change one stored figure, the way someone editing the database would, to show the seal break.
+    ['POST', /^\/api\/agent\/runs\/(\d+)\/demo-tamper$/, m => {
+      const r = runOr404(m[1]); const x = (r.steps as Row[]).find(y => y.tool === 'build_money_ladder' && !y.error) ?? (r.steps as Row[]).find(y => y.tool)
+      if (!x) throw new ApiError('Nothing to change in this run', 409)
+      const key = Object.keys(x.result).find(k => typeof x.result[k] === 'number')
+      if (key) x.result[key] = Math.max(0, Number(x.result[key]) - 50000); else x.result = { ...x.result, edited: true }
+      audit(s, 'demo_record_edited', r.case_id, `run ${r.id} step ${x.idx}`); return { idx: x.idx, key: key ?? 'edited' }
+    }],
     ['GET', /^\/api\/audit$/, (_, _b, q) => { const id = q.get('case_id'); return s.audit.filter(a => !id || a.case_id === Number(id)).slice(0, 500) }],
     ['POST', /^\/api\/engine\/ladder$/, (_, b) => ladder(Number(b.total_cost), Number(b.own_savings || 0), Number(b.scheme_loan || 0), Number(b.extra_grants || 0))],
     ['POST', /^\/api\/engine\/affordability$/, (_, b) => affordability(b)],
@@ -464,7 +545,7 @@ export function makeDemoClient(): Client {
     for (const [m, re, h] of [...approvalRoutes(s), ...routes(s)] as Array<[string, RegExp, (m: RegExpMatchArray, b: Row, q: URLSearchParams) => unknown]>) {
       if (m !== method) continue
       const match = p.match(re)
-      if (match) { const out = h(match, (body ?? {}) as Row, new URLSearchParams(query)); save(); return structuredClone(out) }
+      if (match) { const out = await h(match, (body ?? {}) as Row, new URLSearchParams(query)); save(); return structuredClone(out) }
     }
     throw new ApiError('Not available in demo mode', 404)
   }

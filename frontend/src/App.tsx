@@ -17,6 +17,7 @@ import Verification from './pages/Verification'
 import Finance from './pages/Finance'
 import Construction from './pages/Construction'
 import Intelligence from './pages/Intelligence'
+import FlightRecorder from './pages/FlightRecorder'
 import Audit from './pages/Audit'
 import Team from './pages/Team'
 
@@ -109,6 +110,7 @@ function Workspace() {
     case 'finance': page = <Finance initialCase={route.caseId} />; break
     case 'construction': page = <Construction initialCase={route.caseId} />; break
     case 'intelligence': page = <Intelligence initialCase={route.caseId} />; break
+    case 'recorder': page = <FlightRecorder runId={route.runId} initialCase={route.caseId} />; break
     case 'audit': page = <Audit />; break
     case 'team': page = <Team />; break
     default: page = <Overview />

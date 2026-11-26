@@ -4,7 +4,7 @@ import type { AuthUser, CaseItem, Client } from './api'
 export type Route =
   | { name: 'overview' } | { name: 'beneficiaries' } | { name: 'case'; id: number }
   | { name: 'verification'; caseId?: number } | { name: 'finance'; caseId?: number } | { name: 'construction'; caseId?: number }
-  | { name: 'intelligence'; caseId?: number } | { name: 'audit' } | { name: 'team' }
+  | { name: 'intelligence'; caseId?: number } | { name: 'recorder'; runId?: number; caseId?: number } | { name: 'audit' } | { name: 'team' }
 
 export function parseRoute(hash: string): Route {
   const [path, query = ''] = hash.replace(/^#\/?/, '').split('?')
@@ -17,6 +17,7 @@ export function parseRoute(hash: string): Route {
     case 'finance': return { name: 'finance', caseId }
     case 'construction': return { name: 'construction', caseId }
     case 'intelligence': return { name: 'intelligence', caseId }
+    case 'recorder': return { name: 'recorder', runId: Number(id) || undefined, caseId }
     case 'audit': return { name: 'audit' }
     case 'team': return { name: 'team' }
     default: return { name: 'overview' }
@@ -25,6 +26,7 @@ export function parseRoute(hash: string): Route {
 
 export function href(route: Route): string {
   if (route.name === 'case') return `#/case/${route.id}`
+  if (route.name === 'recorder' && route.runId) return `#/recorder/${route.runId}`
   const caseId = 'caseId' in route && route.caseId ? `?case=${route.caseId}` : ''
   return `#/${route.name}${caseId}`
 }

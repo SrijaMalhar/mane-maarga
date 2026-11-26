@@ -11,7 +11,7 @@ const en = {
 
   'nav.overview': 'Overview', 'nav.beneficiaries': 'Beneficiaries', 'nav.verification': 'Verification',
   'nav.finance': 'Financial planning', 'nav.construction': 'Construction', 'nav.intelligence': 'Intelligence',
-  'nav.audit': 'Audit trail', 'nav.team': 'Team', 'nav.more': 'More', 'nav.signout': 'Sign out',
+  'nav.recorder': 'Flight recorder', 'nav.audit': 'Audit trail', 'nav.team': 'Team', 'nav.more': 'More', 'nav.signout': 'Sign out',
   'nav.skip': 'Skip to content',
 
   'status.intake': 'Intake', 'status.verified': 'Verified', 'status.planning': 'Housing planning',
@@ -87,7 +87,7 @@ const kn: Partial<Record<Key, string>> = {
   'brand.name': 'ಮನೆ ಮಾರ್ಗ',
   'nav.overview': 'ಮುನ್ನೋಟ', 'nav.beneficiaries': 'ಫಲಾನುಭವಿಗಳು', 'nav.verification': 'ಪರಿಶೀಲನೆ',
   'nav.finance': 'ಹಣಕಾಸು ಯೋಜನೆ', 'nav.construction': 'ನಿರ್ಮಾಣ', 'nav.intelligence': 'ಒಳನೋಟ',
-  'nav.audit': 'ಲೆಕ್ಕಪರಿಶೋಧನೆ', 'nav.team': 'ತಂಡ', 'nav.more': 'ಇನ್ನಷ್ಟು', 'nav.signout': 'ನಿರ್ಗಮಿಸಿ', 'nav.skip': 'ವಿಷಯಕ್ಕೆ ಹೋಗಿ',
+  'nav.recorder': 'ಹಾರಾಟ ದಾಖಲೆ', 'nav.audit': 'ಲೆಕ್ಕಪರಿಶೋಧನೆ', 'nav.team': 'ತಂಡ', 'nav.more': 'ಇನ್ನಷ್ಟು', 'nav.signout': 'ನಿರ್ಗಮಿಸಿ', 'nav.skip': 'ವಿಷಯಕ್ಕೆ ಹೋಗಿ',
   'status.intake': 'ನೋಂದಣಿ', 'status.verified': 'ಪರಿಶೀಲಿತ', 'status.planning': 'ಮನೆ ಯೋಜನೆ',
   'status.finance_review': 'ಹಣಕಾಸು ನೆರವು', 'status.construction': 'ನಿರ್ಮಾಣ', 'status.completed': 'ಮನೆ ಪೂರ್ಣ',
   'doc.pending': 'ಪರಿಶೀಲನೆ ಬಾಕಿ', 'doc.verified': 'ಪರಿಶೀಲಿತ', 'doc.rejected': 'ತಿರಸ್ಕೃತ',

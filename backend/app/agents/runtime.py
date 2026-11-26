@@ -22,6 +22,7 @@ from ..models import AgentRun, AgentStep, Case
 from .guards.citation_guard import check as citation_check
 from .guards.injection_guard import guard_result
 from .providers import Decision, Observation, Provider, ProviderError, Turn
+from .recorder import last_seal, run_content, seal, step_content
 from .tools import REGISTRY, ToolContext, ToolError, call_tool, tool_specs
 
 MAX_STEPS = 12
@@ -49,22 +50,23 @@ def _step(
     message_en: str | None = None,
     message_kn: str | None = None,
 ) -> None:
-    db.add(
-        AgentStep(
-            run_id=run.id,
-            idx=idx,
-            phase=phase,
-            thought_summary=d.thought_summary if d else "",
-            tool=tool,
-            args_json=json.dumps(args or {}),
-            result_json=json.dumps(result or {}, ensure_ascii=False),
-            error=error,
-            message_en=message_en if message_en is not None else (d.message_en if d else ""),
-            message_kn=message_kn if message_kn is not None else (d.message_kn if d else ""),
-            citations_json=json.dumps(d.citations if d else []),
-            ms=round(ms, 2),
-        )
+    prev = last_seal(db, run.id)
+    step = AgentStep(
+        run_id=run.id,
+        idx=idx,
+        phase=phase,
+        thought_summary=d.thought_summary if d else "",
+        tool=tool,
+        args_json=json.dumps(args or {}),
+        result_json=json.dumps(result or {}, ensure_ascii=False),
+        error=error,
+        message_en=message_en if message_en is not None else (d.message_en if d else ""),
+        message_kn=message_kn if message_kn is not None else (d.message_kn if d else ""),
+        citations_json=json.dumps(d.citations if d else []),
+        ms=round(ms, 2),
     )
+    step.seal = seal(prev, step_content(step))
+    db.add(step)
     db.flush()
 
 
@@ -76,6 +78,8 @@ def _finish(
     run.message_kn = d.message_kn if d else note_kn
     run.citations_json = json.dumps(d.citations if d else [])
     run.finished_at = datetime.now(UTC)
+    db.flush()
+    run.seal = seal(last_seal(db, run.id), run_content(run))
     write_audit(db, "agent_run_finished", run.case_id, f"run {run.id}: {status} via {run.provider}", run.created_by)
     db.commit()
     return run
@@ -218,6 +222,9 @@ def run_out(db: Session, run: AgentRun) -> dict:
         "message_kn": run.message_kn,
         "citations": json.loads(run.citations_json or "[]"),
         "created_by": run.created_by,
+        "created_at": str(run.created_at) if run.created_at else None,
+        "finished_at": str(run.finished_at) if run.finished_at else None,
+        "seal": run.seal,
         "steps": [
             {
                 "idx": s.idx,
@@ -231,6 +238,7 @@ def run_out(db: Session, run: AgentRun) -> dict:
                 "message_kn": s.message_kn,
                 "citations": json.loads(s.citations_json or "[]"),
                 "ms": float(s.ms or 0),
+                "seal": s.seal,
             }
             for s in steps
         ],

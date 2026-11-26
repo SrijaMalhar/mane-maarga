@@ -67,6 +67,7 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 | **The family says yes** | Payments, loans, submissions and document sharing wait for the family's one-time code, on a Kannada page that says what, how much and to whom. | Case file → Approvals |
 | **No invented numbers** | The assistant picks tools; code does the arithmetic. An answer with a rupee figure it cannot trace is withheld. | Intelligence → Run the agent |
 | **A Kannada voice** | Intake questions in everyday spoken Kannada, recorded in a warm voice; families can answer by talking. | Intelligence → Conversational intake |
+| **Flight recorder** | Every agent step is sealed into a SHA-256 chain. Edit any stored step and the recorder shows exactly where the seal broke. Replay runs the reads again to show whether the advice still holds. | Flight recorder |
 | **Red-pen document checks** | Land records are compared with the case field by field; a reviewer decides on every mismatch. | Verification |
 
 <div align="center">
@@ -107,6 +108,15 @@ Each working page opens on the one sentence a field officer needs, with the figu
 <br /><sub>Every rupee in the answer came from a tool result; the stamped clause ID links the ₹1,20,000 to its source. Try <code>make demo</code> for the recovery and blocked runs.</sub>
 </div>
 
+### The flight recorder
+
+Every run can be played back step by step. Each step's seal covers the step before it, so a changed figure breaks the chain at that step and every later step loses its link. **Replay** runs each read-only tool call again with the recorded arguments and says, step by step, whether today's answer is the same. Tools that change data or need approval are never run again. The whole record exports as JSON.
+
+<div align="center">
+<img src="docs/assets/screenshots/flight-recorder.png" width="640" alt="Flight recorder after a stored figure was edited: the answer says the record changed at step 4; the run's seven steps as a tape with a broken chain link before Build money ladder, later steps faded; step 4's tool call and results below with its seal" />
+<br /><sub>In the demo, <b>Edit a stored figure</b> lowers one number in step 4. The seal breaks there, and only 3 of 7 steps still match.</sub>
+</div>
+
 ## What works today
 
 | Area | What is built |
@@ -117,6 +127,7 @@ Each working page opens on the one sentence a field officer needs, with the figu
 | **Construction tracking** | A stage plan costed from the estimate, stage status, and photo evidence held for review. The house drawing fills in as stages are verified. |
 | **Cited rules** | A dated Karnataka PMAY-G rule pack: 17 clauses, each with an ID, English and Kannada text, and its source (PIB, Lok Sabha, CAG). Eligibility and the 8 exclusion rules run in code; a missing fact gives *needs information*, never a guess. `make rules-lint` rejects any clause without a source or Kannada text. See [PROBLEM.md](PROBLEM.md). |
 | **Agent runtime** | A PLAN → ACT → CHECK → RECOVER → ASK → DONE loop over 11 typed, audited tools. The model chooses; the server runs the tool. A citation guard withholds any answer whose figures or clauses can't be traced. Runs on a scripted mock with no key, or on Lyzr Agent Studio. |
+| **Flight recorder** | Each agent step stores a seal, `sha256(previous seal + step)`, and the run's outcome is sealed last (migration 0005). `GET /api/agent/runs/{id}/recording` re-checks the chain and names the first changed step. `POST …/replay` re-runs read-only tools only, compares field by field and rolls back. |
 | **Approval gate** | Six gated actions in a policy file. Agents and staff can only *request* them. Money, loans, submissions and sharing documents need the family's one-time code (stored as an HMAC, 5 minutes, 3 tries); a status change needs an administrator. One executor runs each approved action exactly once, after re-checking the payload hash. Document text reaches the model only as quoted data. |
 | **Decision support** | Rule-based checks of documents, finance, construction and blockers, each with its evidence. Also: voice intake in Kannada, English and Telugu through Bhashini (speech recognition and natural Indian voices, female or male; audio never stored), scheme reference links, a budget estimate and follow-up tasks. |
 | **Accountability** | JWT sessions with admin, operator and viewer roles, an audit trail of every sensitive action, rate-limited sign-in, and security headers with request IDs. |
@@ -298,6 +309,7 @@ mane-maarga/
 - [x] Agent runtime with Lyzr provider, citation guard and server-side approval gate
 - [x] Bhashini speech recognition and synthesis for voice intake, with a female or male voice
 - [x] Expressive Kannada intake prompts (Indic Parler-TTS, voice: Anu)
+- [x] Flight recorder: sealed agent runs, tamper detection and replay
 - [ ] Re-record the intake prompts with a local speaker, such as an ASHA worker ([how](docs/voice.md))
 - [x] In-browser demo mode for the hosted preview
 - [ ] Hosted API for the live preview

@@ -258,6 +258,7 @@ class AgentRun(Base):
     created_by: Mapped[str] = mapped_column(String(120), nullable=False)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    seal: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
 
 class AgentStep(Base):
@@ -277,4 +278,5 @@ class AgentStep(Base):
     message_kn: Mapped[str] = mapped_column(Text, default="")
     citations_json: Mapped[str] = mapped_column(Text, default="[]")
     ms: Mapped[float] = mapped_column(Numeric(10, 2), default=0)
+    seal: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())

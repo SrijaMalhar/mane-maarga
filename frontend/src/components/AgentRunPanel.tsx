@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Play } from 'lucide-react'
+import { href } from '../lib/app-context'
 import { Notice } from './ui'
 import { Stamp } from './ledger'
 import type { AgentRun, AgentStep } from '../lib/api'
@@ -42,6 +43,7 @@ export default function AgentRunPanel({ caseId }: { caseId: number }) {
           <p lang="en">{run.message_en}</p>
           <p lang="kn">{run.message_kn}</p>
           {run.citations.length > 0 && <p>{run.citations.map(c => <Stamp key={c}>{c}</Stamp>)}</p>}
+          <p><a className="link-btn" href={href({ name: 'recorder', runId: run.id })}>Open in the flight recorder: replay it and check its seal</a></p>
         </div>
       </>}
     </section>

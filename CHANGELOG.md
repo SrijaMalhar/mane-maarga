@@ -2,6 +2,13 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Day 6 · 27 Nov 2026 · The flight recorder
+- Every agent step is sealed: `seal = sha256(previous seal + canonical step)`, from a genesis of zeros; the run's outcome (status, message, citations) is sealed last. Migration `0005_flight_recorder` adds the columns; runs from before it show as unsealed.
+- `GET /api/agent/runs/{id}/recording` returns the run with each tool's side effect, the rule pack in force and a fresh check of the chain: intact, or broken at the first changed step or at the outcome.
+- `POST /api/agent/runs/{id}/replay` runs each recorded read-only tool again with its recorded arguments and compares the result field by field. Tools that write or need approval are never re-run, and the replay transaction is rolled back. The replay itself is audited.
+- A new Flight recorder page: the run as a tape of phases with chain links between steps, play and step-through (arrow keys), the call and result of each step with its seal, replay results on the tape, and JSON export. In the demo, "Edit a stored figure" breaks the seal on purpose to show detection.
+- Tests: 7 new (sealed and verifies; an edited step breaks at that step; an edited outcome breaks; replay reproduces reads; replay finds the field that changed after the case changed; replay never re-creates a task; 404s). 121 pass. Checked in the browser at 1360px and 390px.
+
 ## Site, part 2 · 26 Nov 2026 · Pages that answer first
 - The landing page is back to its original design, with one new section: the recorded Kannada intake questions play as a short conversation, the current line highlighted with its English meaning and a live waveform.
 - Overview, Financial planning and Verification each open on one sentence that answers the page's question: how many families need a decision today; the cash a family needs before its next instalment; how many fields differ from the case file. Supporting figures sit beside it.

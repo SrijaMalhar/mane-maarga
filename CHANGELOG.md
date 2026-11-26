@@ -2,6 +2,14 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Site, part 2 · 26 Nov 2026 · Pages that answer first
+- The landing page is back to its original design, with one new section: the recorded Kannada intake questions play as a short conversation, the current line highlighted with its English meaning and a live waveform.
+- Overview, Financial planning and Verification each open on one sentence that answers the page's question: how many families need a decision today; the cash a family needs before its next instalment; how many fields differ from the case file. Supporting figures sit beside it.
+- Overview: one action per family (record consent, plan the gap, add an estimate); money and activity in a side column; the Karnataka figures as one line.
+- Financial planning: opens on a family with an estimate; the money ladder is full width, seeded from the family's recorded savings and loans, with the tightest stage marked. Sources are a table; the repayment check folds away.
+- Verification: the document-vs-case-file comparison is the main view, mismatches in red pen, decision buttons under the answer; the preview folds away.
+- Checked with screenshots at 1440px and 390px; tsc, ESLint, style lint and build pass. README screenshots retaken.
+
 ## Data · 26 Nov 2026 · Real public figures in the demo
 - `backend/app/public_data/ka_pmayg_progress.json`: Karnataka and all-India PMAY-G targets, sanctions and completions from Lok Sabha Q.3722 (as on 7 Aug 2025), Q.428 (17 Jul 2025), Q.931 (9 Dec 2022) and PIB (Mar 2025), each with its link. Served at `GET /api/public-data/pmayg/karnataka` with derived figures computed in code.
 - The landing page and the overview lead with it: 3,62,342 sanctioned houses in Karnataka not yet finished; 30.4% completion against 73.4% across India; sanctions growing faster than completions.

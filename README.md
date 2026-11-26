@@ -70,23 +70,23 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 | **Red-pen document checks** | Land records are compared with the case field by field; a reviewer decides on every mismatch. | Verification |
 
 <div align="center">
-<img src="docs/assets/screenshots/landing-different.png" width="880" alt="The landing page section What only Mane Maarga does, showing the money ladder with stage costs and the money short before each instalment" />
-<br /><sub>The landing page shows each of these as a working piece of the product.</sub>
+<img src="docs/assets/screenshots/landing-voice.png" width="880" alt="The landing page voice section: the recorded Kannada intake questions playing in order with example answers, the current line highlighted with its English meaning, and a live waveform" />
+<br /><sub>On the landing page, the Kannada intake plays as a short conversation in the recorded voice.</sub>
 </div>
 
 ## Screenshots
 
 <table>
 <tr>
-<td width="50%"><img src="docs/assets/screenshots/dashboard.png" alt="Overview: every family placed on the six-stage journey, a needs-attention list and a money ledger" /><br /><sub><b>Overview</b> · every family on the journey, plus what needs a decision today</sub></td>
+<td width="50%"><img src="docs/assets/screenshots/dashboard.png" alt="Overview: how many families need a decision today, the six-stage journey, and each family with the one action it needs" /><br /><sub><b>Overview</b> · who needs a decision today, and what to do for each</sub></td>
 <td width="50%"><img src="docs/assets/screenshots/beneficiaries.png" alt="Beneficiary list with journey progress dots, estimates, gaps and consent status" /><br /><sub><b>Beneficiaries</b> · search, filters, and compact, detailed or village views</sub></td>
 </tr>
 <tr>
 <td width="50%"><img src="docs/assets/screenshots/beneficiary-details.png" alt="Case file for a sample family showing the house drawing, journey timeline, documents and finances" /><br /><sub><b>Case file</b> · the family's whole housing journey on one page</sub></td>
-<td width="50%"><img src="docs/assets/screenshots/verification.png" alt="Verification desk: PDF preview beside extracted fields, with a village-name mismatch flagged" /><br /><sub><b>Verification desk</b> · extraction suggests, the reviewer decides</sub></td>
+<td width="50%"><img src="docs/assets/screenshots/verification.png" alt="Verification desk: the document compared with the case file field by field, a mismatch struck through in red, and the decision buttons" /><br /><sub><b>Verification desk</b> · document vs case file; the reviewer decides</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/assets/screenshots/financial-planning.png" alt="Financial planning: funding composition, sources and the money ladder by construction stage" /><br /><sub><b>Financial planning</b> · confirmed vs proposed money, and the money ladder</sub></td>
+<td width="50%"><img src="docs/assets/screenshots/financial-planning.png" alt="Financial planning: the cash the family needs before the next instalment, then the money ladder by construction stage" /><br /><sub><b>Financial planning</b> · the cash needed before each instalment</sub></td>
 <td width="50%"><img src="docs/assets/screenshots/intelligence.png" alt="Case analysis listing recommended next steps with their evidence and the human-approval gate" /><br /><sub><b>Intelligence</b> · suggestions with evidence; a person approves every decision</sub></td>
 </tr>
 </table>

@@ -33,11 +33,12 @@ Mane Maarga helps case workers take rural families in Karnataka from their first
 
 - **Live preview:** open [mane-maarga.vercel.app](https://mane-maarga.vercel.app), choose **Access the platform**, then **Explore with sample data**. No server is needed: a clearly labelled demo mode runs the workspace in your browser with invented “(sample)” families, using the same rules as the API (money ladder, 30% cap, no double counting). Nothing leaves the browser tab.
 - **Full stack:** to sign in against the real API with document text extraction, [run it locally](#run-it-locally).
+- **What's real:** Karnataka's PMAY-G figures (Lok Sabha and PIB), the scheme rules (17 cited clauses), the taluks and villages. The families are invented, because real beneficiaries' records are private.
 - **What to explore:** add a family → upload a land record → compare the extracted fields with the case → check the money ladder → open **Intelligence** and choose **Run the agent** to watch it plan, call tools and pass the citation guard.
 
 <div align="center">
-<img src="docs/assets/demo.gif" width="880" alt="Screen recording: the overview, the beneficiary list, a case file, the verification desk flagging a village-name mismatch, the financial plan and money ladder, and the case analysis" />
-<br /><sub>Recorded from the running app with synthetic records. Every name is marked “(sample)”.</sub>
+<img src="docs/assets/demo.gif" width="880" alt="Screen recording: Karnataka's real PMAY-G figures, the money ladder, the citation guard, the demo overview, a family approving a ₹70,000 loan on their phone with a one-time code, and the agent's step-by-step run" />
+<br /><sub>Recorded from the running app. Karnataka figures, scheme rules and villages are real and cited; the families are invented to protect privacy.</sub>
 </div>
 
 ## Why it exists
@@ -45,6 +46,13 @@ Mane Maarga helps case workers take rural families in Karnataka from their first
 > Mane Maarga brings the housing-assistance journey into one transparent workflow, from identifying a beneficiary and verifying documents to financial planning, construction progress and completion.
 >
 > It's designed for rural accessibility and accountability. Administrators make better-informed decisions, and the family stays at the centre of the process.
+
+**The problem, in public figures.** As on 7 Aug 2025, Karnataka had sanctioned 5,20,862 PMAY-G houses and completed 1,58,520 of them: **30.4%, against 73.4% across India**. That leaves **3,62,342 sanctioned houses not yet finished** ([Lok Sabha Q. 3722](https://eparlib.sansad.in/bitstream/123456789/2995468/1/AU3722_13vkmB.pdf)). A sanction is not a home.
+
+<div align="center">
+<img src="docs/assets/screenshots/karnataka-figures.png" width="880" alt="Karnataka PMAY-G figures: 3,62,342 sanctioned houses not yet finished; 30.4% completion against 73.4% across India; sanctions growing faster than completions from Dec 2022 to Aug 2025, each figure linked to Lok Sabha or PIB" />
+<br /><sub>From <code>backend/app/public_data/ka_pmayg_progress.json</code>: every figure links to the Lok Sabha answer or PIB document it came from, and derived numbers are computed in code.</sub>
+</div>
 
 Under PMAY-G, a family in the plains receives ₹1.20 lakh, released in instalments after each construction stage is verified. The bills come due before the instalment arrives, and that timing gap is where families stall. Mane Maarga shows the gap stage by stage. It keeps confirmed, proposed and estimated money separate, so none of it is counted twice.
 

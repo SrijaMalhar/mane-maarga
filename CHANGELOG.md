@@ -2,6 +2,11 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Data · 26 Nov 2026 · Real public figures in the demo
+- `backend/app/public_data/ka_pmayg_progress.json`: Karnataka and all-India PMAY-G targets, sanctions and completions from Lok Sabha Q.3722 (as on 7 Aug 2025), Q.428 (17 Jul 2025), Q.931 (9 Dec 2022) and PIB (Mar 2025), each with its link. Served at `GET /api/public-data/pmayg/karnataka` with derived figures computed in code.
+- The landing page and the overview lead with it: 3,62,342 sanctioned houses in Karnataka not yet finished; 30.4% completion against 73.4% across India; sanctions growing faster than completions.
+- The demo is labelled honestly: real figures, rules and villages, invented families. New README GIF recorded from the running app.
+
 ## Site · 26 Nov 2026 · Less crowded, and the unique parts up front
 - Landing redesigned: the Kannada line leads the hero; a new "What only Mane Maarga does" section gives each of six ideas its own row with a real piece of the product (computed money ladder, a cited clause, the family's OTP screen, a blocked invented figure, the recorded Kannada voice, a red-pen RTC mismatch). The journey is one row of growing houses; safeguards are "What it will never do".
 - App-wide: Anek's width axis at 106%, 16px base text, larger labels and small text, no all-caps labels, roomier panels and gaps.

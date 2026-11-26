@@ -48,7 +48,7 @@ const en = {
   'task.open': 'Open', 'task.in_progress': 'In progress', 'task.blocked': 'Blocked', 'task.completed': 'Completed', 'task.cancelled': 'Cancelled',
   'banner.demo': 'Sample data · You\'re exploring with invented families. Changes stay in this browser tab and nothing is sent to a server.',
   'banner.reset': 'Reset', 'banner.leave': 'Leave demo',
-  'banner.intel': 'Suggestions here come from deterministic rules over the case records — no external language model is connected. Nothing is submitted, approved or paid automatically; administrators remain responsible for every decision.',
+  'banner.intel': 'Case analysis below runs fixed rules over the case records. The agent run uses the same tools, and a check withholds any answer whose figures it cannot trace. Nothing is submitted, approved or paid without the family or an administrator.',
 
   'list.title': 'Beneficiaries', 'list.lead': 'Every case, its stage and what it is waiting on.',
   'list.searchPh': 'Search name, village or taluk', 'list.compact': 'Compact', 'list.detailed': 'Detailed', 'list.byVillage': 'By village',
@@ -116,7 +116,7 @@ const kn: Partial<Record<Key, string>> = {
   'task.open': 'ತೆರೆದಿದೆ', 'task.in_progress': 'ನಡೆಯುತ್ತಿದೆ', 'task.blocked': 'ತಡೆ', 'task.completed': 'ಪೂರ್ಣ', 'task.cancelled': 'ರದ್ದು',
   'banner.demo': 'ಮಾದರಿ ದತ್ತಾಂಶ · ನೀವು ಕಲ್ಪಿತ ಕುಟುಂಬಗಳೊಂದಿಗೆ ನೋಡುತ್ತಿದ್ದೀರಿ. ಬದಲಾವಣೆಗಳು ಈ ಬ್ರೌಸರ್ ಟ್ಯಾಬ್‌ನಲ್ಲೇ ಉಳಿಯುತ್ತವೆ; ಯಾವುದೂ ಸರ್ವರ್‌ಗೆ ಹೋಗುವುದಿಲ್ಲ.',
   'banner.reset': 'ಮರುಹೊಂದಿಸಿ', 'banner.leave': 'ಡೆಮೊದಿಂದ ಹೊರಬನ್ನಿ',
-  'banner.intel': 'ಇಲ್ಲಿನ ಸಲಹೆಗಳು ಕೇಸ್ ದಾಖಲೆಗಳ ಮೇಲಿನ ನಿಯಮಗಳಿಂದ ಬರುತ್ತವೆ. ಯಾವುದನ್ನೂ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸಲ್ಲಿಸಲಾಗುವುದಿಲ್ಲ, ಅನುಮೋದಿಸಲಾಗುವುದಿಲ್ಲ ಅಥವಾ ಪಾವತಿಸಲಾಗುವುದಿಲ್ಲ; ಪ್ರತಿ ನಿರ್ಧಾರಕ್ಕೆ ಅಧಿಕಾರಿಗಳೇ ಹೊಣೆ.',
+  'banner.intel': 'ಕೆಳಗಿನ ಕಡತ ವಿಶ್ಲೇಷಣೆ ನಿಗದಿತ ನಿಯಮಗಳಿಂದ ನಡೆಯುತ್ತದೆ. ಏಜೆಂಟ್ ಅದೇ ಸಾಧನಗಳನ್ನು ಬಳಸುತ್ತದೆ; ಆಧಾರ ಸಿಗದ ಅಂಕಿ ಇರುವ ಉತ್ತರವನ್ನು ತಡೆಹಿಡಿಯಲಾಗುತ್ತದೆ. ಕುಟುಂಬ ಅಥವಾ ನಿರ್ವಾಹಕರ ಒಪ್ಪಿಗೆ ಇಲ್ಲದೆ ಏನನ್ನೂ ಸಲ್ಲಿಸುವುದಿಲ್ಲ, ಅನುಮೋದಿಸುವುದಿಲ್ಲ ಅಥವಾ ಪಾವತಿಸುವುದಿಲ್ಲ.',
   'list.title': 'ಫಲಾನುಭವಿಗಳು', 'list.lead': 'ಪ್ರತಿ ಕೇಸ್, ಅದರ ಹಂತ ಮತ್ತು ಅದು ಯಾವುದಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದೆ.',
   'list.searchPh': 'ಹೆಸರು, ಗ್ರಾಮ ಅಥವಾ ತಾಲ್ಲೂಕು ಹುಡುಕಿ', 'list.compact': 'ಸಂಕ್ಷಿಪ್ತ', 'list.detailed': 'ವಿವರವಾದ', 'list.byVillage': 'ಗ್ರಾಮವಾರು',
   'list.empty': 'ಪ್ರತಿ ಮನೆಯೂ ಮೊದಲ ಹೆಜ್ಜೆಯಿಂದ ಆರಂಭ.', 'list.emptySub': 'ಮೊದಲ ಕುಟುಂಬವನ್ನು ಸೇರಿಸಿ ಅವರ ಪಯಣ ಆರಂಭಿಸಿ.',

@@ -2,6 +2,11 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Site · 26 Nov 2026 · Less crowded, and the unique parts up front
+- Landing redesigned: the Kannada line leads the hero; a new "What only Mane Maarga does" section gives each of six ideas its own row with a real piece of the product (computed money ladder, a cited clause, the family's OTP screen, a blocked invented figure, the recorded Kannada voice, a red-pen RTC mismatch). The journey is one row of growing houses; safeguards are "What it will never do".
+- App-wide: Anek's width axis at 106%, 16px base text, larger labels and small text, no all-caps labels, roomier panels and gaps.
+- Intelligence notice updated now that the agent runtime exists. README screenshots retaken.
+
 ## Day 5 · 26 Nov 2026 · The approval gate, for real
 - `policies/gated_actions.yaml`: submit to portal, request a tranche, accept a loan, pay any amount and share documents need the family; a case-status change needs an administrator.
 - Approval requests carry a payload hash and plain summaries in Kannada and English with rupees and recipient. `app/approvals/executor.py` is the only place gated actions run: it re-hashes the payload, needs an approved and unexpired request, and claims it with one conditional update so it runs exactly once. Every refusal is audited.

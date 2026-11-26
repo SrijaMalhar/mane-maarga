@@ -50,6 +50,22 @@ Under PMAY-G, a family in the plains receives ₹1.20 lakh, released in instalme
 
 Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.md) maps each part of the problem to its evidence, the feature that answers it, and where to see it.
 
+## What only Mane Maarga does
+
+| | What it does | Where to see it |
+|---|---|---|
+| **Money ladder** | Shows the cash a family must find before each instalment arrives, kept apart from the gap no scheme covers. | Financial planning |
+| **Rules with receipts** | Every amount and eligibility rule has a clause ID, Kannada and English text, and its government source. Missing facts give "needs information", never a guess. | Every amount in the app |
+| **The family says yes** | Payments, loans, submissions and document sharing wait for the family's one-time code, on a Kannada page that says what, how much and to whom. | Case file → Approvals |
+| **No invented numbers** | The assistant picks tools; code does the arithmetic. An answer with a rupee figure it cannot trace is withheld. | Intelligence → Run the agent |
+| **A Kannada voice** | Intake questions in everyday spoken Kannada, recorded in a warm voice; families can answer by talking. | Intelligence → Conversational intake |
+| **Red-pen document checks** | Land records are compared with the case field by field; a reviewer decides on every mismatch. | Verification |
+
+<div align="center">
+<img src="docs/assets/screenshots/landing-different.png" width="880" alt="The landing page section What only Mane Maarga does, showing the money ladder with stage costs and the money short before each instalment" />
+<br /><sub>The landing page shows each of these as a working piece of the product.</sub>
+</div>
+
 ## Screenshots
 
 <table>

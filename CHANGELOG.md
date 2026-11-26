@@ -2,6 +2,15 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Site photos, part 2 · 27 Nov 2026 · Where, when, and seen before
+- Each site photo is read on upload for its capture time and GPS (EXIF), and fingerprinted as a 16×16 grey thumbnail. `backend/app/photo_checks.py` turns these into three checks for the reviewer: **where** (distance from the case's plot pin: at the plot ≤150 m, nearby ≤1 km, flagged beyond), **when** (flagged if taken more than 30 days before upload, in the future, or with no time) and **used before** (another photo on file closer than 0.06 RMS after normalising; both photos then show the warning).
+- Fingerprint chosen by measurement: a 64-bit difference hash put two different families' photos 4 bits apart, too close to a re-upload. The normalised thumbnail scores a resized, recompressed copy at about 0.02 and the closest two different photos at 0.13. It does not catch a cropped copy; the README says so.
+- Accepting a photo with any warning needs a written reason; it is stored with the review and in the audit trail (`accepted_despite=…`).
+- Cases have an optional plot pin (`plot_lat`, `plot_lon`), with "Use my location" in the case form. Migration `0007_photo_checks`.
+- Review dialog: the three checks, a distance ring (plot at the centre, 150 m and 1 km rings, the photo's position), and the matching photo shown beside the new one. Stages with a flagged photo say "Review: 3 warnings".
+- Demo: twelve drawn sample photos (three plots × four stages), each with GPS for its plot written into the file; the browser reads the EXIF and fingerprints the image itself (`src/lib/photo-check.ts`). **Problem photo** sends another family's old photo to show all three warnings.
+- Tests: 6 new (EXIF read; clean photo has no warnings; far and old photos flagged; the same picture for two families caught on both, accept refused without a reason; a resized copy matches while a different photo does not; no plot pin means no location flag). 127 pass.
+
 ## Site photos · 27 Nov 2026 · A person checks every stage
 - Site photos are now shown and reviewed, not just stored. `GET /api/construction-evidence/{id}/file` serves a photo to signed-in users; `PATCH /api/construction-evidence/{id}/review` records accepted or retake, who reviewed it and when. A retake must say what to show. Migration `0006_photo_review`.
 - A stage can be marked verified only after one of its photos is accepted; the API answers 409 otherwise.

@@ -12,7 +12,14 @@ export default function CaseForm({ existing, onClose }: { existing?: CaseItem; o
     phone_last4: existing?.phone_last4 ?? '', status: (existing?.status ?? 'intake') as Status,
     estimated_cost: String(existing?.estimated_cost ?? ''), sanctioned_amount: String(existing?.sanctioned_amount ?? ''),
     existing_loan: String(existing?.existing_loan ?? ''), notes: existing?.notes ?? '',
+    plot: existing?.plot_lat != null && existing?.plot_lon != null ? `${existing.plot_lat}, ${existing.plot_lon}` : '',
   })
+  const [locating, setLocating] = useState(false)
+  function here() {
+    if (!navigator.geolocation) { setError('This browser cannot share its location.'); return }
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(p => { setForm(f => ({ ...f, plot: `${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}` })); setLocating(false) }, () => { setError('Location was not shared. Type the pin instead.'); setLocating(false) }, { enableHighAccuracy: true, timeout: 15000 })
+  }
   const [consent, setConsent] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -20,7 +27,10 @@ export default function CaseForm({ existing, onClose }: { existing?: CaseItem; o
 
   async function submit(e: FormEvent) {
     e.preventDefault(); setBusy(true); setError('')
-    const body = { ...form, estimated_cost: Number(form.estimated_cost || 0), sanctioned_amount: Number(form.sanctioned_amount || 0), existing_loan: Number(form.existing_loan || 0) }
+    const pin = form.plot.trim() ? form.plot.split(',').map(x => Number(x.trim())) : null
+    if (pin && (pin.length !== 2 || !pin.every(Number.isFinite) || Math.abs(pin[0]) > 90 || Math.abs(pin[1]) > 180)) { setBusy(false); setError('Plot pin: give latitude, longitude, e.g. 12.7960, 77.3905'); return }
+    const { plot: _plot, ...rest } = form; void _plot
+    const body = { ...rest, estimated_cost: Number(form.estimated_cost || 0), sanctioned_amount: Number(form.sanctioned_amount || 0), existing_loan: Number(form.existing_loan || 0), plot_lat: pin ? pin[0] : null, plot_lon: pin ? pin[1] : null }
     try {
       if (existing) {
         await api.patch(`/api/cases/${existing.id}`, body)
@@ -56,6 +66,7 @@ export default function CaseForm({ existing, onClose }: { existing?: CaseItem; o
             <label className="field"><span>Existing household loan</span><input type="number" min="0" step="1000" value={form.existing_loan} onChange={set('existing_loan')} /><small>A liability, never counted as funding.</small></label>
           </div>
         </fieldset>
+        <label className="field"><span>Plot pin (latitude, longitude)</span><span className="pin-row"><input value={form.plot} onChange={set('plot')} placeholder="12.7960, 77.3905" inputMode="decimal" /><button type="button" className="btn ghost small" onClick={here} disabled={locating}>{locating ? 'Locating…' : 'Use my location'}</button></span><small>Stand on the plot and tap the button. Site photos are checked against this pin.</small></label>
         <label className="field"><span>Notes</span><textarea rows={3} value={form.notes} onChange={set('notes')} /></label>
         {!existing && (
           <label className="consent-box">

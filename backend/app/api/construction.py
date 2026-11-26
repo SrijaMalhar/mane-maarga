@@ -15,6 +15,7 @@ from ..core.audit import write_audit
 from ..core.security import Authenticated, Operator
 from ..database import get_db
 from ..models import Case, ConstructionEvidence, ConstructionStage
+from ..photo_checks import evaluate, read_photo
 from ..schemas import StageCreate, StageOut, StageStatusUpdate
 
 router = APIRouter()
@@ -113,7 +114,12 @@ def upload_construction_evidence(
     stored = f"{secrets.token_hex(16)}{Path(file.filename or 'evidence').suffix.lower()}"
     path = folder / stored
     path.write_bytes(content)
+    meta = read_photo(content)
     record = ConstructionEvidence(
+        taken_at=meta["taken_at"],
+        gps_lat=meta["gps_lat"],
+        gps_lon=meta["gps_lon"],
+        fingerprint=meta["fingerprint"],
         verification_status="pending_review",
         case_id=case_id,
         stage_id=stage_id,
@@ -140,6 +146,7 @@ def upload_construction_evidence(
         "caption": caption,
         "verification_status": "pending_review",
         "uploaded_at": record.uploaded_at,
+        "checks": checks_for(db, record),
         "note": "Photo is stored as evidence only. Automated house identity, stage completion or fraud detection is not claimed.",
     }
 
@@ -166,9 +173,50 @@ def list_construction_evidence(case_id: int, user: Authenticated, db: Session = 
             "reviewed_by": r.reviewed_by,
             "review_note": r.review_note,
             "reviewed_at": r.reviewed_at,
+            "taken_at": r.taken_at,
+            "gps": [float(r.gps_lat), float(r.gps_lon)] if r.gps_lat is not None and r.gps_lon is not None else None,
+            "checks": checks_for(db, r),
         }
         for r in rows
     ]
+
+
+def checks_for(db: Session, ev: ConstructionEvidence) -> dict:
+    """Where, when and reused, worked out fresh each time so a later duplicate is caught on both photos."""
+    case = db.get(Case, ev.case_id)
+    plot = (
+        float(case.plot_lat) if case and case.plot_lat is not None else None,
+        float(case.plot_lon) if case and case.plot_lon is not None else None,
+    )
+    others = []
+    if ev.fingerprint:
+        rows = (
+            db.query(ConstructionEvidence, Case, ConstructionStage)
+            .join(Case, Case.id == ConstructionEvidence.case_id)
+            .join(ConstructionStage, ConstructionStage.id == ConstructionEvidence.stage_id)
+            .filter(ConstructionEvidence.id != ev.id, ConstructionEvidence.fingerprint.isnot(None))
+            .all()
+        )
+        others = [
+            {
+                "evidence_id": o.id,
+                "case_id": c.id,
+                "who": c.beneficiary_name.split(" (")[0],
+                "village": c.village,
+                "stage_name": st.stage_name,
+                "same_case": c.id == ev.case_id,
+                "fingerprint": o.fingerprint,
+            }
+            for o, c, st in rows
+        ]
+    photo = {
+        "taken_at": ev.taken_at,
+        "gps_lat": float(ev.gps_lat) if ev.gps_lat is not None else None,
+        "gps_lon": float(ev.gps_lon) if ev.gps_lon is not None else None,
+        "fingerprint": ev.fingerprint,
+        "uploaded_at": ev.uploaded_at,
+    }
+    return evaluate(photo, plot, others)
 
 
 def _evidence_or_404(db: Session, evidence_id: int) -> ConstructionEvidence:
@@ -198,6 +246,12 @@ def review_evidence(evidence_id: int, body: EvidenceReview, user: Operator, db: 
     ev = _evidence_or_404(db, evidence_id)
     if body.status == "retake" and not body.note.strip():
         raise HTTPException(status_code=422, detail="Say what the retake should show.")
+    flags = checks_for(db, ev)["flags"] if body.status == "accepted" else []
+    if flags and not body.note.strip():
+        raise HTTPException(
+            status_code=422,
+            detail=f"This photo has warnings ({', '.join(flags)}). Say why you accept it anyway.",
+        )
     ev.verification_status = body.status
     ev.review_note = body.note.strip()
     ev.reviewed_by = user.username
@@ -206,7 +260,8 @@ def review_evidence(evidence_id: int, body: EvidenceReview, user: Operator, db: 
         db,
         "construction_evidence_reviewed",
         ev.case_id,
-        f"evidence_id={ev.id}; stage_id={ev.stage_id}; status={body.status}",
+        f"evidence_id={ev.id}; stage_id={ev.stage_id}; status={body.status}"
+        + (f"; accepted_despite={','.join(flags)}" if flags else ""),
         user.username,
     )
     db.commit()

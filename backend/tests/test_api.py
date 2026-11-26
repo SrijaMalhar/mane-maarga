@@ -316,7 +316,12 @@ def test_construction_stage_timing_shortfall(client):
         == "Show the plinth edge"
     )
     assert client.patch(f"/api/stages/{sid}/status", json={"status": "verified"}).status_code == 409
-    accepted = client.patch(f"/api/construction-evidence/{eid}/review", json={"status": "accepted"}).json()
+    unexplained = client.patch(f"/api/construction-evidence/{eid}/review", json={"status": "accepted"})
+    assert unexplained.status_code == 422 and "Say why" in unexplained.json()["detail"]
+    accepted = client.patch(
+        f"/api/construction-evidence/{eid}/review",
+        json={"status": "accepted", "note": "Officer's phone had location off; checked in person"},
+    ).json()
     assert accepted["verification_status"] == "accepted" and accepted["reviewed_by"]
     updated = client.patch(f"/api/stages/{sid}/status", json={"status": "verified"})
     assert updated.status_code == 200 and updated.json()["status"] == "verified"

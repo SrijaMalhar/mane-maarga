@@ -68,6 +68,7 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 | **No invented numbers** | The assistant picks tools; code does the arithmetic. An answer with a rupee figure it cannot trace is withheld. | Intelligence → Run the agent |
 | **A Kannada voice** | Intake questions in everyday spoken Kannada, recorded in a warm voice; families can answer by talking. | Intelligence → Conversational intake |
 | **Flight recorder** | Every agent step is sealed into a SHA-256 chain. Edit any stored step and the recorder shows exactly where the seal broke. Replay runs the reads again to show whether the advice still holds. | Flight recorder |
+| **Site photo checks** | Every construction photo is checked against the family's plot pin (GPS distance), its capture time, and every other photo on file (same picture sent for another family). A person still decides; accepting a flagged photo needs a written reason. | Construction → Problem photo |
 | **Red-pen document checks** | Land records are compared with the case field by field; a reviewer decides on every mismatch. | Verification |
 
 <div align="center">
@@ -108,6 +109,13 @@ Each working page opens on the one sentence a field officer needs, with the figu
 <br /><sub>Every rupee in the answer came from a tool result; the stamped clause ID links the ₹1,20,000 to its source. Try <code>make demo</code> for the recovery and blocked runs.</sub>
 </div>
 
+### A photo that was sent before
+
+<div align="center">
+<img src="docs/assets/screenshots/photo-checks.png" width="640" alt="Site photo review: the new walls photo beside the identical photo already filed for another family in Kudur; three warnings: 39 km from the plot pin, taken 76 days before upload, and the same picture as Gowramma's walls photo; a reason is required to accept anyway" />
+<br /><sub>A field officer sends another family's old photo. The reviewer sees it next to the original: 39 km from the plot, 76 days old, same picture. Accepting it anyway needs a reason, which goes into the audit trail.</sub>
+</div>
+
 ### The flight recorder
 
 Every run can be played back step by step. Each step's seal covers the step before it, so a changed figure breaks the chain at that step and every later step loses its link. **Replay** runs each read-only tool call again with the recorded arguments and says, step by step, whether today's answer is the same. Tools that change data or need approval are never run again. The whole record exports as JSON.
@@ -124,7 +132,7 @@ Every run can be played back step by step. Each step's seal covers the step befo
 | **Beneficiary management** | Case records with village, taluk and phone (last four digits only), a six-stage journey, consent capture and withdrawal, search, filters and village grouping. |
 | **Document verification** | PDF/PNG/JPEG upload (10 MB, file signatures checked), authenticated preview, text extraction with `pypdf` and Tesseract (English + Kannada), field-by-field comparison with the case, and a verify / reject / request-correction decision. |
 | **Scheme-aware finance** | Funding sources marked proposed, confirmed, received or rejected. Duplicate confirmed scheme references are blocked. A dated PMAY-G Karnataka rule pack drives the **money ladder**, and a **30% repayment cap** counts every existing loan, including the PMAY-G scheme loan. |
-| **Construction tracking** | A stage plan costed from the estimate and stage status. A field officer adds a site photo; a reviewer accepts it or asks for a retake with a note. A stage can only be marked verified once one of its photos is accepted (the API refuses otherwise), and the house drawing fills in as stages are verified. The software never judges a photo. In the demo, **Use a sample photo** adds a labelled drawing so the whole flow can be tried. |
+| **Construction tracking** | A stage plan costed from the estimate and stage status. A field officer adds a site photo; a reviewer accepts it or asks for a retake with a note. A stage can only be marked verified once one of its photos is accepted (the API refuses otherwise), and the house drawing fills in as stages are verified. Each photo is checked for **where** (EXIF GPS against the case's plot pin: at the plot within 150 m, flagged beyond 1 km), **when** (flagged if taken over 30 days before upload) and **used before** (a 16×16 grey thumbnail compared with every photo on file; catches re-sent and resized copies, not crops). The software never judges a photo; accepting a flagged one needs a written reason. In the demo, **Sample photo** and **Problem photo** show both paths. |
 | **Cited rules** | A dated Karnataka PMAY-G rule pack: 17 clauses, each with an ID, English and Kannada text, and its source (PIB, Lok Sabha, CAG). Eligibility and the 8 exclusion rules run in code; a missing fact gives *needs information*, never a guess. `make rules-lint` rejects any clause without a source or Kannada text. See [PROBLEM.md](PROBLEM.md). |
 | **Agent runtime** | A PLAN → ACT → CHECK → RECOVER → ASK → DONE loop over 11 typed, audited tools. The model chooses; the server runs the tool. A citation guard withholds any answer whose figures or clauses can't be traced. Runs on a scripted mock with no key, or on Lyzr Agent Studio. |
 | **Flight recorder** | Each agent step stores a seal, `sha256(previous seal + step)`, and the run's outcome is sealed last (migration 0005). `GET /api/agent/runs/{id}/recording` re-checks the chain and names the first changed step. `POST …/replay` re-runs read-only tools only, compares field by field and rolls back. |

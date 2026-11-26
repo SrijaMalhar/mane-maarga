@@ -10,12 +10,13 @@
 import type { AuthUser, Client } from './api'
 import { ApiError } from './api'
 
-const KEY = 'mm_demo_store_v3'
+const KEY = 'mm_demo_store_v4'
 const now = () => new Date().toISOString()
 
 /* The same PMAY-G Karnataka rule pack the API reads, synced from backend/app/engine/rules_data (see scripts/sync-rules.mjs). */
 import { formatINR } from './money'
 import KA_PMAYG from '../generated/rules/KA__pmayg__2024-25.json'
+import { evaluate, fingerprint, readExif } from './photo-check'
 const amount = (key: string) => KA_PMAYG.amounts.find(a => a.key === key)!
 const PACK = {
   pack_id: KA_PMAYG.pack_id,
@@ -49,7 +50,10 @@ function seed(): Store {
   ]
   rows.forEach(([n, v, t, st, est, sanc, loan, notes], i) => {
     const id = i + 1
-    s.cases.push({ id, beneficiary_name: n, village: v, taluk: t, phone_last4: id === 1 ? '7310' : '', status: st, estimated_cost: est, sanctioned_amount: sanc, existing_loan: loan, gap_amount: Math.max(0, est - sanc), consent_status: n.startsWith('Thimmaiah') ? 'pending' : 'given', notes, created_at: now() })
+    // Sample plot pins: the three families with site photos sit on the pins the photos were drawn for; neighbours a little apart.
+    const pin = PLOT_PIN[String(v).toLowerCase()]
+    const own = [1, 5, 7].includes(id) ? 0 : (id % 5 + 1) * 0.0011
+    s.cases.push({ id, beneficiary_name: n, village: v, taluk: t, phone_last4: id === 1 ? '7310' : '', status: st, estimated_cost: est, sanctioned_amount: sanc, existing_loan: loan, gap_amount: Math.max(0, est - sanc), consent_status: n.startsWith('Thimmaiah') ? 'pending' : 'given', notes, plot_lat: pin ? +(pin[0] + own).toFixed(6) : null, plot_lon: pin ? +(pin[1] - own).toFixed(6) : null, created_at: now() })
     if (!n.startsWith('Thimmaiah')) s.consent.push({ id: s.seq++, case_id: id, consent_given: true, consent_scope: 'case_processing', consent_text_version: 'v1', recorded_by: 'demo_visitor', notes: '', recorded_at: now() })
   })
   const doc = (case_id: number, name: string, lines: string[], status = 'pending') => { const id = s.seq++; s.docs.push({ id, case_id, original_name: name, content_type: 'application/pdf', size_bytes: 700 + lines.join('').length, verification_status: status, uploaded_by: 'demo_visitor', uploaded_at: now() }); s.docText[id] = lines; return id }
@@ -69,7 +73,10 @@ function seed(): Store {
       const st = { id: s.seq++, case_id: cid, stage_code: code, stage_name: name, planned_cost: Math.round(est * (share as number)), planned_start: null, planned_end: null, notes: '', status: i < done ? 'verified' : i === done && done < 4 ? 'in_progress' : 'planned', created_by: 'demo_visitor', created_at: now() }
       s.stages.push(st)
       // Verified stages carry the accepted photo that allowed it.
-      if (i < done) s.evidence.push({ id: s.seq++, case_id: cid, stage_id: st.id, original_name: `${code}-site.jpg`, caption: '', sample: code, verification_status: 'accepted', uploaded_by: 'field_officer_magadi', uploaded_at: now(), reviewed_by: 'demo_visitor', review_note: '', reviewed_at: now() })
+      if (i < done) {
+        const day = `2026-${String(8 + i).padStart(2, '0')}-1${i + 1}T09:30:00+00:00` // a day after the photo was taken
+        s.evidence.push({ id: s.seq++, case_id: cid, stage_id: st.id, original_name: `${code}-site.jpg`, caption: '', sample_url: samplePhoto(s.cases[cid - 1].village, code as string), verification_status: 'accepted', uploaded_by: 'field_officer_magadi', uploaded_at: day, reviewed_by: 'field_supervisor', review_note: '', reviewed_at: day })
+      }
     })
   })
   s.tasks.push({ id: s.seq++, case_id: 1, title: 'Confirm roof material quote with mason', description: '', category: 'construction', status: 'open', owner: '', due_date: null, created_at: now() })
@@ -90,7 +97,31 @@ function db(): Store {
 function save() { try { sessionStorage.setItem(KEY, JSON.stringify(store)) } catch { /* quota or disabled */ } }
 export function resetDemo() { store = seed(); save(); blobs.clear() }
 /** Sample site photos: drawings bundled with the demo, one per standard stage. */
-export const SAMPLE_PHOTO: Record<string, string> = { plinth: '/demo/site-plinth.jpg', lintel: '/demo/site-walls.jpg', roof: '/demo/site-roof.jpg', finish: '/demo/site-finishing.jpg' }
+const PLOT_PIN: Record<string, [number, number]> = { hosahalli: [12.942, 77.215], bidadi: [12.796, 77.3905], kudur: [13.049, 77.147], harohalli: [12.683, 77.474] }
+const SAMPLE_STAGE: Record<string, string> = { plinth: 'plinth', lintel: 'walls', roof: 'roof', finish: 'finishing' }
+const SAMPLE_PLOTS = ['hosahalli', 'bidadi', 'kudur']
+/** The drawn sample photo for a village's plot and a stage; villages without their own drawings use Bidadi's. */
+export function samplePhoto(village: string, stageCode: string, plot?: string) {
+  const v = plot ?? (SAMPLE_PLOTS.includes(village.toLowerCase()) ? village.toLowerCase() : 'bidadi')
+  return SAMPLE_STAGE[stageCode] ? `/demo/site-${v}-${SAMPLE_STAGE[stageCode]}.jpg` : null
+}
+
+/** Reads GPS, time and the fingerprint once per photo, from the file itself. */
+async function ensureMeta(e: Row) {
+  if (e.meta) return
+  const blob = blobs.get(e.id) ?? (e.sample_url ? await (await fetch(e.sample_url)).blob() : null)
+  if (!blob) { Object.assign(e, { meta: true, taken_at: null, gps: null, fingerprint: null }); return }
+  const ex = readExif(await blob.arrayBuffer())
+  Object.assign(e, { meta: true, taken_at: e.taken_override ?? ex.taken_at, gps: ex.gps, fingerprint: await fingerprint(blob) })
+}
+async function photoChecks(s: Store, e: Row) {
+  await Promise.all(s.evidence.map(ensureMeta))
+  const c = s.cases.find(x => x.id === e.case_id)
+  const stageName = (id: number) => s.stages.find(x => x.id === id)?.stage_name ?? 'a stage'
+  const others = s.evidence.filter(o => o.id !== e.id).map(o => { const oc = s.cases.find(x => x.id === o.case_id); return { evidence_id: o.id, case_id: o.case_id, who: String(oc?.beneficiary_name ?? '').split(' (')[0], village: oc?.village ?? '', stage_name: stageName(o.stage_id), same_case: o.case_id === e.case_id, fingerprint: o.fingerprint } })
+  return evaluate({ taken_at: e.taken_at, gps: e.gps, fingerprint: e.fingerprint, uploaded_at: e.uploaded_at }, c?.plot_lat != null ? [Number(c.plot_lat), Number(c.plot_lon)] : null, others)
+}
+const evidenceOut = async (s: Store, e: Row) => { const { meta: _m, fingerprint: _f, taken_override: _t, ...rest } = e; void _m; void _f; void _t; return { ...rest, checks: await photoChecks(s, e) } }
 const blobs = new Map<number, Blob>()
 
 function audit(s: Store, action: string, case_id: number | null, detail = '', actor = 'demo_visitor') { s.audit.unshift({ id: s.seq++, case_id, actor, action, detail, created_at: now() }) }
@@ -370,21 +401,27 @@ function routes(s: Store): Array<[string, RegExp, Handler]> {
     ['GET', /^\/api\/cases\/(\d+)\/stages$/, m => s.stages.filter(x => x.case_id === caseOr404(m[1]).id)],
     ['POST', /^\/api\/cases\/(\d+)\/stages$/, (m, b) => { const c = caseOr404(m[1]); if (!(Number(b.planned_cost) > 0)) throw new ApiError('planned_cost: must be greater than 0', 422); const st: Row = { id: s.seq++, case_id: c.id, planned_start: null, planned_end: null, notes: '', ...b, status: 'planned', created_by: 'demo_visitor', created_at: now() }; s.stages.push(st); audit(s, 'construction_stage_created', c.id, `stage_id=${st.id}; code=${st.stage_code}`); return st }],
     ['PATCH', /^\/api\/stages\/(\d+)\/status$/, (m, b) => { const st = s.stages.find(x => x.id === Number(m[1])); if (!st) throw new ApiError('Construction stage not found', 404); if (b.status === 'verified' && st.status !== 'verified' && !s.evidence.some(e => e.stage_id === st.id && e.verification_status === 'accepted')) throw new ApiError('Accept a site photo for this stage before marking it verified.', 409); st.status = b.status; audit(s, 'construction_stage_status_updated', st.case_id, `stage_id=${st.id}; status=${b.status}`); return st }],
-    ['GET', /^\/api\/cases\/(\d+)\/construction-evidence$/, m => s.evidence.filter(e => e.case_id === caseOr404(m[1]).id)],
+    ['GET', /^\/api\/cases\/(\d+)\/construction-evidence$/, m => { const id = caseOr404(m[1]).id; return Promise.all(s.evidence.filter(e => e.case_id === id).map(e => evidenceOut(s, e))) }],
     ['POST', /^\/api\/cases\/(\d+)\/stages\/(\d+)\/evidence$/, (m, b) => {
       const c = caseOr404(m[1]); const st = s.stages.find(x => x.id === Number(m[2]) && x.case_id === c.id); if (!st) throw new ApiError('Case or stage not found', 404)
       const f = b.__file as File | undefined
       if (f && !['image/jpeg', 'image/png', 'image/webp'].includes(f.type)) throw new ApiError('Evidence must be JPEG, PNG or WebP', 415)
-      const e: Row = { id: s.seq++, case_id: c.id, stage_id: st.id, original_name: f ? f.name : `${st.stage_code}-site.jpg`, caption: '', sample: f ? undefined : st.stage_code, verification_status: 'pending_review', uploaded_by: f ? 'demo_visitor' : 'field_officer_magadi', uploaded_at: now(), reviewed_by: null, review_note: '', reviewed_at: null }
+      // Demo samples: 'good' is this plot's own drawing, taken just now; 'problem' is another family's photo, re-sent.
+      const own = String(c.village).toLowerCase()
+      const sample_url = f ? undefined : b.sample === 'problem' ? samplePhoto(c.village, st.stage_code, own === 'kudur' ? 'hosahalli' : 'kudur') : samplePhoto(c.village, st.stage_code)
+      if (!f && !sample_url) throw new ApiError('No sample photo for this stage', 404)
+      const e: Row = { id: s.seq++, case_id: c.id, stage_id: st.id, original_name: f ? f.name : b.sample === 'problem' ? `IMG_${4000 + s.seq}.jpg` : `${st.stage_code}-site.jpg`, caption: '', sample_url, taken_override: !f && b.sample !== 'problem' ? new Date(Date.now() - 2 * 3600e3).toISOString() : undefined, verification_status: 'pending_review', uploaded_by: f ? 'demo_visitor' : 'field_officer_magadi', uploaded_at: now(), reviewed_by: null, review_note: '', reviewed_at: null }
       if (f) blobs.set(e.id, f)
-      s.evidence.unshift(e); audit(s, 'construction_evidence_uploaded', c.id, `stage_id=${st.id}; review_required`); return e
+      s.evidence.unshift(e); audit(s, 'construction_evidence_uploaded', c.id, `stage_id=${st.id}; review_required`); return evidenceOut(s, e)
     }],
-    ['PATCH', /^\/api\/construction-evidence\/(\d+)\/review$/, (m, b) => {
+    ['PATCH', /^\/api\/construction-evidence\/(\d+)\/review$/, async (m, b) => {
       const e = s.evidence.find(x => x.id === Number(m[1])); if (!e) throw new ApiError('Photo not found', 404)
       if (!['accepted', 'retake'].includes(b.status)) throw new ApiError('status: accepted or retake', 422)
       if (b.status === 'retake' && !String(b.note ?? '').trim()) throw new ApiError('Say what the retake should show.', 422)
+      const flags = b.status === 'accepted' ? (await photoChecks(s, e)).flags : []
+      if (flags.length && !String(b.note ?? '').trim()) throw new ApiError(`This photo has warnings (${flags.join(', ')}). Say why you accept it anyway.`, 422)
       Object.assign(e, { verification_status: b.status, review_note: String(b.note ?? '').trim(), reviewed_by: 'demo_visitor', reviewed_at: now() })
-      audit(s, 'construction_evidence_reviewed', e.case_id, `evidence_id=${e.id}; stage_id=${e.stage_id}; status=${b.status}`); return e
+      audit(s, 'construction_evidence_reviewed', e.case_id, `evidence_id=${e.id}; stage_id=${e.stage_id}; status=${b.status}${flags.length ? `; accepted_despite=${flags.join(',')}` : ''}`); return evidenceOut(s, e)
     }],
     ['GET', /^\/api\/cases\/(\d+)\/agent-plan$/, m => agentPlan(s, caseOr404(m[1]))],
     ['POST', /^\/api\/cases\/(\d+)\/agent\/run$/, m => agentRun(s, caseOr404(m[1]))],
@@ -581,7 +618,7 @@ export function makeDemoClient(): Client {
     if (ph) {
       const e = db().evidence.find(x => x.id === Number(ph[1])); const blob = e ? blobs.get(e.id) : undefined
       if (blob) return new Response(blob, { status: 200, headers: { 'Content-Type': blob.type } })
-      if (e?.sample && SAMPLE_PHOTO[e.sample]) return fetch(SAMPLE_PHOTO[e.sample])
+      if (e?.sample_url) return fetch(e.sample_url)
       return new Response(null, { status: 404 })
     }
     const dl = path.match(/^\/api\/documents\/(\d+)\/download$/)

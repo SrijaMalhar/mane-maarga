@@ -32,6 +32,8 @@ class Case(Base):
     gap_amount: Mapped[float] = mapped_column(Numeric(12, 2), default=0)
     consent_status: Mapped[str] = mapped_column(String(20), default="pending")
     notes: Mapped[str] = mapped_column(Text, default="")
+    plot_lat: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
+    plot_lon: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -154,6 +156,10 @@ class ConstructionEvidence(Base):
     reviewed_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
     review_note: Mapped[str] = mapped_column(Text, default="")
     reviewed_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    taken_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    gps_lat: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
+    gps_lon: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
+    fingerprint: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
 
 class RecoveryTask(Base):

@@ -1099,3 +1099,34 @@ label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1)
 .form-actions.start { justify-content: flex-start; }
 .ev-retake textarea { width: 100%; }
 @media (max-width: 800px) { .ev-review { grid-template-columns: 1fr; } }
+
+/* ---------- Photo checks: where, when, used before ---------- */
+.ev-warn { position: absolute; top: 4px; right: 4px; display: inline-flex; gap: 3px; align-items: center; background: var(--redpen); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+.link-btn.warn { color: var(--redpen); }
+.ev-left { display: grid; gap: var(--s4); min-width: 0; }
+.ev-pair { display: grid; gap: 10px; }
+.ev-pair.two { grid-template-columns: 1fr 1fr; }
+.ev-big { margin: 0; }
+.ev-big figcaption { background: var(--charcoal); color: var(--paper, #F4EFE4); font-size: 12.5px; padding: 4px 8px 6px; }
+.ev-big.match { box-shadow: 0 0 0 3px var(--redpen); }
+.ev-big.match figcaption { background: var(--redpen); color: #fff; }
+.ev-pair.two .ev-big img { max-height: 40vh; }
+.ev-checkbox { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: var(--s4); align-items: center; }
+.ev-checks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+.ev-checks li { display: grid; grid-template-columns: 18px minmax(0, 1fr) 18px; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 14.5px; line-height: 1.4; }
+.ev-checks li b { display: block; font-size: 12.5px; color: var(--ink-3); font-weight: 600; }
+.ev-checks li.flag { background: var(--redpen-tint); box-shadow: inset 4px 0 0 var(--redpen); padding-left: 10px; padding-right: 8px; grid-template-columns: 18px minmax(0, 1fr) 18px; }
+.ev-checks li.flag span { color: var(--charcoal); }
+.ev-flag-i { color: var(--redpen); } .ev-ok-i { color: var(--neem); }
+.ev-ring { width: 150px; height: 150px; }
+.ev-ring .ring-km { fill: none; stroke: var(--rule-strong); stroke-dasharray: 3 4; }
+.ev-ring .ring-near { fill: #DDE8DF; stroke: var(--neem); }
+.ev-ring .ring-l { font: 500 10px var(--font-mono); fill: var(--ink-3); text-anchor: middle; }
+.ev-ring .ring-plot { fill: var(--charcoal); }
+.ev-ring .ring-line { stroke: var(--neem); stroke-width: 1.5; } .ev-ring .ring-line.far { stroke: var(--redpen); stroke-dasharray: 4 3; }
+.ev-ring .ring-photo { fill: var(--neem); stroke: #fff; stroke-width: 2; } .ev-ring .ring-photo.far { fill: var(--redpen); }
+.ev-alert { display: flex; gap: 8px; align-items: center; color: var(--redpen); font-weight: 650; margin-bottom: var(--s3); }
+.ev-decide { flex-wrap: wrap; } .ev-decide .field { flex-basis: 100%; }
+@media (max-width: 800px) { .ev-checkbox { grid-template-columns: 1fr; } .ev-ring { justify-self: center; } }
+.btn.danger-outline { border-color: var(--redpen); color: var(--redpen); }
+.pin-row { display: flex; gap: 8px; } .pin-row input { flex: 1; min-width: 0; }

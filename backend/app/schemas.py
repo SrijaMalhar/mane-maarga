@@ -17,6 +17,8 @@ class CaseCreate(BaseModel):
     estimated_cost: float = Field(default=0, ge=0)
     existing_loan: float = Field(default=0, ge=0)
     notes: str = ""
+    plot_lat: float | None = Field(default=None, ge=-90, le=90)
+    plot_lon: float | None = Field(default=None, ge=-180, le=180)
 
 
 class CaseUpdate(BaseModel):
@@ -29,6 +31,8 @@ class CaseUpdate(BaseModel):
     estimated_cost: float | None = Field(default=None, ge=0)
     existing_loan: float | None = Field(default=None, ge=0)
     notes: str | None = None
+    plot_lat: float | None = Field(default=None, ge=-90, le=90)
+    plot_lon: float | None = Field(default=None, ge=-180, le=180)
 
 
 class CaseOut(CaseCreate):

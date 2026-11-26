@@ -2,6 +2,14 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Day 5 · 26 Nov 2026 · The approval gate, for real
+- `policies/gated_actions.yaml`: submit to portal, request a tranche, accept a loan, pay any amount and share documents need the family; a case-status change needs an administrator.
+- Approval requests carry a payload hash and plain summaries in Kannada and English with rupees and recipient. `app/approvals/executor.py` is the only place gated actions run: it re-hashes the payload, needs an approved and unexpired request, and claims it with one conditional update so it runs exactly once. Every refusal is audited.
+- 6-digit OTP stored as an HMAC, 5-minute expiry, 3 attempts, sent through a Simulated SMS outbox. Family links are hashed tokens that can be rotated. Staff cannot approve money on a family's behalf.
+- Injection guard: document and message text reaches the model as `<untrusted_data>`, and instruction-like phrases are flagged in the run trace and audit log.
+- Family page `/#/approve/{token}`: Kannada first, large type, read aloud, I agree → code → done. Case file Approvals panel with the outbox; in demo mode the simulated SMS pops up on a phone preview.
+- Migration 0004; 11 new tests (bypass, expired code and approval, replay, tampered payload, rejection, link rotation, injection): 113 passing.
+
 ## Voice, part 3 · 25 Nov 2026 · The Kannada questions now have a warm voice
 - All eight Kannada intake questions are recorded with Indic Parler-TTS (AI4Bharat), speaker Anu, rendered in Colab with a tone set for each line. They are loudness-normalised for phone speakers and play before any live synthesis, including in the hosted demo with no keys.
 

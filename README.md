@@ -67,6 +67,13 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 </tr>
 </table>
 
+### The family approves, on their own phone
+
+<div align="center">
+<img src="docs/assets/screenshots/family-approval.png" width="880" alt="Three phone screens in Kannada: the loan the family is asked to accept with the amount and lender, the one-time code entry, and the confirmation that it was done" />
+<br /><sub>Money, loans, submissions and document sharing wait for the family's one-time code. The page says in Kannada what will happen, how much, and to whom. In the demo the SMS is simulated and pops up on the phone.</sub>
+</div>
+
 ### The agent, step by step
 
 <div align="center">
@@ -84,7 +91,7 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 | **Construction tracking** | A stage plan costed from the estimate, stage status, and photo evidence held for review. The house drawing fills in as stages are verified. |
 | **Cited rules** | A dated Karnataka PMAY-G rule pack: 17 clauses, each with an ID, English and Kannada text, and its source (PIB, Lok Sabha, CAG). Eligibility and the 8 exclusion rules run in code; a missing fact gives *needs information*, never a guess. `make rules-lint` rejects any clause without a source or Kannada text. See [PROBLEM.md](PROBLEM.md). |
 | **Agent runtime** | A PLAN → ACT → CHECK → RECOVER → ASK → DONE loop over 11 typed, audited tools. The model chooses; the server runs the tool. A citation guard withholds any answer whose figures or clauses can't be traced. Runs on a scripted mock with no key, or on Lyzr Agent Studio. |
-| **Approval gate** | Agents can only *request* a status change, offer or payment. Only an administrator's decision changes a case, and both steps are audited. |
+| **Approval gate** | Six gated actions in a policy file. Agents and staff can only *request* them. Money, loans, submissions and sharing documents need the family's one-time code (stored as an HMAC, 5 minutes, 3 tries); a status change needs an administrator. One executor runs each approved action exactly once, after re-checking the payload hash. Document text reaches the model only as quoted data. |
 | **Decision support** | Rule-based checks of documents, finance, construction and blockers, each with its evidence. Also: voice intake in Kannada, English and Telugu through Bhashini (speech recognition and natural Indian voices, female or male; audio never stored), scheme reference links, a budget estimate and follow-up tasks. |
 | **Accountability** | JWT sessions with admin, operator and viewer roles, an audit trail of every sensitive action, rate-limited sign-in, and security headers with request IDs. |
 | **Accessibility** | A full Kannada/English interface (self-hosted Anek and Tiro Kannada fonts, Kannada line height 1.7), a high-contrast sunlight mode, keyboard navigation and visible focus, status shown by icon and text (never colour alone), reduced-motion support, and phone layouts. |
@@ -153,7 +160,7 @@ What these numbers do and don't say:
 
 Mane Maarga works with vulnerable families and public money, so the line between help and decision is part of the design:
 
-- **People decide.** Agents can only create a pending approval request; eligibility, credit, payment and status changes need an administrator. A test calls every tool and proves none changes status or money.
+- **People decide.** Agents can only create a pending approval request. Payments, loans, submissions and document sharing need the family's own one-time code, and status changes need an administrator. Tests prove that no tool changes status or money, that an agent trying to pay or submit is blocked and logged, and that an approved action runs exactly once.
 - **Extraction is unverified until a reviewer confirms it.** Extracted fields are labelled as such, mismatches are flagged, and only a person can mark a document verified.
 - **Money rules are transparent.** Proposed funding is never counted as confirmed. Existing loans are liabilities, not funding. The ladder's stage split is marked illustrative until it's checked against the PMAY-G guidelines.
 - **Suggestions carry their evidence.** Each recommended action names the documents or figures behind it and the check that produced it.
@@ -213,7 +220,7 @@ Key settings in `.env` (see `.env.example`):
 
 To stop everything: `docker compose down`. Your database and uploads stay in Docker volumes. Removing them (`docker compose down -v`) **permanently deletes all records**.
 
-**Tests:** `make test` (or `docker compose exec api python -m pytest -q`). There are 102 backend tests covering auth, roles, uploads, extraction, funding rules, the money ladder, affordability, every eligibility exclusion, every tool, the agent runtime and Bhashini speech. CI also runs ruff, mypy, `rules-lint`, the benchmark, ESLint, a style lint (no hype words, emoji or gradients; every string in Kannada) and the frontend build on every push. `make demo` prints agent traces without any key.
+**Tests:** `make test` (or `docker compose exec api python -m pytest -q`). There are 113 backend tests covering auth, roles, uploads, extraction, funding rules, the money ladder, affordability, every eligibility exclusion, every tool, the agent runtime, Bhashini speech and the approval gate (bypass, replay, tampering, expiry). CI also runs ruff, mypy, `rules-lint`, the benchmark, ESLint, a style lint (no hype words, emoji or gradients; every string in Kannada) and the frontend build on every push. `make demo` prints agent traces without any key.
 
 Production Compose, operations and the release checklist are in [`docs/`](docs/).
 
@@ -232,7 +239,7 @@ mane-maarga/
 │   ├── alembic/                 # migrations
 │   ├── benchmarks/              # MaargaDocBench (synthetic document benchmark)
 │   ├── scripts/                 # rules_lint.py, agent_demo.py
-│   └── tests/                   # 102 tests
+│   └── tests/                   # 113 tests
 ├── frontend/
 │   ├── src/
 │   │   ├── pages/               # Overview, Beneficiaries, CaseFile, Verification, Finance, …

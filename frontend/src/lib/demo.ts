@@ -112,7 +112,7 @@ function financeSummary(s: Store, c: Row) {
   return { case_id: c.id, estimated_cost: est, funding_confirmed: committed, funding_received: received, funding_proposed: proposed, funding_gap: Math.max(0, est - committed), existing_loans: Number(c.existing_loan || 0), stages: rows, warnings, eligibility: 'NOT_ASSESSED', finance_recommendation: 'NOT_GENERATED' }
 }
 
-function ladder(total: number, savings = 0, loan = 0, grants = 0) {
+export function ladder(total: number, savings = 0, loan = 0, grants = 0) {
   if (!(total > 0)) throw new ApiError('total_cost must be positive', 422)
   loan = Math.min(loan, PACK.scheme_loan_max)
   const base = savings + loan + grants

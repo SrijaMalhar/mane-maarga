@@ -73,7 +73,7 @@ const en = {
 
   'landing.cta.explore': 'Explore Mane Maarga', 'landing.cta.access': 'Access the platform',
   'landing.headline': 'A home is more than walls. It is a beginning.',
-  'landing.sub': 'Mane Maarga brings families, housing assistance, transparent financial planning and accountable progress together — helping turn the dream of a safe home into a reality.',
+  'landing.sub': 'A case file for rural housing in Karnataka. It keeps a family\'s money, documents and decisions in one honest record, in Kannada and English, from the first visit to the day the keys are handed over.',
   'landing.story.title': 'The journey to a home shouldn\'t be complicated.',
 
   'auth.welcome': 'Welcome back', 'auth.setup': 'Set up the workspace', 'auth.signin': 'Sign in', 'auth.create': 'Create administrator',
@@ -135,7 +135,7 @@ const kn: Partial<Record<Key, string>> = {
   'team.title': 'ತಂಡ ಮತ್ತು ಪ್ರವೇಶ', 'team.lead': 'ಫಲಾನುಭವಿ ದಾಖಲೆಗಳನ್ನು ಯಾರು ನೋಡಬಹುದು ಮತ್ತು ಬದಲಾಯಿಸಬಹುದು.',
   'landing.cta.explore': 'ಮನೆ ಮಾರ್ಗ ಅನ್ವೇಷಿಸಿ', 'landing.cta.access': 'ವೇದಿಕೆಗೆ ಪ್ರವೇಶಿಸಿ',
   'landing.headline': 'ಮನೆ ಎಂದರೆ ಗೋಡೆಗಳಷ್ಟೇ ಅಲ್ಲ. ಅದು ಹೊಸ ಆರಂಭ.',
-  'landing.sub': 'ಮನೆ ಮಾರ್ಗ ಕುಟುಂಬಗಳು, ವಸತಿ ನೆರವು, ಪಾರದರ್ಶಕ ಹಣಕಾಸು ಯೋಜನೆ ಮತ್ತು ಹೊಣೆಗಾರಿಕೆಯ ಪ್ರಗತಿಯನ್ನು ಒಂದೆಡೆ ತರುತ್ತದೆ — ಸುರಕ್ಷಿತ ಮನೆಯ ಕನಸನ್ನು ನನಸಾಗಿಸಲು.',
+  'landing.sub': 'ಕರ್ನಾಟಕದ ಗ್ರಾಮೀಣ ವಸತಿಗಾಗಿ ಒಂದು ಕಡತ. ಮೊದಲ ಭೇಟಿಯಿಂದ ಕೀಲಿ ಕೈಗೆ ಬರುವವರೆಗೆ ಕುಟುಂಬದ ಹಣ, ದಾಖಲೆ ಮತ್ತು ನಿರ್ಧಾರಗಳನ್ನು ಕನ್ನಡ ಮತ್ತು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಒಂದೇ ಪ್ರಾಮಾಣಿಕ ದಾಖಲೆಯಾಗಿ ಇಡುತ್ತದೆ.',
   'landing.story.title': 'ಮನೆಯ ಪಯಣ ಕಷ್ಟಕರವಾಗಿರಬಾರದು.',
   'auth.welcome': 'ಮರಳಿ ಸ್ವಾಗತ', 'auth.setup': 'ಕಾರ್ಯಕ್ಷೇತ್ರ ಸಿದ್ಧಪಡಿಸಿ', 'auth.signin': 'ಸೈನ್ ಇನ್', 'auth.create': 'ನಿರ್ವಾಹಕರನ್ನು ರಚಿಸಿ',
   'auth.username': 'ಬಳಕೆದಾರ ಹೆಸರು', 'auth.password': 'ಪಾಸ್‌ವರ್ಡ್', 'auth.email': 'ಇಮೇಲ್ ವಿಳಾಸ', 'lang.label': 'ಭಾಷೆ',

@@ -10,7 +10,7 @@
 import type { AuthUser, Client } from './api'
 import { ApiError } from './api'
 
-const KEY = 'mm_demo_store_v1'
+const KEY = 'mm_demo_store_v2'
 const now = () => new Date().toISOString()
 
 /* The same PMAY-G Karnataka rule pack the API reads, synced from backend/app/engine/rules_data (see scripts/sync-rules.mjs). */
@@ -29,7 +29,7 @@ const PACK = {
 const DISCLAIMER = 'Indicative calculation from illustrative assumptions. Not an eligibility, credit or payment decision; verify current scheme rules and lender terms before relying on it.'
 
 type Row = Record<string, any>  
-type Store = { seq: number; cases: Row[]; consent: Row[]; docs: Row[]; docText: Record<number, string[]>; extractions: Row[]; funding: Row[]; stages: Row[]; evidence: Row[]; tasks: Row[]; audit: Row[]; users: Row[]; intake: Record<string, Row> }
+type Store = { seq: number; approvals?: Row[]; outbox?: Row[]; cases: Row[]; consent: Row[]; docs: Row[]; docText: Record<number, string[]>; extractions: Row[]; funding: Row[]; stages: Row[]; evidence: Row[]; tasks: Row[]; audit: Row[]; users: Row[]; intake: Record<string, Row> }
 
 export const DEMO_USER: AuthUser = { id: 1, username: 'demo_visitor', email: 'demo@example.test', role: 'admin', is_active: true }
 
@@ -49,7 +49,7 @@ function seed(): Store {
   ]
   rows.forEach(([n, v, t, st, est, sanc, loan, notes], i) => {
     const id = i + 1
-    s.cases.push({ id, beneficiary_name: n, village: v, taluk: t, phone_last4: '', status: st, estimated_cost: est, sanctioned_amount: sanc, existing_loan: loan, gap_amount: Math.max(0, est - sanc), consent_status: n.startsWith('Thimmaiah') ? 'pending' : 'given', notes, created_at: now() })
+    s.cases.push({ id, beneficiary_name: n, village: v, taluk: t, phone_last4: id === 1 ? '7310' : '', status: st, estimated_cost: est, sanctioned_amount: sanc, existing_loan: loan, gap_amount: Math.max(0, est - sanc), consent_status: n.startsWith('Thimmaiah') ? 'pending' : 'given', notes, created_at: now() })
     if (!n.startsWith('Thimmaiah')) s.consent.push({ id: s.seq++, case_id: id, consent_given: true, consent_scope: 'case_processing', consent_text_version: 'v1', recorded_by: 'demo_visitor', notes: '', recorded_at: now() })
   })
   const doc = (case_id: number, name: string, lines: string[], status = 'pending') => { const id = s.seq++; s.docs.push({ id, case_id, original_name: name, content_type: 'application/pdf', size_bytes: 700 + lines.join('').length, verification_status: status, uploaded_by: 'demo_visitor', uploaded_at: now() }); s.docText[id] = lines; return id }
@@ -71,6 +71,9 @@ function seed(): Store {
   })
   s.tasks.push({ id: s.seq++, case_id: 1, title: 'Confirm roof material quote with mason', description: '', category: 'construction', status: 'open', owner: '', due_date: null, created_at: now() })
   s.cases.forEach(c => audit(s, 'case_created', c.id, 'Beneficiary case created'))
+  const loan = s.funding.find(f => f.case_id === 1 && f.source_type === 'loan')!
+  createApproval(s, 1, 'accept_loan', { lender: 'PMAY-G scheme loan, Magadi Grameena Bank (sample)', amount_inr: 70000, funding_source_id: loan.id },
+    'Family asked to proceed with the scheme loan to cover the roof stage.', [PACK.citations[1]], 'agent:demo')
   return s
 }
 
@@ -85,7 +88,7 @@ function save() { try { sessionStorage.setItem(KEY, JSON.stringify(store)) } cat
 export function resetDemo() { store = seed(); save(); blobs.clear() }
 const blobs = new Map<number, Blob>()
 
-function audit(s: Store, action: string, case_id: number | null, detail = '') { s.audit.unshift({ id: s.seq++, case_id, actor: 'demo_visitor', action, detail, created_at: now() }) }
+function audit(s: Store, action: string, case_id: number | null, detail = '', actor = 'demo_visitor') { s.audit.unshift({ id: s.seq++, case_id, actor, action, detail, created_at: now() }) }
 
 /* ---------------- rules, ported from the backend ---------------- */
 function recalcGap(c: Row) { c.gap_amount = Math.max(0, Number(c.estimated_cost || 0) - Number(c.sanctioned_amount || 0)) }
@@ -327,11 +330,138 @@ function routes(s: Store): Array<[string, RegExp, Handler]> {
   ]
 }
 
+
+/* ---------------- approval gate (mirrors backend/app/approvals) ---------------- */
+const GATED: Record<string, { approver: 'family' | 'admin'; label_en: string; label_kn: string; hours: number }> = {
+  submit_to_portal: { approver: 'family', label_en: 'Submit the application to the government portal', label_kn: 'ಸರ್ಕಾರಿ ಪೋರ್ಟಲ್‌ಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸುವುದು', hours: 72 },
+  request_tranche: { approver: 'family', label_en: 'Ask for the next instalment', label_kn: 'ಮುಂದಿನ ಕಂತನ್ನು ಕೇಳುವುದು', hours: 72 },
+  accept_loan: { approver: 'family', label_en: 'Accept a loan', label_kn: 'ಸಾಲವನ್ನು ಒಪ್ಪಿಕೊಳ್ಳುವುದು', hours: 72 },
+  pay_any_amount: { approver: 'family', label_en: 'Make a payment', label_kn: 'ಹಣ ಪಾವತಿ ಮಾಡುವುದು', hours: 24 },
+  share_documents_with_third_party: { approver: 'family', label_en: 'Share documents with someone outside the panchayat', label_kn: 'ದಾಖಲೆಗಳನ್ನು ಪಂಚಾಯತ್ ಹೊರಗಿನವರೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳುವುದು', hours: 72 },
+  change_case_status: { approver: 'admin', label_en: 'Change the case status', label_kn: 'ಕಡತದ ಸ್ಥಿತಿ ಬದಲಾವಣೆ', hours: 168 },
+}
+const STATUS_KN: Record<string, string> = { intake: 'ಹೊಸ ಅರ್ಜಿ', verified: 'ಪರಿಶೀಲಿಸಲಾಗಿದೆ', planning: 'ಯೋಜನೆ', finance_review: 'ಹಣಕಾಸು ಪರಿಶೀಲನೆ', construction: 'ನಿರ್ಮಾಣ', completed: 'ಪೂರ್ಣಗೊಂಡಿದೆ' }
+
+function summarise(action: string, p: Row, name: string): [string, string, number | null, string] {
+  const r = p.amount_inr ? formatINR(p.amount_inr) : ''
+  switch (action) {
+    case 'change_case_status': return [`${name}'s case will move to '${String(p.new_status).replace('_', ' ')}'.`, `${name} ಅವರ ಕಡತ '${STATUS_KN[p.new_status] ?? p.new_status}' ಹಂತಕ್ಕೆ ಹೋಗುತ್ತದೆ.`, null, '']
+    case 'submit_to_portal': { const n = (p.document_ids ?? []).length; return [`${name}'s housing application and ${n} document(s) will be sent to ${p.portal}.`, `${name} ಅವರ ಮನೆ ಅರ್ಜಿ ಮತ್ತು ${n} ದಾಖಲೆ(ಗಳು) ${p.portal} ಗೆ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.`, null, p.portal] }
+    case 'request_tranche': return [`Ask for the ${p.stage} instalment of ${r}, paid into ${p.payee}.`, `${p.stage} ಹಂತದ ${r} ಕಂತನ್ನು ಕೇಳಲಾಗುತ್ತದೆ. ಹಣ ${p.payee} ಗೆ ಬರುತ್ತದೆ.`, p.amount_inr, p.payee]
+    case 'accept_loan': return [`${name} accepts a loan of ${r} from ${p.lender}. It must be repaid.`, `${name} ಅವರು ${p.lender} ನಿಂದ ${r} ಸಾಲ ಪಡೆಯುತ್ತಾರೆ. ಇದನ್ನು ಮರುಪಾವತಿ ಮಾಡಬೇಕು.`, p.amount_inr, p.lender]
+    case 'pay_any_amount': return [`Pay ${r} to ${p.payee} for ${p.purpose}.`, `${p.purpose} ಗಾಗಿ ${p.payee} ಅವರಿಗೆ ${r} ಪಾವತಿ ಮಾಡಲಾಗುತ್ತದೆ.`, p.amount_inr, p.payee]
+    case 'share_documents_with_third_party': { const n = (p.document_ids ?? []).length; return [`Share ${n} of ${name}'s document(s) with ${p.recipient} for ${p.purpose}.`, `${name} ಅವರ ${n} ದಾಖಲೆ(ಗಳನ್ನು) ${p.purpose} ಗಾಗಿ ${p.recipient} ಅವರೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳಲಾಗುತ್ತದೆ.`, null, p.recipient] }
+  }
+  throw new ApiError(`'${action}' is not a gated action`, 422)
+}
+const stable = (p: Row) => JSON.stringify(Object.keys(p).sort().reduce((o: Row, k) => { o[k] = p[k]; return o }, {}))
+const rnd = (n: number) => Array.from(crypto.getRandomValues(new Uint8Array(n)), b => b.toString(36).padStart(2, '0')).join('').slice(0, n * 2)
+const masked = (c: Row) => (c.phone_last4 ? `******${c.phone_last4}` : 'the phone on file')
+
+function createApproval(s: Store, case_id: number, action: string, payload: Row, reason: string, citations: string[], by: string) {
+  const g = GATED[action]; if (!g) throw new ApiError(`'${action}' is not a gated action`, 422)
+  const c = s.cases.find(x => x.id === case_id); if (!c) throw new ApiError('Case not found', 404)
+  const [summary_en, summary_kn, amount_inr, recipient] = summarise(action, payload, c.beneficiary_name)
+  const token = g.approver === 'family' ? rnd(16) : null
+  const a: Row = { id: s.seq++, case_id, action, payload, payload_hash: stable(payload), summary_en, summary_kn, amount_inr, recipient, reason, citations,
+    status: 'pending', approver: g.approver, method: null, approver_ref: null, token, requested_by: by, decided_by: null, decision_note: '', result: {},
+    otp: null, otps_sent: 0, expires_at: new Date(Date.now() + g.hours * 3600_000).toISOString(), executed_at: null, created_at: now() }
+  ;(s.approvals ??= []).push(a)
+  audit(s, 'approval_requested', case_id, `approval ${a.id}: ${action} (${g.approver}) by ${by}`)
+  return a
+}
+function approvalOut(a: Row, pub = false) {
+  const g = GATED[a.action]
+  const base = { id: a.id, case_id: a.case_id, action: a.action, label_en: g.label_en, label_kn: g.label_kn, summary_en: a.summary_en, summary_kn: a.summary_kn,
+    amount_inr: a.amount_inr, recipient: a.recipient, status: a.status, approver: a.approver, expires_at: a.expires_at }
+  if (pub) return base
+  const rest: Row = { ...a }
+  delete rest.token; delete rest.otp; delete rest.otps_sent
+  return { ...rest, ...base }
+}
+function expireIfDue(s: Store, a: Row) {
+  if (['pending', 'approved'].includes(a.status) && Date.parse(a.expires_at) < Date.now()) { a.status = 'expired'; audit(s, 'approval_expired', a.case_id, `approval ${a.id}`) }
+}
+function send(s: Store, channel: string, to: string, subject: string, body: string, case_id: number, approval_id: number) {
+  const m = { id: s.seq++, channel, to, subject, body, case_id, approval_id, simulated: true, created_at: now() }
+  ;(s.outbox ??= []).unshift(m); return m
+}
+function executeApproval(s: Store, a: Row, actor: string) {
+  expireIfDue(s, a)
+  if (stable(a.payload) !== a.payload_hash) { audit(s, 'gated_action_blocked', a.case_id, `approval ${a.id}: payload changed`); throw new ApiError('The action no longer matches what was approved.', 409) }
+  if (a.status !== 'approved') { audit(s, 'gated_action_blocked', a.case_id, `approval ${a.id}: ${a.action} is ${a.status}`); throw new ApiError(`Cannot run: this request is ${a.status}.`, 409) }
+  const c = s.cases.find(x => x.id === a.case_id)!; const p = a.payload
+  let result: Row
+  if (a.action === 'change_case_status') { const from = c.status; c.status = p.new_status; result = { from, to: c.status } }
+  else if (a.action === 'accept_loan') {
+    let f = s.funding.find(x => x.id === p.funding_source_id && x.case_id === c.id)
+    if (f) f.status = 'confirmed'
+    else { f = { id: s.seq++, case_id: c.id, source_type: 'loan', source_name: p.lender, amount: p.amount_inr, status: 'confirmed', scheme_code: null, reference_number: null, evidence_document_id: null, notes: `Accepted by the family (approval ${a.id})`, created_by: a.approver_ref, created_at: now() }; s.funding.push(f) }
+    result = { funding_source_id: f.id, status: 'confirmed' }
+  } else {
+    const ch = a.action === 'pay_any_amount' ? 'payment' : a.action === 'share_documents_with_third_party' ? 'share' : 'portal'
+    const m = send(s, ch, a.recipient || 'portal', GATED[a.action].label_en, a.summary_en, c.id, a.id)
+    result = { outbox_id: m.id, simulated: true }
+  }
+  a.status = 'executed'; a.executed_at = now(); a.result = result
+  audit(s, 'gated_action_executed', a.case_id, `approval ${a.id}: ${a.action}`, actor)
+  return result
+}
+function approvalRoutes(s: Store): Array<[string, RegExp, (m: RegExpMatchArray, b: Row) => unknown]> {
+  const list = () => (s.approvals ??= [])
+  const byId = (id: string) => { const a = list().find(x => x.id === Number(id)); if (!a) throw new ApiError('Approval request not found', 404); expireIfDue(s, a); return a }
+  const byToken = (t: string) => { const a = list().find(x => x.token && x.token === t); if (!a) throw new ApiError('This approval link is not valid.', 404); expireIfDue(s, a); return a }
+  const pending = (a: Row) => { if (a.status !== 'pending') throw new ApiError(`This request is already ${a.status}.`, 409) }
+  return [
+    ['GET', /^\/api\/cases\/(\d+)\/approvals$/, m => list().filter(a => a.case_id === Number(m[1])).sort((x, y) => y.id - x.id).map(a => { expireIfDue(s, a); return approvalOut(a) })],
+    ['POST', /^\/api\/cases\/(\d+)\/approvals$/, (m, b) => { const a = createApproval(s, Number(m[1]), b.action, b.payload ?? {}, b.reason ?? '', b.citations ?? [], 'demo_visitor'); return { ...approvalOut(a), family_link: a.token ? `/#/approve/${a.token}` : null } }],
+    ['POST', /^\/api\/approvals\/(\d+)\/link$/, m => { const a = byId(m[1]); if (a.approver !== 'family') throw new ApiError('This action is approved by an administrator, not the family', 400); pending(a); a.token = rnd(16); return { family_link: `/#/approve/${a.token}` } }],
+    ['POST', /^\/api\/approvals\/(\d+)\/decide$/, (m, b) => {
+      const a = byId(m[1])
+      if (a.approver !== 'admin' && b.approve) { audit(s, 'gated_action_blocked', a.case_id, `approval ${a.id}: staff tried to approve a family action`); throw new ApiError('Only the family can approve this, with their one-time code.', 403) }
+      pending(a); a.status = b.approve ? 'approved' : 'rejected'; a.method = 'admin'; a.approver_ref = 'admin:demo_visitor'; a.decided_by = 'demo_visitor'; a.decision_note = b.note ?? ''
+      audit(s, `approval_${a.status}`, a.case_id, `approval ${a.id}: ${a.action}`)
+      if (a.status === 'approved') executeApproval(s, a, 'demo_visitor')
+      return approvalOut(a)
+    }],
+    ['POST', /^\/api\/approvals\/(\d+)\/execute$/, m => ({ executed: true, result: executeApproval(s, byId(m[1]), 'demo_visitor') })],
+    ['GET', /^\/api\/outbox$/, (_m, _b) => (s.outbox ??= []).slice(0, 50)],
+    ['GET', /^\/api\/public\/approvals\/([\w-]+)$/, m => { const a = byToken(m[1]); const c = s.cases.find(x => x.id === a.case_id)!; return { ...approvalOut(a, true), beneficiary_first_name: c.beneficiary_name.split(' ')[0], phone_hint: masked(c) } }],
+    ['POST', /^\/api\/public\/approvals\/([\w-]+)\/otp$/, m => {
+      const a = byToken(m[1]); pending(a)
+      if (a.otps_sent >= 5) throw new ApiError('Too many codes for this approval. Ask the case worker for a new link.', 400)
+      const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1_000_000).padStart(6, '0')
+      a.otp = { code, expires: Date.now() + 300_000, attempts: 0 }; a.otps_sent += 1
+      const c = s.cases.find(x => x.id === a.case_id)!
+      send(s, 'sms', masked(c), 'Approval code', `ಮನೆ ಮಾರ್ಗ: ನಿಮ್ಮ ಒಪ್ಪಿಗೆ ಸಂಕೇತ ${code}. ಇದು 5 ನಿಮಿಷ ಮಾತ್ರ. ಯಾರಿಗೂ ಹೇಳಬೇಡಿ. Mane Maarga approval code ${code}. Valid 5 minutes. Do not share it.`, a.case_id, a.id)
+      return { sent_to: masked(c), expires_in_seconds: 300, channel: 'sms', simulated: true }
+    }],
+    ['POST', /^\/api\/public\/approvals\/([\w-]+)\/decision$/, (m, b) => {
+      const a = byToken(m[1]); pending(a)
+      if (b.decision === 'approve') {
+        if (!a.otp) throw new ApiError('Ask for a code first.', 400)
+        if (Date.now() > a.otp.expires) { a.otp = null; throw new ApiError('The code has expired. Ask for a new one.', 400) }
+        a.otp.attempts += 1
+        if (String(b.code ?? '').trim() !== a.otp.code) {
+          if (a.otp.attempts >= 3) { a.otp = null; throw new ApiError('Three wrong codes. Ask for a new one.', 400) }
+          throw new ApiError(`Wrong code. ${3 - a.otp.attempts} tries left.`, 400)
+        }
+        a.otp = null
+      }
+      const c = s.cases.find(x => x.id === a.case_id)!
+      a.status = b.decision === 'approve' ? 'approved' : 'rejected'; a.method = b.decision === 'approve' ? 'otp' : 'family_link'; a.approver_ref = `family:${masked(c)}`; a.decided_by = 'family'
+      audit(s, `approval_${a.status}`, a.case_id, `approval ${a.id}: ${a.action} via ${a.method}`, 'family')
+      if (a.status === 'approved') executeApproval(s, a, 'family')
+      return approvalOut(a, true)
+    }],
+  ]
+}
+
 export function makeDemoClient(): Client {
   async function dispatch(method: string, path: string, body: unknown): Promise<unknown> {
     const s = db()
     const [p, query = ''] = path.split('?')
-    for (const [m, re, h] of routes(s)) {
+    for (const [m, re, h] of [...approvalRoutes(s), ...routes(s)] as Array<[string, RegExp, (m: RegExpMatchArray, b: Row, q: URLSearchParams) => unknown]>) {
       if (m !== method) continue
       const match = p.match(re)
       if (match) { const out = h(match, (body ?? {}) as Row, new URLSearchParams(query)); save(); return structuredClone(out) }

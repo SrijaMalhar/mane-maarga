@@ -8,6 +8,7 @@ import { Loading, useToast } from './components/ui'
 import Shell from './components/Shell'
 import CaseForm from './components/CaseForm'
 import Landing from './pages/Landing'
+import FamilyApproval from './pages/FamilyApproval'
 import AuthScreen from './pages/AuthScreen'
 import Overview from './pages/Overview'
 import Beneficiaries from './pages/Beneficiaries'
@@ -122,7 +123,15 @@ function Workspace() {
   )
 }
 
+function PublicApproval({ token }: { token: string }) {
+  // Opened from an SMS on the family's phone: no login, just the link and the one-time code.
+  const client = useMemo(() => (readDemo() ? makeDemoClient() : makeClient('', () => {})), [])
+  return <FamilyApproval token={token} client={client} />
+}
+
 export default function App() {
+  const approve = window.location.hash.match(/^#\/approve\/([\w-]+)/)
+  if (approve) return <PublicApproval token={approve[1]} />
   if (import.meta.env.DEV && window.location.hash === '#/kit') return <Kit />
   return <I18nProvider><Workspace /></I18nProvider>
 }

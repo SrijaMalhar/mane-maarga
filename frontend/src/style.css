@@ -765,3 +765,54 @@ code { font-family: var(--font-mono); font-size: .88em; background: var(--sunken
 .kit .swatches b { display: block; padding: 6px 8px; font-weight: 500; }
 .icon-btn.recording { background: var(--redpen); color: #fff; border-color: var(--redpen); animation: pulse 1.2s ease-in-out infinite; }
 label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1); margin: var(--s2) 0; }
+
+/* ---------- Approval gate ---------- */
+.cf-approvals { grid-column: 1 / -1; }
+.cf-approvals h2 { display: flex; gap: 8px; align-items: center; }
+.appr-list { list-style: none; margin: var(--s3) 0 0; padding: 0; }
+.appr-list > li { border-top: 1px solid var(--rule); padding: var(--s3) 0; display: grid; gap: 4px; }
+.appr-top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.appr-kn { font-size: var(--t3); line-height: 1.7; }
+.appr-actions { display: flex; gap: 8px; margin-top: 4px; }
+.appr-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--s3); align-items: end; background: var(--well); padding: var(--s3); margin: var(--s3) 0; border: 1px solid var(--rule); }
+.outbox { margin-top: var(--s4); border: 1px dashed var(--rule-strong); padding: var(--s2) var(--s3); background: var(--surface); }
+.outbox summary { cursor: pointer; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.outbox ul { list-style: none; margin: var(--s2) 0 0; padding: 0; }
+.outbox li { display: grid; gap: 2px; padding: 6px 0; border-top: 1px solid var(--rule); font-size: var(--t1); }
+.phone-preview { position: fixed; inset: 0; background: rgba(34, 33, 30, .55); display: flex; gap: var(--s5); align-items: center; justify-content: center; z-index: 60; padding: var(--s4); }
+.phone-frame { width: 390px; max-width: 100%; height: min(820px, 92vh); overflow: auto; border: 10px solid var(--charcoal); border-radius: 36px; background: var(--lime); }
+.phone-hint { max-width: 260px; background: var(--surface); padding: var(--s3); font-size: var(--t1); border-left: 3px solid var(--turmeric); }
+@media (max-width: 760px) { .phone-hint { display: none; } }
+/* Family page: Kannada first, large type, one decision */
+.fam { min-height: 100%; display: flex; justify-content: center; background: var(--lime); padding: var(--s4) var(--s3); }
+.fam-card { width: 100%; max-width: 460px; display: grid; gap: var(--s4); align-content: start; }
+.fam-brand { font-family: var(--font-kn-display); color: var(--laterite); display: flex; justify-content: space-between; align-items: center; }
+.fam-hello { font-size: var(--t4); }
+.fam-title { font-family: var(--font-kn-display); font-size: 34px; line-height: 1.35; color: var(--charcoal); }
+.fam-sub, .fam-en, .fam-card span[lang='en'] { color: var(--ink-2); font-size: var(--t2); line-height: 1.5; }
+.fam-what { background: var(--surface); border: 1px solid var(--rule-strong); padding: var(--s4); display: grid; gap: var(--s3); }
+.fam-summary { font-size: 22px; line-height: 1.7; }
+.fam-listen { justify-self: start; display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--neem); color: var(--neem); background: transparent; padding: 8px 14px; font-size: var(--t2); cursor: pointer; }
+.fam-facts { display: grid; grid-template-columns: auto 1fr; gap: 8px var(--s3); align-items: baseline; margin: 0; }
+.fam-facts dt { color: var(--ink-2); font-size: var(--t2); }
+.fam-facts dd { margin: 0; font-size: var(--t3); font-weight: 600; }
+.fam-amount { font-family: var(--font-mono); font-size: 32px !important; color: var(--stamp); }
+.fam-actions { display: grid; grid-template-columns: 2fr 1fr; gap: var(--s3); }
+.fam-yes, .fam-no { display: grid; justify-items: center; gap: 2px; font-size: 24px; font-weight: 600; padding: 16px; border: 0; cursor: pointer; font-family: var(--font-kn-display); }
+.fam-yes { background: var(--neem); color: #fff; } .fam-yes span, .fam-no span { font-size: var(--t1); font-family: var(--font-ui); color: inherit !important; opacity: .85; }
+.fam-yes:disabled { opacity: .5; cursor: default; }
+.fam-no { background: transparent; color: var(--redpen); border: 2px solid var(--redpen); }
+.fam-code { display: grid; gap: var(--s3); }
+.fam-code label { font-size: var(--t3); line-height: 1.6; display: grid; gap: 4px; }
+.fam-code input { font-family: var(--font-mono); font-size: 36px; letter-spacing: .4em; text-align: center; padding: 12px; border: 2px solid var(--charcoal); background: var(--surface); }
+.fam-done { display: flex; gap: var(--s3); align-items: center; padding: var(--s4); font-size: var(--t4); line-height: 1.6; background: var(--neem-tint); color: var(--neem); }
+.fam-done.rejected, .fam-done.expired { background: var(--redpen-tint); color: var(--redpen); }
+.fam-err { color: var(--redpen); font-size: var(--t3); }
+.fam-fine { font-size: var(--t2); color: var(--ink-2); line-height: 1.6; border-top: 1px solid var(--rule); padding-top: var(--s3); display: grid; gap: 4px; }
+.fam-sms { position: sticky; top: 0; z-index: 2; display: grid; gap: 2px; background: var(--charcoal); color: #fff; padding: 10px 12px; font-size: 13px; line-height: 1.5; border-radius: 10px; }
+.fam-sms b { font-size: 11px; letter-spacing: .04em; color: var(--turmeric); }
+.phone-frame { overflow-x: hidden; }
+.fam-card > *, .fam-code > * { min-width: 0; }
+.fam-code input { width: 100%; box-sizing: border-box; letter-spacing: .3em; }
+.fam-summary, .fam-facts dd, .fam-sms span { overflow-wrap: anywhere; }
+.fam-code .fam-yes { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }

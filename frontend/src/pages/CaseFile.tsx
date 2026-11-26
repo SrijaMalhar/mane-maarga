@@ -1,3 +1,4 @@
+import ApprovalsPanel from '../components/ApprovalsPanel'
 import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
 import { ArrowLeft, ArrowRight, FileUp, Pencil, Trash2, ClipboardCheck, FileText, ShieldCheck, ShieldOff } from 'lucide-react'
 import House, { statusLevel } from '../components/House'
@@ -161,6 +162,8 @@ export default function CaseFile({ id }: { id: number }) {
             ? <button className="btn ghost small" onClick={() => setConsent(false)}><ShieldOff size={15} />Record withdrawal</button>
             : <button className="btn ghost small" onClick={() => setConsent(true)}><ShieldCheck size={15} />Record consent</button>)}
         </section>
+
+        <ApprovalsPanel caseId={c.id} />
 
         <section className="panel cf-insights" aria-labelledby="i-h">
           <div className="panel-head"><h2 id="i-h">{t('case.insights')}</h2><Tag tone="ai" icon={<ClipboardCheck size={12} />}>Rule-based suggestions</Tag></div>

@@ -24,6 +24,8 @@ GET /api/intelligence/intake/{session_token}
 GET /api/intelligence/overview
 GET /api/intelligence/schemes
 GET /api/intelligence/state-packs
+GET /api/outbox
+GET /api/public/approvals/{token}
 GET /api/schemes
 GET /api/speech/status
 GET /api/system/version
@@ -36,11 +38,14 @@ PATCH /api/documents/{document_id}/verification
 PATCH /api/recovery-tasks/{task_id}
 PATCH /api/stages/{stage_id}/status
 POST /api/approvals/{approval_id}/decide
+POST /api/approvals/{approval_id}/execute
+POST /api/approvals/{approval_id}/link
 POST /api/auth/bootstrap
 POST /api/auth/login
 POST /api/auth/users
 POST /api/cases
 POST /api/cases/{case_id}/agent/run
+POST /api/cases/{case_id}/approvals
 POST /api/cases/{case_id}/budget-plan
 POST /api/cases/{case_id}/consent
 POST /api/cases/{case_id}/documents
@@ -55,6 +60,8 @@ POST /api/engine/ladder
 POST /api/intelligence/evaluation/synthetic
 POST /api/intelligence/intake
 POST /api/intelligence/intake/{session_token}/message
+POST /api/public/approvals/{token}/decision
+POST /api/public/approvals/{token}/otp
 POST /api/speech/asr
 POST /api/speech/tts
 POST /api/tools/{name}

@@ -135,8 +135,8 @@ def test_bad_arguments_and_unknown_tools_are_refused(ctx, case_id):
         ("get_case", {"case_id": 99999}, "case_not_found"),
         (
             "request_approval",
-            {"case_id": case_id, "action": "case_status_change", "reason": "stage done"},
-            "invalid_arguments",
+            {"case_id": case_id, "action": "change_case_status", "reason": "stage done"},
+            "invalid_payload",
         ),
     ]:
         with pytest.raises(ToolError) as e:
@@ -157,17 +157,21 @@ def test_every_call_writes_an_audit_row_with_hashes(ctx, case_id):
 
 
 def test_no_tool_changes_status_or_money(ctx, case_id):
-    """Call every write and gated tool, including approval requests for status, money and payments."""
+    """Call every write and gated tool, including requests for every gated action."""
     before = snapshot(ctx.db, case_id)
     run(ctx, "create_task", case_id=case_id, title="Visit site")
-    for action, extra in [
-        ("case_status_change", {"new_status": "completed"}),
-        ("financial_offer", {"amount": 70000}),
-        ("payment", {"amount": 120000}),
-        ("submission", {}),
+    for action, payload in [
+        ("change_case_status", {"new_status": "completed"}),
+        ("accept_loan", {"lender": "Kunigal PACS", "amount_inr": 70000}),
+        ("pay_any_amount", {"amount_inr": 120000, "payee": "Mason", "purpose": "plinth work"}),
+        ("submit_to_portal", {}),
+        ("request_tranche", {"stage": "plinth", "amount_inr": 30000}),
+        ("share_documents_with_third_party", {"recipient": "SBI Kunigal", "document_ids": [1], "purpose": "loan"}),
     ]:
-        out = run(ctx, "request_approval", case_id=case_id, action=action, reason="Proposed by the agent", **extra)
-        assert out["status"] == "pending"
+        out = run(
+            ctx, "request_approval", case_id=case_id, action=action, payload=payload, reason="Proposed by the agent"
+        )
+        assert out["status"] == "pending" and out["summary_kn"]
     for name in REGISTRY:
         if REGISTRY[name].side_effect == "none" and name not in (
             "get_rule_clause",
@@ -181,7 +185,7 @@ def test_no_tool_changes_status_or_money(ctx, case_id):
                 **({"kind": "cash_needed", "items": "Rs 40,000"} if name == "draft_message" else {}),
             )
     assert snapshot(ctx.db, case_id) == before
-    assert ctx.db.query(ApprovalRequest).filter_by(case_id=case_id, status="pending").count() == 4
+    assert ctx.db.query(ApprovalRequest).filter_by(case_id=case_id, status="pending").count() == 6
 
 
 def test_only_an_admin_decision_changes_status(client, ctx, case_id):
@@ -189,16 +193,17 @@ def test_only_an_admin_decision_changes_status(client, ctx, case_id):
         ctx,
         "request_approval",
         case_id=case_id,
-        action="case_status_change",
-        new_status="finance_review",
+        action="change_case_status",
+        payload={"new_status": "finance_review"},
         reason="Documents verified",
         citations=[f"{P}:EL-01"],
     )
+    assert out["approver"] == "admin"
     assert client.get(f"/api/cases/{case_id}").json()["status"] == "planning"
     listed = client.get(f"/api/cases/{case_id}/approvals").json()
     assert listed[0]["citations"] == [f"{P}:EL-01"] and listed[0]["status"] == "pending"
     d = client.post(f"/api/approvals/{out['approval_id']}/decide", json={"approve": True, "note": "Checked"})
-    assert d.status_code == 200 and d.json()["decided_by"] == "testadmin"
+    assert d.status_code == 200 and d.json()["decided_by"] == "testadmin" and d.json()["status"] == "executed"
     assert client.get(f"/api/cases/{case_id}").json()["status"] == "finance_review"
     assert client.post(f"/api/approvals/{out['approval_id']}/decide", json={"approve": False}).status_code == 409
 

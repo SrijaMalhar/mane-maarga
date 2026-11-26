@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -175,23 +177,67 @@ class EvaluationRun(Base):
 
 
 class ApprovalRequest(Base):
-    """A change a person must approve. Tools and agents can only create these as pending."""
+    """A gated action waiting for a person. Agents and tools can only create these; only the executor runs them.
+
+    status: pending -> approved -> executed, or rejected / expired. The payload is hashed when the request is
+    made and checked again before it runs, so what the family approved is exactly what happens.
+    """
 
     __tablename__ = "approval_requests"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
-    action: Mapped[str] = mapped_column(
-        String(40), nullable=False
-    )  # case_status_change, financial_offer, payment, submission
+    action: Mapped[str] = mapped_column(String(60), nullable=False)  # a key in policies/gated_actions.yaml
     payload_json: Mapped[str] = mapped_column(Text, default="{}")
+    payload_hash: Mapped[str] = mapped_column(String(64), default="")
+    summary_en: Mapped[str] = mapped_column(Text, default="")
+    summary_kn: Mapped[str] = mapped_column(Text, default="")
+    amount_inr: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+    recipient: Mapped[str] = mapped_column(String(200), default="")
     reason: Mapped[str] = mapped_column(Text, default="")
     citations_json: Mapped[str] = mapped_column(Text, default="[]")
-    status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)  # pending, approved, rejected
+    status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False)
+    approver: Mapped[str] = mapped_column(String(20), default="family")  # family (OTP) or admin
+    method: Mapped[str | None] = mapped_column(String(20), nullable=True)  # otp, voice_otp, admin
+    approver_ref: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     requested_by: Mapped[str] = mapped_column(String(120), nullable=False)
     decided_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
     decision_note: Mapped[str] = mapped_column(Text, default="")
-    decided_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    result_json: Mapped[str] = mapped_column(Text, default="{}")
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    executed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ApprovalOtp(Base):
+    """A one-time code for one approval. Only an HMAC of the code is stored."""
+
+    __tablename__ = "approval_otps"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    approval_id: Mapped[int] = mapped_column(ForeignKey("approval_requests.id", ondelete="CASCADE"), index=True)
+    code_hmac: Mapped[str] = mapped_column(String(64), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class OutboxMessage(Base):
+    """Messages and external actions that would leave the system. Simulated until a real channel is connected."""
+
+    __tablename__ = "outbox_messages"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    channel: Mapped[str] = mapped_column(String(20), nullable=False)  # sms, whatsapp, portal, payment, share
+    to_ref: Mapped[str] = mapped_column(String(200), default="")
+    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=True, index=True)
+    approval_id: Mapped[int | None] = mapped_column(
+        ForeignKey("approval_requests.id", ondelete="SET NULL"), nullable=True
+    )
+    subject: Mapped[str] = mapped_column(String(200), default="")
+    body: Mapped[str] = mapped_column(Text, default="")
+    simulated: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class AgentRun(Base):

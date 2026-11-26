@@ -35,6 +35,8 @@ class Observation:
     result: dict | None = None
     error: str | None = None
     message: str = ""
+    model_view: dict | None = None  # the result as the model sees it: untrusted text wrapped as data
+    flags: list[str] = field(default_factory=list)
 
 
 @dataclass

@@ -1,0 +1,37 @@
+# Actions that change money, submissions, data sharing or a case's status.
+# An agent or tool can only REQUEST these. Each runs only through app/approvals/executor.py, after the
+# approver below has said yes, and exactly once.
+#   approver: family -> the beneficiary approves on their phone with a one-time code
+#   approver: admin  -> an administrator approves in the console
+version: 1
+gated_actions:
+  submit_to_portal:
+    approver: family
+    label_en: Submit the application to the government portal
+    label_kn: ಸರ್ಕಾರಿ ಪೋರ್ಟಲ್‌ಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸುವುದು
+    expires_hours: 72
+  request_tranche:
+    approver: family
+    label_en: Ask for the next instalment
+    label_kn: ಮುಂದಿನ ಕಂತನ್ನು ಕೇಳುವುದು
+    expires_hours: 72
+  accept_loan:
+    approver: family
+    label_en: Accept a loan
+    label_kn: ಸಾಲವನ್ನು ಒಪ್ಪಿಕೊಳ್ಳುವುದು
+    expires_hours: 72
+  pay_any_amount:
+    approver: family
+    label_en: Make a payment
+    label_kn: ಹಣ ಪಾವತಿ ಮಾಡುವುದು
+    expires_hours: 24
+  share_documents_with_third_party:
+    approver: family
+    label_en: Share documents with someone outside the panchayat
+    label_kn: ದಾಖಲೆಗಳನ್ನು ಪಂಚಾಯತ್ ಹೊರಗಿನವರೊಂದಿಗೆ ಹಂಚಿಕೊಳ್ಳುವುದು
+    expires_hours: 72
+  change_case_status:
+    approver: admin
+    label_en: Change the case status
+    label_kn: ಕಡತದ ಸ್ಥಿತಿ ಬದಲಾವಣೆ
+    expires_hours: 168

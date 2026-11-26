@@ -110,8 +110,8 @@ class Grabby:
                         "tool": "request_approval",
                         "args": {
                             "case_id": turn.case_id,
-                            "action": "case_status_change",
-                            "new_status": "completed",
+                            "action": "change_case_status",
+                            "payload": {"new_status": "completed"},
                             "reason": "All done",
                         },
                     }

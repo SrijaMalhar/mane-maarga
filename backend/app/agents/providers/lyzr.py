@@ -68,7 +68,12 @@ class LyzrProvider:
         history = [
             {
                 "decision": d.model_dump(),
-                "observation": {"tool": o.tool, "result": o.result, "error": o.error, "message": o.message},
+                "observation": {
+                    "tool": o.tool,
+                    "result": o.model_view if o.model_view is not None else o.result,
+                    "error": o.error,
+                    "message": o.message,
+                },
             }
             for d, o in turn.history
         ]

@@ -1,6 +1,20 @@
 """HTTP routers, one module per area of the product."""
 
-from . import agent, audit, auth, cases, construction, documents, engine, finance, intelligence, speech, system, tools
+from . import (
+    agent,
+    approvals,
+    audit,
+    auth,
+    cases,
+    construction,
+    documents,
+    engine,
+    finance,
+    intelligence,
+    speech,
+    system,
+    tools,
+)
 
 ROUTERS = [
     system.router,
@@ -13,6 +27,7 @@ ROUTERS = [
     audit.router,
     engine.router,
     tools.router,
+    approvals.router,
     agent.router,
     speech.router,
 ]

@@ -20,6 +20,7 @@ from ..core.audit import write_audit
 from ..engine.rules import load_pack
 from ..models import AgentRun, AgentStep, Case
 from .guards.citation_guard import check as citation_check
+from .guards.injection_guard import guard_result
 from .providers import Decision, Observation, Provider, ProviderError, Turn
 from .tools import REGISTRY, ToolContext, ToolError, call_tool, tool_specs
 
@@ -137,7 +138,8 @@ def run_agent(
                 try:
                     result = call_tool(ctx, name, d.action.args)
                     results.append(result)
-                    obs = Observation(tool=name, result=result)
+                    view, flags = guard_result(name, result)
+                    obs = Observation(tool=name, result=result, model_view=view, flags=flags)
                 except ToolError as exc:
                     obs = Observation(tool=name, error=exc.code, message=exc.message)
                 _step(
@@ -148,10 +150,14 @@ def run_agent(
                     d,
                     tool=name,
                     args=d.action.args,
-                    result=obs.result,
+                    result={**(obs.result or {}), "_injection_flags": obs.flags} if obs.flags else obs.result,
                     error=obs.error,
                     ms=(time.perf_counter() - started) * 1000,
                 )
+                if obs.flags:
+                    write_audit(
+                        db, "injection_flagged", case_id, f"run {run.id} step {idx}: {name}: {obs.flags[:3]}", "system"
+                    )
             turn.history.append((d, obs))
             continue
 

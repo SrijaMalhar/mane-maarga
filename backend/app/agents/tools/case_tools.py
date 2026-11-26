@@ -12,6 +12,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from ...approvals import service as approvals
+from ...approvals.policy import GatedAction
 from ...engine import affordability as aff
 from ...engine.ladder import build_ladder
 from ...engine.rules import check_eligibility as run_eligibility
@@ -25,7 +27,6 @@ from ...models import (
     DocumentExtraction,
     RecoveryTask,
 )
-from ...schemas import Status
 from ..specialists import _document_agent
 from .registry import ToolContext, ToolError, tool
 
@@ -442,9 +443,8 @@ def draft_message(ctx: ToolContext, a: DraftArgs) -> DraftOut:
 
 class ApprovalArgs(BaseModel):
     case_id: int = Field(gt=0)
-    action: Literal["case_status_change", "financial_offer", "payment", "submission"]
-    new_status: Status | None = None
-    amount: float | None = Field(default=None, ge=0, le=100_000_000)
+    action: GatedAction
+    payload: dict = Field(default_factory=dict)
     reason: str = Field(min_length=5, max_length=2000)
     citations: list[str] = Field(default_factory=list, max_length=20)
 
@@ -453,37 +453,37 @@ class ApprovalOut(BaseModel):
     approval_id: int
     case_id: int
     action: str
+    approver: Literal["family", "admin"]
     status: Literal["pending"]
+    summary_en: str
+    summary_kn: str
     message: str
 
 
 @tool(
     "request_approval",
-    "Propose a status change, offer, payment or submission. Creates a pending request only; a person decides.",
+    "Propose a gated action (submit, tranche, loan, payment, sharing documents, status change). "
+    "Creates a pending request only; the family or an administrator decides, and only the executor runs it.",
     ApprovalArgs,
     ApprovalOut,
     "gated",
 )
 def request_approval(ctx: ToolContext, a: ApprovalArgs) -> ApprovalOut:
     _case(ctx, a.case_id)
-    if a.action == "case_status_change" and a.new_status is None:
-        raise ToolError("invalid_arguments", "case_status_change needs new_status")
-    req = ApprovalRequest(
-        case_id=a.case_id,
-        action=a.action,
-        payload_json=json.dumps({"new_status": a.new_status, "amount": a.amount}),
-        reason=a.reason,
-        citations_json=json.dumps(a.citations),
-        requested_by=ctx.actor,
-    )
-    ctx.db.add(req)
-    ctx.db.flush()
+    try:
+        req, _link = approvals.create(ctx.db, a.case_id, a.action, a.payload, a.reason, a.citations, ctx.actor)
+    except approvals.ApprovalError as exc:
+        raise ToolError(exc.code, str(exc)) from exc
+    who = "the family (one-time code)" if req.approver == "family" else "an administrator"
     return ApprovalOut(
         approval_id=req.id,
         case_id=a.case_id,
         action=a.action,
+        approver=req.approver,
         status="pending",
-        message="Waiting for an administrator. Nothing has changed on the case.",
+        summary_en=req.summary_en,
+        summary_kn=req.summary_kn,
+        message=f"Waiting for {who}. Nothing has changed on the case.",
     )
 
 

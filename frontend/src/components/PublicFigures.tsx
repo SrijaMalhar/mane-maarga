@@ -15,8 +15,15 @@ function Cite({ s }: { s: Src }) {
   return <a className="pf-cite" href={src.url} target="_blank" rel="noreferrer" title={src.title}>{src.short}</a>
 }
 
-export default function PublicFigures({ variant = 'full' }: { variant?: 'full' | 'compact' }) {
+export default function PublicFigures({ variant = 'full' }: { variant?: 'full' | 'compact' | 'line' }) {
   const f = KA_FIGS
+  if (variant === 'line') return (
+    <aside className="pf-line" aria-label="Karnataka context from public records">
+      <span className="pf-line-label">Karnataka, from public records</span>
+      <span><b>{f.ka.toFixed(1)}%</b> of sanctioned PMAY-G houses completed, against <b>{f.india.toFixed(1)}%</b> across India. <b>{n(f.open)}</b> sanctioned houses are not yet finished.</span>
+      <span className="pf-line-src">As on {date(f.asOn)}, <Cite s="LS3722" /></span>
+    </aside>
+  )
   const maxS = Math.max(...KA.series.map(p => p.sanctioned))
   return (
     <section className={`pf pf-${variant}`} aria-labelledby={`pf-${variant}`}>

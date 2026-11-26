@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { CheckCircle2, XCircle, ScanText, MessageSquareWarning, FileText, ExternalLink } from 'lucide-react'
-import { DocStatus, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
+import { DocStatus, Empty, Notice, PageHead, Skeleton } from '../components/ui'
+import { RedPen } from '../components/ledger'
+import Answer from '../components/Answer'
 import { type AuditEntry, type CaseDocument, type CaseItem, type Extraction } from '../lib/api'
-import { href, useApp } from '../lib/app-context'
+import { useApp } from '../lib/app-context'
 import { useI18n } from '../lib/i18n'
 import { bytes, dateShort, timeAgo, human } from '../lib/format'
 
@@ -67,15 +69,29 @@ export default function Verification({ initialCase }: { initialCase?: number }) 
   }
 
   const pendingCount = (docs ?? []).filter(d => d.verification_status === 'pending').length
+  const rows = ext ? [
+    ...ext.checks.map(ch => ({ field: ch.field, doc: ch.extracted ?? ext.extracted_fields[ch.field] ?? '', cas: ch.case_value ?? '', status: ch.status, message: ch.message })),
+    ...Object.entries(ext.extracted_fields).filter(([k]) => !ext.checks.some(ch => ch.field === k)).map(([k, v]) => ({ field: k, doc: v, cas: '', status: 'only_document', message: '' })),
+  ] : []
+  const differ = rows.filter(r => r.status !== 'match' && r.status !== 'only_document').length
+  const compared = rows.filter(r => r.status !== 'only_document').length
+
+  const decisionButtons = canEdit && current && (
+    <>
+      <button className={`btn ${differ ? 'ghost' : 'primary'}`} onClick={() => decide('verified')} disabled={!!busy}><CheckCircle2 size={16} />{t('verify.approve')}</button>
+      <button className={`btn ${differ ? 'primary' : 'ghost'}`} onClick={() => decide('rejected', true)} disabled={!!busy}><MessageSquareWarning size={16} />{t('verify.correction')}</button>
+      <button className="btn ghost danger" onClick={() => decide('rejected')} disabled={!!busy}><XCircle size={16} />{t('verify.reject')}</button>
+    </>
+  )
 
   return (
     <div className="verify">
-      <PageHead eyebrow={initialCase ? `Case #${initialCase}` : `${pendingCount} waiting`} title={t('verify.title')} lead={t('verify.lead')} />
+      <PageHead eyebrow={initialCase ? `Case #${initialCase}` : `${pendingCount} waiting for a reviewer`} title={t('verify.title')} />
       {docs === null ? <div className="panel"><Skeleton lines={6} /></div> : docs.length === 0 ? (
         <div className="panel"><Empty title={t('verify.empty')} sub="Documents uploaded on a case file appear here for review." /></div>
       ) : (
-        <div className="desk">
-          <aside className="desk-queue" aria-label={t('verify.queue')}>
+        <div className="vd">
+          <aside className="vd-queue" aria-label={t('verify.queue')}>
             <div className="seg full" role="group" aria-label="Filter">
               <button aria-pressed={filter === 'pending'} onClick={() => setFilter('pending')}>{t('doc.pending')} · {pendingCount}</button>
               <button aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>{t('common.all')} · {docs.length}</button>
@@ -84,9 +100,9 @@ export default function Verification({ initialCase }: { initialCase?: number }) 
               <ul>
                 {visible.map(d => (
                   <li key={d.id}>
-                    <button className={`q-item ${d.id === sel ? 'active' : ''}`} onClick={() => setSel(d.id)} aria-current={d.id === sel}>
-                      <FileText size={16} aria-hidden />
-                      <span><b>{d.original_name}</b><small>{d.c.beneficiary_name} · {timeAgo(d.uploaded_at)}</small></span>
+                    <button className={`vq-item ${d.id === sel ? 'active' : ''}`} onClick={() => setSel(d.id)} aria-current={d.id === sel}>
+                      <FileText size={17} aria-hidden />
+                      <span><b>{d.original_name}</b><small>{d.c.beneficiary_name}</small></span>
                       <DocStatus status={d.verification_status} />
                     </button>
                   </li>
@@ -96,70 +112,66 @@ export default function Verification({ initialCase }: { initialCase?: number }) 
           </aside>
 
           {current && (
-            <>
-              <section className="desk-preview" aria-label="Document preview">
-                <div className="preview-bar"><b>{current.original_name}</b><small>{bytes(current.size_bytes)} · uploaded by {current.uploaded_by} · {dateShort(current.uploaded_at, lang)}</small>{preview && <a className="icon-btn" href={preview.url} target="_blank" rel="noreferrer" aria-label="Open in new tab"><ExternalLink size={16} /></a>}</div>
-                <div className="preview-body">
-                  {!preview ? <Skeleton lines={10} /> : preview.type === 'application/pdf'
-                    ? <object data={preview.url} type="application/pdf" aria-label={current.original_name}><p className="muted pad">This browser can't show PDFs inline. <a href={preview.url} target="_blank" rel="noreferrer">Open the PDF</a>.</p></object>
+            <section className="vd-main" aria-label="Review">
+              <header className="vd-head">
+                <div>
+                  <h2>{current.original_name}</h2>
+                  <p className="muted">{current.c.beneficiary_name}, {current.c.village} · uploaded by {current.uploaded_by}, {dateShort(current.uploaded_at, lang)} · {bytes(current.size_bytes)}</p>
+                </div>
+                <DocStatus status={current.verification_status} />
+              </header>
+
+              {!ext ? (
+                <Answer kn="ಈ ದಾಖಲೆಯನ್ನು ಇನ್ನೂ ಓದಿಲ್ಲ" action={canEdit && <button className="btn primary" onClick={() => extract()} disabled={busy === 'extract'}><ScanText size={16} />{busy === 'extract' ? 'Reading…' : t('verify.extract')}</button>}>
+                  Read the document to compare it with {current.c.beneficiary_name.replace(' (sample)', '')}'s case file, field by field.
+                </Answer>
+              ) : (
+                <Answer kn={differ ? `ಕಡತದೊಂದಿಗೆ ${differ} ವ್ಯತ್ಯಾಸ` : 'ಕಡತದೊಂದಿಗೆ ಹೊಂದುತ್ತದೆ'} action={decisionButtons}>
+                  {differ
+                    ? <><span className="num">{differ} of {compared}</span> fields differ from the case file. Check them before you decide.</>
+                    : <>All <span className="num good">{compared}</span> compared fields match the case file.</>}
+                </Answer>
+              )}
+              {extErr && <Notice tone="warn">{extErr}</Notice>}
+
+              {ext && (
+                <>
+                  <table className="vd-compare">
+                    <thead><tr><th>Field</th><th>In the document</th><th>In the case file</th><th>Result</th></tr></thead>
+                    <tbody>
+                      {rows.map(r => (
+                        <tr key={r.field} className={r.status}>
+                          <td>{human(r.field)}</td>
+                          <td className="v">{r.status === 'mismatch' ? <RedPen was={r.doc} /> : r.doc || '—'}</td>
+                          <td className="v">{r.status === 'mismatch' ? <RedPen now={r.cas} /> : r.cas || <span className="muted">not in case file</span>}</td>
+                          <td className="res">{r.status === 'match' ? <span className="ok"><CheckCircle2 size={15} /> Match</span> : r.status === 'only_document' ? <span className="muted">Recorded only</span> : <span className="bad"><MessageSquareWarning size={15} /> {human(r.status)}</span>}{r.message && <small>{r.message}</small>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="vd-meta">Read as {human(ext.document_type).toLowerCase()} · {ext.engine} · confidence {Math.round(ext.confidence * 100)}%. Suggestions only; the reviewer decides. {canEdit && <button className="link-btn" onClick={() => extract(true)} disabled={busy === 'extract'}>Read again</button>}</p>
+                </>
+              )}
+              {!ext && canEdit && <div className="vd-later">{decisionButtons}</div>}
+
+              <details className="vd-doc">
+                <summary>Show the document</summary>
+                <div className="vd-preview">
+                  {!preview ? <Skeleton lines={8} /> : preview.type === 'application/pdf'
+                    ? <object data={preview.url} type="application/pdf" aria-label={current.original_name}><p className="muted pad">This browser can't show PDFs inline. <a href={preview.url} target="_blank" rel="noreferrer">Open the PDF <ExternalLink size={13} /></a></p></object>
                     : <img src={preview.url} alt={`Uploaded document: ${current.original_name}`} />}
                 </div>
-              </section>
+                {preview && <a className="link-btn" href={preview.url} target="_blank" rel="noreferrer">Open in a new tab <ExternalLink size={14} /></a>}
+              </details>
 
-              <section className="desk-review" aria-label="Review">
-                <div className="review-block">
-                  <h3>Case record</h3>
-                  <dl className="kv">
-                    <div><dt>Beneficiary</dt><dd>{current.c.beneficiary_name}</dd></div>
-                    <div><dt>Village</dt><dd>{current.c.village}</dd></div>
-                    <div><dt>Taluk</dt><dd>{current.c.taluk}</dd></div>
-                  </dl>
-                  <a className="link-btn" href={href({ name: 'case', id: current.c.id })}>{t('common.open')}</a>
+              {isAdmin && history.length > 0 && (
+                <div className="vd-history">
+                  <h3>History</h3>
+                  <ol className="feed small">{history.map(h => <li key={h.id}><span className="feed-dot" aria-hidden /><span>{human(h.action)} · {h.detail.split('; ').slice(1).join(', ')}<small>{h.actor} · {timeAgo(h.created_at)}</small></span></li>)}</ol>
                 </div>
-
-                <div className="review-block">
-                  <div className="rb-head"><h3>Extracted fields</h3><Tag tone="ai">{t('verify.extracted')}</Tag></div>
-                  {!ext ? (
-                    <>
-                      <p className="muted">Read the document to suggest fields and compare them with the case record.</p>
-                      {canEdit && <button className="btn ghost small" onClick={() => extract()} disabled={busy === 'extract'}><ScanText size={15} />{busy === 'extract' ? 'Reading…' : t('verify.extract')}</button>}
-                      {extErr && <Notice tone="warn">{extErr}</Notice>}
-                    </>
-                  ) : (
-                    <>
-                      <p className="fine">{human(ext.document_type)} · {ext.engine} · confidence {Math.round(ext.confidence * 100)}%</p>
-                      {Object.keys(ext.extracted_fields).length === 0 ? <p className="muted">No supported fields found.</p> : (
-                        <dl className="kv extracted">{Object.entries(ext.extracted_fields).map(([k, v]) => <div key={k}><dt>{human(k)}</dt><dd>{v}</dd></div>)}</dl>
-                      )}
-                      <ul className="checks">
-                        {ext.checks.map((ch, i) => (
-                          <li key={i} className={`check-${ch.status}`}>
-                            {ch.status === 'match' ? <CheckCircle2 size={15} /> : <MessageSquareWarning size={15} />}
-                            <span><b>{human(ch.field)}: {human(ch.status)}</b>{ch.extracted && <small>Document “{ch.extracted}” · Case “{ch.case_value}”</small>}{ch.message && <small>{ch.message}</small>}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      {canEdit && <button className="link-btn" onClick={() => extract(true)} disabled={busy === 'extract'}>Read again</button>}
-                    </>
-                  )}
-                </div>
-
-                <div className="review-block decision">
-                  <h3>Reviewer decision</h3>
-                  <p className="muted">Current: <DocStatus status={current.verification_status} /></p>
-                  {canEdit ? (
-                    <div className="decision-btns">
-                      <button className="btn primary" onClick={() => decide('verified')} disabled={!!busy}><CheckCircle2 size={16} />{t('verify.approve')}</button>
-                      <button className="btn ghost" onClick={() => decide('rejected', true)} disabled={!!busy}><MessageSquareWarning size={16} />{t('verify.correction')}</button>
-                      <button className="btn ghost danger" onClick={() => decide('rejected')} disabled={!!busy}><XCircle size={16} />{t('verify.reject')}</button>
-                    </div>
-                  ) : <p className="muted">{t('common.readOnly')}</p>}
-                  {isAdmin && history.length > 0 && (
-                    <ol className="feed small">{history.map(h => <li key={h.id}><span className="feed-dot" aria-hidden /><span>{human(h.action)} · {h.detail.split('; ').slice(1).join(', ')}<small>{h.actor} · {timeAgo(h.created_at)}</small></span></li>)}</ol>
-                  )}
-                </div>
-              </section>
-            </>
+              )}
+              {!canEdit && <p className="muted">{t('common.readOnly')}</p>}
+            </section>
           )}
         </div>
       )}

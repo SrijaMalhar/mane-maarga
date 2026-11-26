@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Plus } from 'lucide-react'
 import { CasePicker, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
 import { Footnote, Stamp } from '../components/ledger'
+import Answer from '../components/Answer'
 import { type CaseItem, type FinanceSummary, type Funding, type FundingStatus, type FundingType, type Ladder } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
 import { useI18n } from '../lib/i18n'
@@ -13,11 +14,11 @@ export default function Finance({ initialCase }: { initialCase?: number }) {
   const { cases } = useApp()
   const { t } = useI18n()
   const [caseId, setCaseId] = useState<number | null>(initialCase ?? null)
-  useEffect(() => { if (!caseId && cases[0]) setCaseId(initialCase ?? cases[0].id) }, [cases, caseId, initialCase])
+  useEffect(() => { if (!caseId && cases[0]) setCaseId(initialCase ?? (cases.find(x => Number(x.estimated_cost) > 0 && x.status !== 'completed') ?? cases[0]).id) }, [cases, caseId, initialCase])
   const c = cases.find(x => x.id === caseId) ?? null
   return (
     <div className="finance">
-      <PageHead eyebrow={c ? `${c.beneficiary_name} · ${c.village}` : undefined} title={t('finance.title')} lead={t('finance.lead')}
+      <PageHead eyebrow={c ? `${c.beneficiary_name}, ${c.village}` : undefined} title={t('finance.title')}
         actions={<CasePicker cases={cases} value={caseId} onChange={id => { setCaseId(id); if (id) history.replaceState(null, '', href({ name: 'finance', caseId: id })) }} />} />
       {!c ? <div className="panel"><Empty title={cases.length ? t('common.selectCase') : t('list.empty')} /></div> : <CaseFinance key={c.id} c={c} />}
     </div>
@@ -50,31 +51,33 @@ function CaseFinance({ c }: { c: CaseItem }) {
   if (!sum) return <div className="panel"><Skeleton lines={6} /></div>
   const est = sum.estimated_cost
   const pct = (v: number) => (est ? Math.min(100, (v / est) * 100) : 0)
+  const counted = (types: FundingType[]) => sources.filter(x => types.includes(x.source_type) && (x.status === 'confirmed' || x.status === 'received')).reduce((a, x) => a + Number(x.amount), 0)
 
   return (
-    <div className="fin-layout">
-      <section className="panel fin-compose" aria-labelledby="comp-h">
-        <div className="panel-head"><h2 id="comp-h">Funding composition</h2><span className="muted">Estimate {inr(est)}</span></div>
-        {est <= 0 ? <Empty mood="calm" title="No construction cost estimate yet." sub="Edit the case to add one, or use the budget planner in Intelligence." /> : (
-          <>
-            <div className="compose-bar" role="img" aria-label={`Received ${inr(sum.funding_received)}, confirmed ${inr(sum.funding_confirmed)}, proposed ${inr(sum.funding_proposed)}, gap ${inr(sum.funding_gap)}`}>
-              <i className="received" style={{ width: `${pct(sum.funding_received)}%` }}><span>Received</span></i>
-              <i className="confirmed" style={{ width: `${pct(sum.funding_confirmed - sum.funding_received)}%` }}><span>Confirmed</span></i>
-              <i className="proposed" style={{ width: `${Math.min(pct(sum.funding_proposed), 100 - pct(sum.funding_confirmed))}%` }}><span>Proposed</span></i>
-            </div>
-            <dl className="fin-rows wide">
-              <div><dt><span className="key received" />Received</dt><dd>{inr(sum.funding_received)}</dd></div>
-              <div><dt><span className="key confirmed" />Confirmed (incl. received)</dt><dd>{inr(sum.funding_confirmed)}</dd></div>
-              <div><dt><span className="key proposed" />Proposed — not counted</dt><dd>{inr(sum.funding_proposed)}</dd></div>
-              <div className="ledger-gap"><dt><span className="key gap" />Gap against confirmed</dt><dd>{inr(sum.funding_gap)}</dd></div>
-            </dl>
-            {sum.warnings.map(w => <p key={w} className="fine warn-line">{w}</p>)}
-          </>
-        )}
-      </section>
+    <>
+      <LadderAnswer c={c} estimate={est} savings={counted(['savings', 'wages'])} loan={counted(['loan'])} confirmed={sum.funding_confirmed} />
 
-      <section className="panel fin-sources" aria-labelledby="src-h">
-        <div className="panel-head"><h2 id="src-h">Sources <span className="count-chip">{sources.length}</span></h2>{canEdit && <button className="btn ghost small" onClick={() => setAdding(a => !a)}><Plus size={15} />Add source</button>}</div>
+
+      <section className="fin-sources-wide" aria-labelledby="src-h">
+        <div className="fin-src-head">
+          <h2 id="src-h" className="ov-h">Where the money comes from</h2>
+          {canEdit && <button className="btn ghost small" onClick={() => setAdding(a => !a)}><Plus size={15} />Add source</button>}
+        </div>
+        {est > 0 && (
+          <div className="fin-compose-row">
+            <div className="compose-bar slim" role="img" aria-label={`Received ${inr(sum.funding_received)}, confirmed ${inr(sum.funding_confirmed)}, proposed ${inr(sum.funding_proposed)}, gap ${inr(sum.funding_gap)}`}>
+              <i className="received" style={{ width: `${pct(sum.funding_received)}%` }} />
+              <i className="confirmed" style={{ width: `${pct(sum.funding_confirmed - sum.funding_received)}%` }} />
+              <i className="proposed" style={{ width: `${Math.min(pct(sum.funding_proposed), 100 - pct(sum.funding_confirmed))}%` }} />
+            </div>
+            <dl className="fin-keys">
+              <div><dt><span className="key received" />Received</dt><dd>{inr(sum.funding_received)}</dd></div>
+              <div><dt><span className="key confirmed" />Confirmed</dt><dd>{inr(sum.funding_confirmed)}</dd></div>
+              <div><dt><span className="key proposed" />Proposed, not counted</dt><dd>{inr(sum.funding_proposed)}</dd></div>
+              <div className="ledger-gap"><dt><span className="key gap" />Gap</dt><dd>{inr(sum.funding_gap)}</dd></div>
+            </dl>
+          </div>
+        )}
         {adding && (
           <form className="form inline-form" onSubmit={add}>
             <div className="grid-3">
@@ -88,77 +91,102 @@ function CaseFinance({ c }: { c: CaseItem }) {
             <div className="form-actions"><button type="button" className="btn ghost" onClick={() => setAdding(false)}>Cancel</button><button className="btn primary">Record source</button></div>
           </form>
         )}
-        {sources.length === 0 ? <p className="muted">No detailed sources yet.{Number(c.sanctioned_amount) > 0 && ` The case's sanctioned amount (${inr(c.sanctioned_amount)}) is used until sources are recorded.`}</p> : (
-          <ul className="src-list">
-            {sources.map(s => (
-              <li key={s.id}>
-                <span><b>{s.source_name}</b><small>{s.source_type}{s.scheme_code ? ` · ${s.scheme_code}` : ''}{s.reference_number ? ` · ref ${s.reference_number}` : ''} · {s.created_by}, {dateShort(s.created_at, lang)}</small></span>
-                <span className="num">{inr(s.amount)}</span>
-                <Tag tone={statusTone[s.status]}>{t(`funding.${s.status}` as never)}</Tag>
-              </li>
-            ))}
-          </ul>
+        {sources.length === 0 ? <p className="muted">No sources recorded yet.{Number(c.sanctioned_amount) > 0 && ` The sanctioned ${inr(c.sanctioned_amount)} is used until they are.`}</p> : (
+          <table className="src-table">
+            <thead><tr><th>Source</th><th>Type</th><th>Reference</th><th>Status</th><th className="m">Amount</th></tr></thead>
+            <tbody>
+              {sources.map(s => (
+                <tr key={s.id} className={s.status}>
+                  <td><b>{s.source_name}</b><small>{s.created_by}, {dateShort(s.created_at, lang)}</small></td>
+                  <td>{s.source_type}</td>
+                  <td>{[s.scheme_code, s.reference_number].filter(Boolean).join(' · ') || '—'}</td>
+                  <td><Tag tone={statusTone[s.status]}>{t(`funding.${s.status}` as never)}</Tag></td>
+                  <td className="m">{inr(s.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
+        {sum.warnings.map(w => <p key={w} className="fine warn-line">{w}</p>)}
       </section>
 
-      <MoneyLadder c={c} estimate={est} />
-      <Affordability />
-    </div>
+      <details className="fin-more">
+        <summary>Can the family repay a loan for the gap? <span className="muted">Check against the 30% repayment cap</span></summary>
+        <Affordability />
+      </details>
+    </>
   )
 }
 
-/** The money ladder: the cash a family must find before each instalment arrives. */
-function MoneyLadder({ c, estimate }: { c: CaseItem; estimate: number }) {
-  const { api } = useApp()
-  const { t } = useI18n()
+/** The answer and the money ladder: the cash a family must find before each instalment arrives. */
+function LadderAnswer({ c, estimate, savings, loan, confirmed }: { c: CaseItem; estimate: number; savings: number; loan: number; confirmed: number }) {
+  const { api, openCaseForm, canEdit } = useApp()
   const [cost, setCost] = useState(estimate || 300000)
-  const [savings, setSavings] = useState(20000)
-  const [loan, setLoan] = useState(0)
+  const [own, setOwn] = useState(savings)
+  const [schemeLoan, setSchemeLoan] = useState(Math.min(loan, 70000))
   const [ladder, setLadder] = useState<Ladder | null>(null)
   const [err, setErr] = useState('')
   useEffect(() => {
     if (!(cost > 0)) return
     const id = setTimeout(() => {
-      api.post<Ladder>('/api/engine/ladder', { total_cost: cost, own_savings: savings, scheme_loan: loan }).then(l => { setLadder(l); setErr('') }).catch(e => { setLadder(null); setErr(e.message) })
+      api.post<Ladder>('/api/engine/ladder', { total_cost: cost, own_savings: own, scheme_loan: schemeLoan }).then(l => { setLadder(l); setErr('') }).catch(e => { setLadder(null); setErr(e.message) })
     }, 250)
     return () => clearTimeout(id)
-  }, [api, cost, savings, loan])
+  }, [api, cost, own, schemeLoan])
+  const first = c.beneficiary_name.replace(' (sample)', '').split(' ')[0]
+  const peakRung = ladder ? ladder.rungs.reduce((a, r) => (r.cash_gap_before_instalment > a.cash_gap_before_instalment ? r : a), ladder.rungs[0]) : null
   const max = ladder ? Math.max(...ladder.rungs.map(r => r.cum_cost), 1) : 1
 
   return (
-    <section className="panel fin-ladder" aria-labelledby="lad-h">
-      <div className="panel-head"><h2 id="lad-h">Money ladder · {c.beneficiary_name}</h2><Tag tone="estimate">Indicative · PMAY-G Karnataka rule pack</Tag></div>
-      <div className="grid-3 compact">
-        <label className="field"><span>Total cost (₹)</span><input type="number" min="1" value={cost} onChange={e => setCost(Number(e.target.value))} /></label>
-        <label className="field"><span>Own savings (₹)</span><input type="number" min="0" value={savings} onChange={e => setSavings(Number(e.target.value))} /></label>
-        <label className="field"><span>PMAY-G scheme loan (₹)</span><input type="number" min="0" max="70000" value={loan} onChange={e => setLoan(Number(e.target.value))} /><small>Up to ₹70,000 at a 3-point reduced rate. Count it in affordability below.</small></label>
-      </div>
-      {err && <Notice tone="error">{err}</Notice>}
-      {ladder && (
-        <>
-          <div className="ladder-summary">
-            <div><span>{t('ladder.peakCash')}</span><b className="warn-text">{inr(Math.max(0, ...ladder.rungs.map(r => r.cash_gap_before_instalment)))}</b></div>
-            <div><span>{t('ladder.timingGap')}</span><b>{inr(ladder.peak_timing_gap)}</b></div>
-            <div><span>{t('ladder.fundingGap')}</span><b>{inr(ladder.funding_gap)}</b></div>
-          </div>
-          <ol className="ladder">
-            {[...ladder.rungs].reverse().map(r => (
-              <li key={r.stage}>
-                <span className="lad-label">{r.label}</span>
-                <span className="lad-bars" aria-hidden>
-                  <i className="lad-cost" style={{ width: `${(r.cum_cost / max) * 100}%` }} />
-                  <i className="lad-in" style={{ width: `${(Math.min(r.cum_cost, r.cum_cost - r.cash_gap_before_instalment) / max) * 100}%` }} />
-                </span>
-                <span className="lad-gap"><b>{inr(r.cash_gap_before_instalment)}</b><small>to find before the {inr(r.instalment_after)} instalment</small></span>
-              </li>
-            ))}
-          </ol>
-          {ladder.citations && ladder.citations.length > 0 && <p className="fine">Amounts from {ladder.citations.map(c => <Stamp key={c}>{c}</Stamp>)}</p>}
-          {ladder.stages_verified === false && <Footnote n={1}>Stage split is illustrative until Karnataka's official instalment order is added to the rule pack.</Footnote>}
-          <p className="fine">{ladder.disclaimer}</p>
-        </>
+    <>
+      {estimate <= 0 ? (
+        <Answer kn="ಖರ್ಚಿನ ಅಂದಾಜು ಇನ್ನೂ ಇಲ್ಲ" action={canEdit && <button className="btn primary" onClick={() => openCaseForm(c)}>Add the estimate</button>}>
+          {first} has no construction cost estimate yet, so the ladder below uses a cost you type in.
+        </Answer>
+      ) : ladder && peakRung && (
+        <Answer kn={`${first} ಅವರಿಗೆ ಕಂತು ಬರುವ ಮೊದಲು ಹಣ ಬೇಕು`}
+          figs={[
+            { label: 'Only late: comes back as instalments', value: inr(ladder.peak_timing_gap) },
+            { label: 'Never covered by the scheme', value: inr(ladder.funding_gap), tone: ladder.funding_gap > 0 ? 'warn' : 'good' },
+            { label: `Confirmed so far, of ${inr(estimate)}`, value: inr(confirmed), tone: 'good' },
+          ]}>
+          {first} needs <span className="num">{inr(peakRung.cash_gap_before_instalment)}</span> in hand before the {peakRung.label.toLowerCase()} instalment arrives.
+        </Answer>
       )}
-    </section>
+
+      <section className="fin-ladder-wide" aria-labelledby="lad-h">
+        <div className="fin-ladder-head">
+          <h2 id="lad-h" className="ov-h">Money ladder <Tag tone="estimate">Indicative</Tag></h2>
+          <div className="fin-inputs">
+            <label><span>Total cost</span><input type="number" min="1" value={cost} onChange={e => setCost(Number(e.target.value))} /></label>
+            <label><span>Own savings</span><input type="number" min="0" value={own} onChange={e => setOwn(Number(e.target.value))} /></label>
+            <label><span>Scheme loan (max ₹70,000)</span><input type="number" min="0" max="70000" value={schemeLoan} onChange={e => setSchemeLoan(Number(e.target.value))} /></label>
+          </div>
+        </div>
+        {err && <Notice tone="error">{err}</Notice>}
+        {ladder && (
+          <>
+            <ol className="ladder">
+              {[...ladder.rungs].reverse().map(r => (
+                <li key={r.stage} className={r === peakRung ? 'peak' : undefined}>
+                  <span className="lad-label">{r.label}</span>
+                  <span className="lad-bars" aria-hidden>
+                    <i className="lad-cost" style={{ width: `${(r.cum_cost / max) * 100}%` }} />
+                    <i className="lad-in" style={{ width: `${(Math.min(r.cum_cost, r.cum_cost - r.cash_gap_before_instalment) / max) * 100}%` }} />
+                  </span>
+                  <span className="lad-gap"><b>{inr(r.cash_gap_before_instalment)}</b><small>before the {inr(r.instalment_after)} instalment</small></span>
+                </li>
+              ))}
+            </ol>
+            <p className="lad-key"><span><i className="cost" /> Spent by the end of the stage</span><span><i className="in" /> Money in hand by then</span></p>
+            <div className="fin-cite">
+              {ladder.citations && ladder.citations.length > 0 && <span>Amounts from {ladder.citations.map(x => <Stamp key={x}>{x}</Stamp>)}</span>}
+              {ladder.stages_verified === false && <Footnote n={1}>Stage split is illustrative until Karnataka's official instalment order is in the rule pack.</Footnote>}
+            </div>
+          </>
+        )}
+      </section>
+    </>
   )
 }
 
@@ -181,10 +209,10 @@ function Affordability() {
     } catch (e2) { setErr(e2 instanceof Error ? e2.message : 'Check the values') }
   }
   return (
-    <section className="panel fin-afford" aria-labelledby="aff-h">
-      <div className="panel-head"><h2 id="aff-h">Repayment check</h2><Tag tone="estimate">Not a credit decision</Tag></div>
+    <section className="fin-afford" aria-label="Repayment check">
+      <p className="muted">Indicative, not a credit decision. Irregular income is averaged over the leaner months.</p>
       <form className="form" onSubmit={run}>
-        <label className="field"><span>Monthly income, last months (₹)</span><input value={income} onChange={e => setIncome(e.target.value)} /><small>Irregular income is averaged over the leaner months.</small></label>
+        <label className="field"><span>Monthly income, last months (₹)</span><input value={income} onChange={e => setIncome(e.target.value)} /></label>
         <div className="grid-2">
           <label className="field"><span>Existing PMAY-G loan (₹)</span><input type="number" min="0" value={schemeLoan} onChange={e => setSchemeLoan(Number(e.target.value))} /></label>
           <label className="field"><span>Gap loan requested (₹)</span><input type="number" min="1" value={requested} onChange={e => setRequested(Number(e.target.value))} /></label>

@@ -14,6 +14,8 @@ export const IconFinance = ({ size = 22 }: P) => <svg {...base(size)}><ellipse c
 export const IconBuild = ({ size = 22 }: P) => <svg {...base(size)}><path d="M3 21h18" /><path d="M5 21v-9h10v9" /><path d="M5 15h10M5 18h10M10 12v3M7.5 15v3M12.5 15v3M10 18v3" /><path d="M18 21V5M21 21V5M18 9h3M18 13h3M18 17h3" /></svg>
 /** A lamp: light on a decision, not the decision. */
 export const IconInsight = ({ size = 22 }: P) => <svg {...base(size)}><path d="M9 3h6l1 3H8z" /><path d="M8 6c0 4-2 5-2 9h12c0-4-2-5-2-9" /><path d="M12 9.5c-1.2 1.4-1.2 2.8 0 4 1.2-1.2 1.2-2.6 0-4z" /><path d="M6 15v3h12v-3M9 21h6M10 18v3M14 18v3" /></svg>
+/** Footsteps along a path: the guided tour. */
+export const IconTour = ({ size = 22 }: P) => <svg {...base(size)}><path d="M4 20c3-1 4-4 8-5s5-4 8-6" strokeDasharray="2 3" /><ellipse cx="6" cy="8" rx="2" ry="3" /><ellipse cx="11" cy="5" rx="2" ry="3" /><path d="M18 15l2 5-5-1" /></svg>
 /** A tape reel with a chain link: the sealed record of a run. */
 export const IconRecorder = ({ size = 22 }: P) => <svg {...base(size)}><circle cx="8" cy="10" r="5" /><circle cx="8" cy="10" r="1.5" /><path d="M8 15h9a3 3 0 0 0 3-3V5" /><path d="M14 19.5h3M14 19.5a1.5 1.5 0 0 1 0-3h1M17 16.5h1a1.5 1.5 0 0 1 0 3" /></svg>
 /** A ledger with a ribbon. */

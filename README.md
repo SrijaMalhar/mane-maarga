@@ -41,6 +41,13 @@ Mane Maarga helps case workers take rural families in Karnataka from their first
 <br /><sub>Recorded from the running app. Karnataka figures, scheme rules and villages are real and cited; the families are invented to protect privacy.</sub>
 </div>
 
+### The whole process, step by step
+
+<div align="center">
+<img src="docs/assets/tour.gif" width="760" alt="The guided tour: nine illustrated steps from Karnataka's 3,62,342 unfinished houses, through a Kannada home visit, consent, papers checked in red pen, the money ladder with cited amounts, the family's one-time code, site photo checks, the flight recorder, to keys handed over; three steps jump into the live app with the relevant part ringed" />
+<br /><sub>Landing page → <b>Follow one family from first visit to keys</b>. Nine steps, each with its own illustration and the real rule or figure behind it (clause IDs link to Lok Sabha, PIB and CAG documents). <b>Show me in the app</b> opens the real page with that part ringed, and a tour bar walks you to the next step.</sub>
+</div>
+
 ## Why it exists
 
 > Mane Maarga brings the housing-assistance journey into one transparent workflow, from identifying a beneficiary and verifying documents to financial planning, construction progress and completion.

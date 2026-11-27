@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { API_BASE, makeClient, type AuthUser, type CaseItem } from './lib/api'
 import { DEMO_USER, makeDemoClient, resetDemo } from './lib/demo'
+import { setTourStep } from './lib/tour'
 import Kit from './pages/Kit'
 import { AppContext, href, parseRoute, type Route } from './lib/app-context'
 import { I18nProvider } from './lib/i18n'
@@ -18,6 +19,8 @@ import Finance from './pages/Finance'
 import Construction from './pages/Construction'
 import Intelligence from './pages/Intelligence'
 import FlightRecorder from './pages/FlightRecorder'
+import Tour from './pages/Tour'
+import TourBar from './components/TourBar'
 import Audit from './pages/Audit'
 import Team from './pages/Team'
 
@@ -86,7 +89,7 @@ function Workspace() {
 
   const go = useCallback((r: Route) => { window.location.hash = href(r) }, [])
 
-  if (!entered) return <Landing onEnter={() => { setEntered(true); if (!rawHash || rawHash === '#') window.location.hash = '#/overview' }} />
+  if (!entered) return <Landing onEnter={() => { setEntered(true); if (!rawHash || rawHash === '#') window.location.hash = '#/overview' }} onTour={() => { setTourStep(0); startDemo(); window.location.hash = '#/tour' }} />
   if (authState === 'checking') return <div className="center-screen"><Loading /></div>
   if (authState !== 'ready' || !user) {
     return <AuthScreen mode={authState === 'bootstrap' ? 'bootstrap' : authState === 'offline' ? 'offline' : 'signin'}
@@ -110,6 +113,7 @@ function Workspace() {
     case 'finance': page = <Finance initialCase={route.caseId} />; break
     case 'construction': page = <Construction initialCase={route.caseId} />; break
     case 'intelligence': page = <Intelligence initialCase={route.caseId} />; break
+    case 'tour': page = <Tour />; break
     case 'recorder': page = <FlightRecorder runId={route.runId} initialCase={route.caseId} />; break
     case 'audit': page = <Audit />; break
     case 'team': page = <Team />; break
@@ -118,7 +122,7 @@ function Workspace() {
 
   return (
     <AppContext.Provider value={ctx}>
-      <Shell route={route} onSignOut={signOut} demo={demo} onResetDemo={() => { resetDemo(); void reloadCases(); go({ name: 'overview' }) }}>{page}</Shell>
+      <Shell route={route} onSignOut={signOut} demo={demo} onResetDemo={() => { resetDemo(); void reloadCases(); go({ name: 'overview' }) }}>{page}<TourBar routeKey={route.name} /></Shell>
       {caseForm.open && <CaseForm existing={caseForm.existing} onClose={() => setCaseForm({ open: false })} />}
       {toast.node}
     </AppContext.Provider>

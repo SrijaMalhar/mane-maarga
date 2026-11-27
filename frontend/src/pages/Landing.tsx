@@ -16,7 +16,7 @@ const steps = [
   { kn: 'ಮನೆ', en: 'Complete the home', text: 'The keys are handed over. The record shows how every rupee and decision got the family there.' },
 ]
 
-export default function Landing({ onEnter }: { onEnter: () => void }) {
+export default function Landing({ onEnter, onTour }: { onEnter: () => void; onTour: () => void }) {
   const { t, lang } = useI18n()
   return (
     <div className="landing">
@@ -41,6 +41,7 @@ export default function Landing({ onEnter }: { onEnter: () => void }) {
             <a className="btn primary" href="#journey">{t('landing.cta.explore')} <ArrowRight size={16} /></a>
             <button className="btn ghost" onClick={onEnter}>{t('landing.cta.access')}</button>
           </div>
+          <button className="l-tour" onClick={onTour}>{t('landing.cta.tour')} <ArrowRight size={15} /></button>
         </div>
         <figure className="l-hero-art">
           <Photo src="/images/hero.jpg" alt="A single-storey home with earthen walls and a sloped roof, set on a green lawn among trees at dusk" className="l-hero-photo">

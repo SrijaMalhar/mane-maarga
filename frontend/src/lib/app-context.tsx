@@ -4,7 +4,7 @@ import type { AuthUser, CaseItem, Client } from './api'
 export type Route =
   | { name: 'overview' } | { name: 'beneficiaries' } | { name: 'case'; id: number }
   | { name: 'verification'; caseId?: number } | { name: 'finance'; caseId?: number } | { name: 'construction'; caseId?: number }
-  | { name: 'intelligence'; caseId?: number } | { name: 'recorder'; runId?: number; caseId?: number } | { name: 'audit' } | { name: 'team' }
+  | { name: 'intelligence'; caseId?: number } | { name: 'recorder'; runId?: number; caseId?: number } | { name: 'audit' } | { name: 'team' } | { name: 'tour' }
 
 export function parseRoute(hash: string): Route {
   const [path, query = ''] = hash.replace(/^#\/?/, '').split('?')
@@ -18,6 +18,7 @@ export function parseRoute(hash: string): Route {
     case 'construction': return { name: 'construction', caseId }
     case 'intelligence': return { name: 'intelligence', caseId }
     case 'recorder': return { name: 'recorder', runId: Number(id) || undefined, caseId }
+    case 'tour': return { name: 'tour' }
     case 'audit': return { name: 'audit' }
     case 'team': return { name: 'team' }
     default: return { name: 'overview' }

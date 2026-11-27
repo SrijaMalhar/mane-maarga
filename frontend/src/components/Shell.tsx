@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { LogOut, MoreHorizontal, RotateCcw, X } from 'lucide-react'
 import Mascot from './Mascot'
-import { IconBuild, IconFinance, IconInsight, IconLedger, IconOverview, IconPeople, IconRecorder, IconTeam, IconVerify } from './NavIcons'
+import { IconBuild, IconFinance, IconInsight, IconLedger, IconOverview, IconPeople, IconRecorder, IconTour, IconTeam, IconVerify } from './NavIcons'
 import { href, useApp, type Route } from '../lib/app-context'
 import { LanguageSwitch, useI18n } from '../lib/i18n'
 
@@ -12,6 +12,7 @@ export default function Shell({ route, onSignOut, children, demo = false, onRese
   const { user, isAdmin } = useApp()
   const [moreOpen, setMoreOpen] = useState(false)
   const items: Item[] = [
+    ...(demo ? [{ key: 'tour', label: t('nav.tour'), Icon: IconTour }] : []),
     { key: 'overview', label: t('nav.overview'), Icon: IconOverview },
     { key: 'beneficiaries', label: t('nav.beneficiaries'), Icon: IconPeople },
     { key: 'verification', label: t('nav.verification'), Icon: IconVerify },

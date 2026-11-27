@@ -2,6 +2,12 @@
 
 Dates are build days of the Mane Maarga Master Plan v2. Each line names what changed and how it was checked.
 
+## Guided tour · 27 Nov 2026 · One family, nine steps
+- A guided tour (`#/tour`, "Follow one family from first visit to keys" on the landing page, and Guided tour in the demo menu) walks through the whole process: the problem in Karnataka, a Kannada home visit, consent, papers checked, the money ladder, the family's one-time code, site photo checks, the flight recorder, and keys.
+- Each step has its own illustration (`src/components/TourArt.tsx`, nine SVG scenes in the app palette) and the real figures behind it, read from the cited rule pack and public dataset rather than typed in: ₹1,20,000 unit assistance (AM-01), first instalment within 7 working days of sanction (TM-01), loan up to ₹70,000 at 3 points lower interest (AM-02, AM-03), ₹12,000 toilet (AM-04), 25 sq m minimum (AM-05), eligibility and exclusion rules (EL-01, EX-01), and Karnataka's 5,20,862 sanctioned / 1,58,520 finished (Lok Sabha Q. 3722). A missing clause ID fails loudly.
+- "Show me in the app" opens the real page for the step; a tour bar follows across pages, rings the relevant part and links to the next step. Keyboard arrows move between steps; motion respects reduced-motion.
+- README: a tour GIF (33 s) under the main demo. Checked at 1440px and 390px; tsc, ESLint, style lint and build pass.
+
 ## Site photos, part 2 · 27 Nov 2026 · Where, when, and seen before
 - Each site photo is read on upload for its capture time and GPS (EXIF), and fingerprinted as a 16×16 grey thumbnail. `backend/app/photo_checks.py` turns these into three checks for the reviewer: **where** (distance from the case's plot pin: at the plot ≤150 m, nearby ≤1 km, flagged beyond), **when** (flagged if taken more than 30 days before upload, in the future, or with no time) and **used before** (another photo on file closer than 0.06 RMS after normalising; both photos then show the warning).
 - Fingerprint chosen by measurement: a 64-bit difference hash put two different families' photos 4 bits apart, too close to a re-upload. The normalised thumbnail scores a resized, recompressed copy at about 0.02 and the closest two different photos at 0.13. It does not catch a cropped copy; the README says so.

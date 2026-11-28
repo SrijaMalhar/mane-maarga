@@ -35,13 +35,15 @@ const photoIcon = (p: MapPhoto) => L.divIcon({ className: '', html: `<span class
 const ringLabel = (text: string) => L.divIcon({ className: '', html: `<span class="pm-ring-l">${text}</span>`, iconSize: [52, 18], iconAnchor: [26, 9] })
 const south = (p: LatLon, m: number): LatLon => [p[0] - m / 111320, p[1]]
 
-export default function PlotMap({ plot, photos = [], candidate = null, accuracy = null, moving = false, onPick, onPhoto, height, label }: {
+export default function PlotMap({ plot, photos = [], candidate = null, accuracy = null, moving = false, rings = true, onPick, onPhoto, height, label }: {
   plot: LatLon | null
   photos?: MapPhoto[]
   /** While moving the pin: where it would go. */
   candidate?: LatLon | null
   accuracy?: { at: LatLon; m: number } | null
   moving?: boolean
+  /** The 150 m and 1 km photo-check rings. Staff need them; a family does not. */
+  rings?: boolean
   onPick?: (p: LatLon) => void
   onPhoto?: (id: number) => void
   /** Fixed height in px; leave out to fill the parent (min 380 px). */
@@ -93,11 +95,13 @@ export default function PlotMap({ plot, photos = [], candidate = null, accuracy 
     const m = map.current, g = marks.current; if (!m || !g) return
     g.clearLayers()
     const pin = candidate ?? plot
-    if (pin) {
+    if (pin && rings) {
       L.circle(pin, { radius: FAR_M, className: 'pm-ring far', interactive: false }).addTo(g)
       L.circle(pin, { radius: NEAR_M, className: 'pm-ring near', interactive: false }).addTo(g)
       L.marker(south(pin, FAR_M), { icon: ringLabel('1 km'), interactive: false, keyboard: false }).addTo(g)
       L.marker(south(pin, NEAR_M), { icon: ringLabel('150 m'), interactive: false, keyboard: false }).addTo(g)
+    }
+    if (pin) {
       const code = digipin(pin[0], pin[1]); const cell = code && digipinCell(code)
       if (cell) L.rectangle(cell, { className: 'pm-cell', interactive: false }).addTo(g)
     }
@@ -115,7 +119,7 @@ export default function PlotMap({ plot, photos = [], candidate = null, accuracy 
       mk.on('dragend', () => { const ll = mk.getLatLng(); pick.current?.([+ll.lat.toFixed(6), +ll.lng.toFixed(6)]) })
       mk.addTo(g)
     }
-  }, [plot, candidate, accuracy, photos, moving])
+  }, [plot, candidate, accuracy, photos, moving, rings])
 
   // Follow the pin when it is set for the first time or moved somewhere off screen.
   useEffect(() => {

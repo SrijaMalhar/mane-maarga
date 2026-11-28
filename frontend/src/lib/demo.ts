@@ -30,7 +30,7 @@ const PACK = {
 const DISCLAIMER = 'Indicative calculation from illustrative assumptions. Not an eligibility, credit or payment decision; verify current scheme rules and lender terms before relying on it.'
 
 type Row = Record<string, any>  
-type Store = { seq: number; runs?: Row[]; approvals?: Row[]; outbox?: Row[]; cases: Row[]; consent: Row[]; docs: Row[]; docText: Record<number, string[]>; extractions: Row[]; funding: Row[]; stages: Row[]; evidence: Row[]; tasks: Row[]; audit: Row[]; users: Row[]; intake: Record<string, Row> }
+type Store = { seq: number; runs?: Row[]; approvals?: Row[]; outbox?: Row[]; links?: Row[]; cases: Row[]; consent: Row[]; docs: Row[]; docText: Record<number, string[]>; extractions: Row[]; funding: Row[]; stages: Row[]; evidence: Row[]; tasks: Row[]; audit: Row[]; users: Row[]; intake: Record<string, Row> }
 
 export const DEMO_USER: AuthUser = { id: 1, username: 'demo_visitor', email: 'demo@example.test', role: 'admin', is_active: true }
 
@@ -468,6 +468,69 @@ function routes(s: Store): Array<[string, RegExp, Handler]> {
 }
 
 
+/* ---------------- family progress links (mirrors backend/app/api/progress.py) ---------------- */
+const VISIT_GAP_MS = 30 * 60_000
+const last = <T,>(xs: T[]): T | undefined => xs[xs.length - 1]
+function progressStep(st: Row, own: Row[]) {
+  if (['verified', 'completed'].includes(st.status)) return 'done'
+  if (st.status === 'blocked') return 'paused'
+  const states = new Set(own.map(e => e.verification_status))
+  if (states.has('accepted')) return 'ready_to_verify'
+  if (states.has('pending_review')) return 'photo_in_review'
+  if (states.has('retake')) return 'retake'
+  return st.status === 'in_progress' ? 'photo_needed' : 'not_started'
+}
+const linkOut = (l: Row) => ({ id: l.id, case_id: l.case_id, token: l.token, path: `/#/progress/${l.token}`, show_map: l.show_map, created_by: l.created_by, created_at: l.created_at, views: l.views, last_viewed_at: l.last_viewed_at })
+function progressRoutes(s: Store): Array<[string, RegExp, (m: RegExpMatchArray, b: Row) => unknown]> {
+  const links = () => (s.links ??= [])
+  const active = (cid: number) => last(links().filter(l => l.case_id === cid && !l.revoked_at))
+  const caseOr404 = (id: string) => { const c = s.cases.find(x => x.id === Number(id)); if (!c) throw new ApiError('Case not found', 404); return c }
+  const byToken = (t: string) => {
+    const l = links().find(x => x.token === t); if (!l) throw new ApiError('This link is not valid.', 404)
+    if (l.revoked_at) throw new ApiError('This link was switched off. Ask the case worker for a new one.', 410)
+    const c = s.cases.find(x => x.id === l.case_id); if (!c) throw new ApiError('This link is not valid.', 404)
+    if (c.consent_status !== 'given') throw new ApiError('This page is paused. Ask the case worker.', 403)
+    return { l, c }
+  }
+  return [
+    ['GET', /^\/api\/cases\/(\d+)\/progress-link$/, m => { const l = active(caseOr404(m[1]).id); return l ? linkOut(l) : null }],
+    ['POST', /^\/api\/cases\/(\d+)\/progress-link$/, (m, b) => {
+      const c = caseOr404(m[1])
+      if (c.consent_status !== 'given') throw new ApiError("The family's consent is not on record, so their progress cannot be shared.", 409)
+      const old = active(c.id); if (old) Object.assign(old, { revoked_at: now(), revoked_by: 'demo_visitor' })
+      const l = { id: s.seq++, case_id: c.id, token: rnd(16), show_map: b.show_map !== false, created_by: 'demo_visitor', created_at: now(), revoked_at: null, views: 0, last_viewed_at: null }
+      links().push(l); audit(s, 'progress_link_created', c.id, `link_id=${l.id}; show_map=${l.show_map}${old ? `; replaced=${old.id}` : ''}`); return linkOut(l)
+    }],
+    ['DELETE', /^\/api\/cases\/(\d+)\/progress-link$/, m => {
+      const c = caseOr404(m[1]); const l = active(c.id); if (!l) throw new ApiError('This case has no live progress link', 404)
+      Object.assign(l, { revoked_at: now(), revoked_by: 'demo_visitor' }); audit(s, 'progress_link_revoked', c.id, `link_id=${l.id}; views=${l.views}`); return undefined
+    }],
+    ['POST', /^\/api\/cases\/(\d+)\/progress-link\/sms$/, m => {
+      const c = caseOr404(m[1]); const l = active(c.id); if (!l) throw new ApiError('Make a progress link first', 404)
+      const url = `${window.location.origin}/#/progress/${l.token}`; const name = String(c.beneficiary_name).split(' ')[0]
+      const msg = send(s, 'sms', masked(c), 'Your house, stage by stage', `ಮನೆ ಮಾರ್ಗ: ${name} ಅವರೇ, ನಿಮ್ಮ ಮನೆ ಕೆಲಸ ಎಷ್ಟು ಆಗಿದೆ ಎಂದು ಇಲ್ಲಿ ನೋಡಿ: ${url} Mane Maarga: see how your house is coming along: ${url}`, c.id, 0)
+      ;(msg as Row).approval_id = null
+      audit(s, 'progress_link_sent', c.id, `link_id=${l.id}; channel=sms; to=${masked(c)}`); return { sent_to: masked(c), channel: 'sms', simulated: true, outbox_id: msg.id }
+    }],
+    ['GET', /^\/api\/public\/progress\/([\w-]+)$/, m => {
+      const { l, c } = byToken(m[1]); const t = Date.now()
+      if (!l.last_viewed_at || t - Date.parse(l.last_viewed_at) > VISIT_GAP_MS) l.views += 1
+      l.last_viewed_at = now()
+      const changes: number[] = []
+      const stages = s.stages.filter(x => x.case_id === c.id).map(st => {
+        const own = s.evidence.filter(e => e.stage_id === st.id)
+        const accepted = own.filter(e => e.verification_status === 'accepted').sort((a, b) => Date.parse(a.reviewed_at) - Date.parse(b.reviewed_at))
+        const marks = s.audit.filter(a => a.case_id === c.id && a.action === 'construction_stage_status_updated' && [`stage_id=${st.id}; status=verified`, `stage_id=${st.id}; status=completed`].includes(a.detail)).map(a => a.created_at)
+        const reviewed = accepted.map(e => e.reviewed_at).filter(Boolean)
+        const done_at = ['verified', 'completed'].includes(st.status) ? (last([...marks].sort()) ?? last([...reviewed].sort()) ?? null) : null
+        ;[done_at, st.created_at, ...own.flatMap(e => [e.uploaded_at, e.reviewed_at])].forEach(d => { if (d) changes.push(Date.parse(d)) })
+        return { code: st.stage_code, name: st.stage_name, status: st.status, step: progressStep(st, own), done_at, photos: accepted.map(e => ({ id: e.id, taken_at: e.taken_at ?? null, accepted_at: e.reviewed_at })) }
+      })
+      return { first_name: String(c.beneficiary_name).split(' ')[0], village: c.village, taluk: c.taluk, status: c.status, stages, plot: l.show_map && c.plot_lat != null ? [Number(c.plot_lat), Number(c.plot_lon)] : null, updated_at: changes.length ? new Date(Math.max(...changes)).toISOString() : null, checked_at: now() }
+    }],
+  ]
+}
+
 /* ---------------- approval gate (mirrors backend/app/approvals) ---------------- */
 const GATED: Record<string, { approver: 'family' | 'admin'; label_en: string; label_kn: string; hours: number }> = {
   submit_to_portal: { approver: 'family', label_en: 'Submit the application to the government portal', label_kn: 'ಸರ್ಕಾರಿ ಪೋರ್ಟಲ್‌ಗೆ ಅರ್ಜಿ ಸಲ್ಲಿಸುವುದು', hours: 72 },
@@ -598,7 +661,7 @@ export function makeDemoClient(): Client {
   async function dispatch(method: string, path: string, body: unknown): Promise<unknown> {
     const s = db()
     const [p, query = ''] = path.split('?')
-    for (const [m, re, h] of [...approvalRoutes(s), ...routes(s)] as Array<[string, RegExp, (m: RegExpMatchArray, b: Row, q: URLSearchParams) => unknown]>) {
+    for (const [m, re, h] of [...approvalRoutes(s), ...progressRoutes(s), ...routes(s)] as Array<[string, RegExp, (m: RegExpMatchArray, b: Row, q: URLSearchParams) => unknown]>) {
       if (m !== method) continue
       const match = p.match(re)
       if (match) { const out = await h(match, (body ?? {}) as Row, new URLSearchParams(query)); save(); return structuredClone(out) }
@@ -620,6 +683,13 @@ export function makeDemoClient(): Client {
       if (blob) return new Response(blob, { status: 200, headers: { 'Content-Type': blob.type } })
       if (e?.sample_url) return fetch(e.sample_url)
       return new Response(null, { status: 404 })
+    }
+    const pp = path.match(/^\/api\/public\/progress\/([\w-]+)\/photos\/(\d+)$/)
+    if (pp) {
+      const s = db(); const l = (s.links ?? []).find(x => x.token === pp[1] && !x.revoked_at); const e = s.evidence.find(x => x.id === Number(pp[2]))
+      if (!l || !e || e.case_id !== l.case_id || e.verification_status !== 'accepted') return new Response(null, { status: 404 })
+      const blob = blobs.get(e.id); if (blob) return new Response(blob, { status: 200, headers: { 'Content-Type': blob.type } })
+      return e.sample_url ? fetch(e.sample_url) : new Response(null, { status: 404 })
     }
     const dl = path.match(/^\/api\/documents\/(\d+)\/download$/)
     if (dl) {

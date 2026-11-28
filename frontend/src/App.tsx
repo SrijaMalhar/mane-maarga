@@ -10,6 +10,7 @@ import Shell from './components/Shell'
 import CaseForm from './components/CaseForm'
 import Landing from './pages/Landing'
 import FamilyApproval from './pages/FamilyApproval'
+import FamilyProgress from './pages/FamilyProgress'
 import AuthScreen from './pages/AuthScreen'
 import Overview from './pages/Overview'
 import Beneficiaries from './pages/Beneficiaries'
@@ -135,9 +136,20 @@ function PublicApproval({ token }: { token: string }) {
   return <FamilyApproval token={token} client={client} />
 }
 
+function PublicProgress({ token }: { token: string }) {
+  // Opened from an SMS, a QR code or a shared link: no login, read-only, verified progress only.
+  const client = useMemo(() => (readDemo() ? makeDemoClient() : makeClient('', () => {})), [])
+  return <FamilyProgress token={token} client={client} />
+}
+
 export default function App() {
-  const approve = window.location.hash.match(/^#\/approve\/([\w-]+)/)
-  if (approve) return <PublicApproval token={approve[1]} />
-  if (import.meta.env.DEV && window.location.hash === '#/kit') return <Kit />
+  // Follow the hash, so a family link pasted into an open tab opens the family's page rather than the workspace.
+  const [hash, setHash] = useState(() => window.location.hash)
+  useEffect(() => { const on = () => setHash(window.location.hash); window.addEventListener('hashchange', on); return () => window.removeEventListener('hashchange', on) }, [])
+  const approve = hash.match(/^#\/approve\/([\w-]+)/)
+  if (approve) return <PublicApproval key={approve[1]} token={approve[1]} />
+  const progress = hash.match(/^#\/progress\/([\w-]+)/)
+  if (progress) return <PublicProgress key={progress[1]} token={progress[1]} />
+  if (import.meta.env.DEV && hash === '#/kit') return <Kit />
   return <I18nProvider><Workspace /></I18nProvider>
 }

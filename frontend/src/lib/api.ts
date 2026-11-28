@@ -71,3 +71,10 @@ export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'expired' | '
 export type PublicApproval = { id: number; case_id: number; action: string; label_en: string; label_kn: string; summary_en: string; summary_kn: string; amount_inr: number | null; recipient: string; status: ApprovalStatus; approver: 'family' | 'admin'; expires_at: string | null; beneficiary_first_name?: string; phone_hint?: string }
 export type Approval = PublicApproval & { payload: Record<string, unknown>; payload_hash: string; reason: string; citations: string[]; method: string | null; approver_ref: string | null; requested_by: string; decided_by: string | null; result: Record<string, unknown>; executed_at: string | null }
 export type OutboxItem = { id: number; channel: string; to: string; subject: string; body: string; case_id: number | null; approval_id: number | null; simulated: boolean; created_at: string | null }
+export type ProgressLink = { id: number; case_id: number; token: string; path: string; show_map: boolean; created_by: string; created_at: string | null; views: number; last_viewed_at: string | null }
+export type ProgressStep = 'done' | 'ready_to_verify' | 'photo_in_review' | 'retake' | 'photo_needed' | 'not_started' | 'paused'
+export type PublicProgress = {
+  first_name: string; village: string; taluk: string; status: Status
+  stages: Array<{ code: string; name: string; status: StageStatus; step: ProgressStep; done_at: string | null; photos: Array<{ id: number; taken_at: string | null; accepted_at: string | null }> }>
+  plot: [number, number] | null; updated_at: string | null; checked_at: string
+}

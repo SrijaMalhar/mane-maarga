@@ -39,6 +39,7 @@ For managed PaaS deployment, deploy the API as a Python 3.12 service with `alemb
 ## Maps and family links
 
 - The plot map loads tiles from `server.arcgisonline.com` (satellite) and `tile.openstreetmap.org` (street). `frontend/nginx.conf` allows both in `img-src`; if you set `VITE_SATELLITE_TILES` or `VITE_MAP_TILES` to another server, add its host there too. Check each provider's terms for your traffic: OpenStreetMap's tile policy asks for attribution and light use, and Esri's imagery terms apply to the satellite layer. A state GIS tile server is a good swap.
+- The stage photos on Construction and the family's page load from `upload.wikimedia.org`, also allowed in `img-src`. If that host is blocked on your network, the pages show the house drawing instead. To serve your own copies, see `docs/STAGE_PHOTOS.md`.
 - The same nginx policy allows geolocation for the site itself, for "Use my location" on the map and in the case form.
 - Set `MANE_MAARGA_PUBLIC_APP_URL` to the public web address so the SMS with a family's progress link carries a full link.
 - Progress-link tokens are derived from the JWT secret. Rotating `MANE_MAARGA_JWT_SECRET` switches every family's link off; make new links afterwards.

@@ -3,6 +3,7 @@ import { AlertTriangle, Camera, CheckCircle2, Clock3, Copy, Hammer, ImagePlus, M
 import House from '../components/House'
 import PlotPanel from '../components/PlotPanel'
 import ProgressShare from '../components/ProgressShare'
+import SiteVisits from '../components/SiteVisits'
 import { CasePicker, Dialog, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
 import { type CaseItem, type Evidence, type Stage, type StageStatus } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
@@ -27,10 +28,25 @@ export default function Construction({ initialCase }: { initialCase?: number }) 
   const [caseId, setCaseId] = useState<number | null>(initialCase ?? null)
   useEffect(() => { if (!caseId && cases.length) setCaseId((cases.find(c => c.status === 'construction') ?? cases[0]).id) }, [cases, caseId])
   const c = cases.find(x => x.id === caseId) ?? null
+  const [view, setView] = useState<'family' | 'visits'>('family')
+  const views = (
+    <div className="seg" role="group" aria-label="View">
+      <button type="button" aria-pressed={view === 'family'} onClick={() => setView('family')}><Hammer size={14} aria-hidden />One family</button>
+      <button type="button" aria-pressed={view === 'visits'} onClick={() => setView('visits')}><MapPin size={14} aria-hidden />Site visits</button>
+    </div>
+  )
+  if (view === 'visits') {
+    return (
+      <div>
+        <PageHead eyebrow="Every pinned plot" title="Site visits" lead="Where each family's house is, what it needs from you today, and the shortest way round." actions={views} />
+        <SiteVisits onOpen={id => { setCaseId(id); setView('family'); history.replaceState(null, '', href({ name: 'construction', caseId: id })); window.scrollTo({ top: 0 }) }} />
+      </div>
+    )
+  }
   return (
     <div>
       <PageHead eyebrow={c ? `${c.beneficiary_name} · ${c.village}` : undefined} title={t('construction.title')} lead={t('construction.lead')}
-        actions={<CasePicker cases={cases} value={caseId} onChange={id => { setCaseId(id); if (id) history.replaceState(null, '', href({ name: 'construction', caseId: id })) }} />} />
+        actions={<>{views}<CasePicker cases={cases} value={caseId} onChange={id => { setCaseId(id); if (id) history.replaceState(null, '', href({ name: 'construction', caseId: id })) }} /></>} />
       {!c ? <div className="panel"><Empty title={cases.length ? t('common.selectCase') : t('list.empty')} /></div> : <CaseBuild key={c.id} c={c} />}
     </div>
   )

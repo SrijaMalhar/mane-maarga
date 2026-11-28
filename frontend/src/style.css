@@ -1354,3 +1354,40 @@ label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1)
 .share-confirm p { margin: 0; font-size: 14.5px; }
 .qr { display: block; }
 @media (max-width: 720px) { .share-live { grid-template-columns: 1fr; } .share-qr { justify-self: center; } .share-stats { grid-template-columns: 1fr 1fr; } }
+
+/* ---------- Site visits: every pinned plot, today's route (construction) ---------- */
+.visits { display: grid; gap: var(--s5); }
+.visits-main { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr); gap: var(--s5); align-items: stretch; }
+.visits-map { display: flex; min-width: 0; }
+.visits-map > .pm { flex: 1 1 auto; min-height: 460px; }
+.visits-side { display: grid; gap: var(--s3); align-content: start; min-width: 0; }
+.visits-side h2 { margin: -6px 0 0; font-family: var(--font-display); font-size: 26px; font-weight: 480; line-height: 1.25; }
+.visits-side .fine { margin: 0; }
+.visits-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.visits-controls .field { margin: 0; }
+.visits-legs { display: grid; gap: 8px; justify-items: start; }
+.visits-h2 { font-size: 18px; font-weight: 640; display: flex; align-items: center; gap: 8px; margin: 0 0 var(--s3); }
+.visit-list { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--charcoal); }
+.visit-row { display: grid; grid-template-columns: 64px minmax(140px, 1fr) minmax(0, 2fr) 96px auto; gap: var(--s3); align-items: center; padding: 10px 4px; border-bottom: 1px solid var(--rule); }
+.visit-row:not(.on) { color: var(--ink-2); }
+.visit-pick { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.visit-pick input { width: 18px; height: 18px; accent-color: var(--neem); }
+.visit-n { width: 26px; height: 26px; display: grid; place-items: center; font: 700 12px var(--font-mono); }
+.visit-row.on .visit-n { background: var(--charcoal); color: #FAF7F0; }
+.visit-row.on.t-urgent .visit-n { background: var(--redpen); }
+.visit-who { display: grid; } .visit-who span { font-size: 13.5px; color: var(--ink-3); }
+.visit-need { display: flex; gap: 8px; align-items: start; font-size: 14.5px; }
+.visit-need svg { flex-shrink: 0; margin-top: 3px; }
+.visit-need span { display: grid; } .visit-need small { font-size: 12px; font-weight: 650; color: var(--ink-3); }
+.t-urgent .visit-need { color: var(--redpen); } .t-urgent .visit-need small { color: var(--redpen); }
+.t-visit .visit-need svg { color: var(--turmeric); } .t-desk .visit-need svg { color: var(--stamp); } .t-none .visit-need svg { color: var(--ink-3); }
+.visit-leg { font-family: var(--font-mono); font-size: 13.5px; text-align: right; display: grid; } .visit-leg small { font-family: var(--font-ui); font-size: 11.5px; color: var(--ink-3); }
+/* Map markers for many plots: numbered squares on the route, small dots for the rest. */
+.pm-stop { display: grid; place-items: center; width: 30px; height: 30px; font: 700 13px/1 var(--font-mono); color: #FAF7F0; background: var(--charcoal); border: 2px solid #FAF7F0; box-shadow: 0 1px 5px rgba(0, 0, 0, .4); cursor: pointer; }
+.pm-stop-urgent { background: var(--redpen); }
+.pm-stop.off { width: 16px; height: 16px; border-radius: 50%; border-width: 2px; background: var(--ink-3); }
+.pm-stop.off.pm-stop-desk { background: var(--stamp); } .pm-stop.off.pm-stop-urgent { background: var(--redpen); } .pm-stop.off.pm-stop-visit { background: var(--turmeric); }
+.pm-me { display: block; width: 18px; height: 18px; border-radius: 50%; background: var(--stamp); border: 3px solid #FAF7F0; box-shadow: 0 0 0 4px rgba(58, 63, 140, .3); }
+.pm path.pm-route { fill: none; stroke: #FAF7F0; stroke-width: 3; stroke-dasharray: 8 6; }
+.pm.on-street path.pm-route { stroke: var(--charcoal); }
+@media (max-width: 960px) { .visits-main { grid-template-columns: 1fr; } .visit-row { grid-template-columns: 56px minmax(0, 1fr) auto; } .visit-need { grid-column: 2 / -1; } .visit-leg { grid-column: 2; text-align: left; } }

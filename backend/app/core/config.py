@@ -46,3 +46,7 @@ BOOTSTRAP_ENABLED = (env("BOOTSTRAP_ENABLED") or ("true" if APP_ENV != "producti
 SERVICE_TOKEN = (env("SERVICE_TOKEN") or "").strip()
 if APP_ENV == "production" and SERVICE_TOKEN and len(SERVICE_TOKEN) < 32:
     raise RuntimeError("MANE_MAARGA_SERVICE_TOKEN must be at least 32 characters in production.")
+
+# Where the web app lives, for links sent to families (for example https://mane-maarga.example.in).
+# Unset: the first CORS origin, which is the web app in the default setup.
+PUBLIC_APP_URL = (env("PUBLIC_APP_URL") or (ALLOWED_ORIGINS[0] if ALLOWED_ORIGINS else "")).rstrip("/")

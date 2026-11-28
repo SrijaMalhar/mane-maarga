@@ -11,6 +11,7 @@ from . import (
     engine,
     finance,
     intelligence,
+    progress,
     public_data,
     speech,
     system,
@@ -32,4 +33,5 @@ ROUTERS = [
     agent.router,
     speech.router,
     public_data.router,
+    progress.router,
 ]

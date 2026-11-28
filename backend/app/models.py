@@ -289,3 +289,25 @@ class AgentStep(Base):
     ms: Mapped[float] = mapped_column(Numeric(10, 2), default=0)
     seal: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ProgressLink(Base):
+    """A read-only page where the family follows their house being built. It shows verified progress only.
+
+    The link's token is never stored. It is an HMAC of a random nonce with the server secret, so staff can show
+    the same link again, while a copy of the database alone cannot open anyone's page. Revoking is permanent;
+    a new link gets a new nonce.
+    """
+
+    __tablename__ = "progress_links"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    nonce: Mapped[str] = mapped_column(String(64), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    show_map: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_by: Mapped[str] = mapped_column(String(120), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    revoked_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    views: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    last_viewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

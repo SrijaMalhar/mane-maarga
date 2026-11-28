@@ -1,4 +1,5 @@
 DELETE /api/cases/{case_id}
+DELETE /api/cases/{case_id}/progress-link
 GET /api/agent/runs/{run_id}/recording
 GET /api/audit
 GET /api/auth/me
@@ -15,6 +16,7 @@ GET /api/cases/{case_id}/construction-evidence
 GET /api/cases/{case_id}/documents
 GET /api/cases/{case_id}/finance-summary
 GET /api/cases/{case_id}/funding
+GET /api/cases/{case_id}/progress-link
 GET /api/cases/{case_id}/recovery-tasks
 GET /api/cases/{case_id}/stages
 GET /api/construction-evidence/{evidence_id}/file
@@ -29,6 +31,8 @@ GET /api/intelligence/state-packs
 GET /api/outbox
 GET /api/public-data/pmayg/karnataka
 GET /api/public/approvals/{token}
+GET /api/public/progress/{token}
+GET /api/public/progress/{token}/photos/{evidence_id}
 GET /api/schemes
 GET /api/speech/status
 GET /api/system/version
@@ -55,6 +59,8 @@ POST /api/cases/{case_id}/budget-plan
 POST /api/cases/{case_id}/consent
 POST /api/cases/{case_id}/documents
 POST /api/cases/{case_id}/funding
+POST /api/cases/{case_id}/progress-link
+POST /api/cases/{case_id}/progress-link/sms
 POST /api/cases/{case_id}/recovery-tasks
 POST /api/cases/{case_id}/stages
 POST /api/cases/{case_id}/stages/{stage_id}/evidence

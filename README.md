@@ -119,6 +119,16 @@ Each working page opens on the one sentence a field officer needs, with the figu
 <br /><sub>The officer verifies the roof; the next time Lakshmamma opens her page it says so. The link comes from a QR code on the officer's phone, an SMS or WhatsApp. It shows verified work only, never money, documents or her phone number, and the case worker can switch it off.</sub>
 </div>
 
+
+#### Four real homes, stage by stage
+
+The house on Construction and on the family's page is a real photo of a poor rural home at the stage reached, not a drawing: one storey, a small footprint, laterite or brick walls, a sheet or tile roof. Each is labelled as an example, never the family's own house. Why these four, and the ones turned down: [docs/STAGE_PHOTOS.md](docs/STAGE_PHOTOS.md).
+
+<div align="center">
+<table><tr><td align="center" valign="bottom"><a href="https://commons.wikimedia.org/wiki/File:Konkan_-_Songiri_Village_-_Ratnagiri_District_-_Part_1_20151217_(23889167652).jpg"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Konkan_-_Songiri_Village_-_Ratnagiri_District_-_Part_1_20151217_%2823889167652%29.jpg/330px-Konkan_-_Songiri_Village_-_Ratnagiri_District_-_Part_1_20151217_%2823889167652%29.jpg" width="180" alt="A small laterite plinth filled with red earth, cut blocks stacked at one corner" /></a><br /><b>Plinth</b> · ತಳಪಾಯ</td><td align="center" valign="bottom"><a href="https://commons.wikimedia.org/wiki/File:Construction-work.jpg"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Construction-work.jpg/330px-Construction-work.jpg" width="180" alt="Bare laterite block walls at window height with no roof yet" /></a><br /><b>Walls</b> · ಗೋಡೆಗಳು</td><td align="center" valign="bottom"><a href="https://commons.wikimedia.org/wiki/File:Concrete_Brick_House_Construction_Sasatgre_Oct24_A7CR_03727.jpg"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Concrete_Brick_House_Construction_Sasatgre_Oct24_A7CR_03727.jpg/330px-Concrete_Brick_House_Construction_Sasatgre_Oct24_A7CR_03727.jpg" width="180" alt="A one-room unplastered brick house under a new metal sheet roof" /></a><br /><b>Roof</b> · ಛಾವಣಿ</td><td align="center" valign="bottom"><a href="https://commons.wikimedia.org/wiki/File:Indian_village_home.jpg"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Indian_village_home.jpg/330px-Indian_village_home.jpg" width="180" alt="A finished whitewashed village home with a clay tile roof and a thatched veranda" /></a><br /><b>Home ready</b> · ಮನೆ ಸಿದ್ಧ</td></tr></table>
+<sub>Photos via Wikimedia Commons: plinth, Songiri, Ratnagiri district, by urbzoo (CC BY 2.0); walls, Maharashtra, by Sachinshelar486 (CC BY-SA 4.0); roof, Sasatgre, West Garo Hills, by Timothy A. Gonsalves (CC BY-SA 4.0); home ready, by Rahul Konga (CC BY-SA 4.0). Click a photo for its source.</sub>
+</div>
+
 ### The agent, step by step
 
 <div align="center">

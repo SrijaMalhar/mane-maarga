@@ -77,6 +77,9 @@ Every rule and rupee comes from a dated, cited rule pack. [PROBLEM.md](PROBLEM.m
 | **Flight recorder** | Every agent step is sealed into a SHA-256 chain. Edit any stored step and the recorder shows exactly where the seal broke. Replay runs the reads again to show whether the advice still holds. | Flight recorder |
 | **Site photo checks** | Every construction photo is checked against the family's plot pin (GPS distance), its capture time, and every other photo on file (same picture sent for another family). A person still decides; accepting a flagged photo needs a written reason. | Construction → Problem photo |
 | **Red-pen document checks** | Land records are compared with the case field by field; a reviewer decides on every mismatch. | Verification |
+| **The family watches it go up** | A no-login page in Kannada, opened from a QR code, SMS or WhatsApp: the house drawing, what is happening now, each stage with its accepted photos, then and now. It refreshes itself, says what is new since the family last looked, and works offline with the last copy. Only verified work, never money or documents. | Construction → For the family |
+| **The plot, exactly** | A satellite map of the plot with India Post's DIGIPIN for its 4 m square, the survey number from the land record, and every site photo where it was taken. | Construction → the map |
+| **Site visits** | Every pinned plot on one map with what it needs today, and the shortest order to visit them (exact up to 12 plots), handed to Google Maps by two-wheeler. | Construction → Site visits |
 
 <div align="center">
 <img src="docs/assets/screenshots/landing-voice.png" width="640" alt="The landing page voice section: the recorded Kannada intake questions playing in order with example answers, the current line highlighted with its English meaning, and a live waveform" />
@@ -107,6 +110,13 @@ Each working page opens on the one sentence a field officer needs, with the figu
 <div align="center">
 <img src="docs/assets/screenshots/family-approval.png" width="640" alt="Three phone screens in Kannada: the loan the family is asked to accept with the amount and lender, the one-time code entry, and the confirmation that it was done" />
 <br /><sub>Money, loans, submissions and document sharing wait for the family's one-time code. The page says in Kannada what will happen, how much, and to whom. In the demo the SMS is simulated and pops up on the phone.</sub>
+</div>
+
+### The family watches their house go up
+
+<div align="center">
+<img src="docs/assets/screenshots/family-progress.png" width="640" alt="Three phone screens of the family's progress page in Kannada with English below: a green banner saying the roof is new since the family last looked and the house drawing at 75 percent; what is happening now and the stage timeline with done dates and accepted photos; then and now, a slider between the plinth photo and the roof photo, and buttons to send the page to family on WhatsApp" />
+<br /><sub>The officer verifies the roof; the next time Lakshmamma opens her page it says so. The link comes from a QR code on the officer's phone, an SMS or WhatsApp. It shows verified work only, never money, documents or her phone number, and the case worker can switch it off.</sub>
 </div>
 
 ### The agent, step by step
@@ -140,6 +150,9 @@ Every run can be played back step by step. Each step's seal covers the step befo
 | **Document verification** | PDF/PNG/JPEG upload (10 MB, file signatures checked), authenticated preview, text extraction with `pypdf` and Tesseract (English + Kannada), field-by-field comparison with the case, and a verify / reject / request-correction decision. |
 | **Scheme-aware finance** | Funding sources marked proposed, confirmed, received or rejected. Duplicate confirmed scheme references are blocked. A dated PMAY-G Karnataka rule pack drives the **money ladder**, and a **30% repayment cap** counts every existing loan, including the PMAY-G scheme loan. |
 | **Construction tracking** | A stage plan costed from the estimate and stage status. A field officer adds a site photo; a reviewer accepts it or asks for a retake with a note. A stage can only be marked verified once one of its photos is accepted (the API refuses otherwise), and the house drawing fills in as stages are verified. Each photo is checked for **where** (EXIF GPS against the case's plot pin: at the plot within 150 m, flagged beyond 1 km), **when** (flagged if taken over 30 days before upload) and **used before** (a 16×16 grey thumbnail compared with every photo on file; catches re-sent and resized copies, not crops). The software never judges a photo; accepting a flagged one needs a written reason. In the demo, **Sample photo** and **Problem photo** show both paths. |
+| **Plot map** | Leaflet with satellite and street tiles (swappable with `VITE_SATELLITE_TILES` and `VITE_MAP_TILES`), the plot pin and its DIGIPIN square, the photo-check rings, and each site photo at its GPS position. Moving the pin is warned about and audited, because every photo is checked against it. |
+| **Family progress page** | `#/progress/<token>`, one revocable link per case (migration 0008). Consent required; the token is an HMAC of a stored nonce, never the token itself; photos re-encoded without EXIF; visits counted, staff previews not. Refreshes every 30 seconds, keeps an offline copy, wipes it when the link is switched off. |
+| **Site visits** | What each pinned plot needs today, from its stages and photos, and the shortest visit order (Held-Karp up to 12 plots, 2-opt beyond), opened in Google Maps in parts that fit its waypoint limit. |
 | **Cited rules** | A dated Karnataka PMAY-G rule pack: 17 clauses, each with an ID, English and Kannada text, and its source (PIB, Lok Sabha, CAG). Eligibility and the 8 exclusion rules run in code; a missing fact gives *needs information*, never a guess. `make rules-lint` rejects any clause without a source or Kannada text. See [PROBLEM.md](PROBLEM.md). |
 | **Agent runtime** | A PLAN → ACT → CHECK → RECOVER → ASK → DONE loop over 11 typed, audited tools. The model chooses; the server runs the tool. A citation guard withholds any answer whose figures or clauses can't be traced. Runs on a scripted mock with no key, or on Lyzr Agent Studio. |
 | **Flight recorder** | Each agent step stores a seal, `sha256(previous seal + step)`, and the run's outcome is sealed last (migration 0005). `GET /api/agent/runs/{id}/recording` re-checks the chain and names the first changed step. `POST …/replay` re-runs read-only tools only, compares field by field and rolls back. |
@@ -230,6 +243,7 @@ Mane Maarga works with vulnerable families and public money, so the line between
 | Only the last four phone digits are stored; Extraction never stores Aadhaar numbers | Data-retention and deletion policy |
 | Audit log of uploads, verifications, funding, stages, consent, users and analyses | Tamper-evident audit export |
 | Secrets from environment variables; production refuses placeholder secrets and wildcard CORS; security headers; rate-limited sign-in | Independent security review |
+| Family progress links: consent required, one live link per case, revocable for good; the token is never stored; photos leave without GPS or camera details | Link expiry dates and SMS through a real provider |
 
 > **Prototype status:** this has not had a production security review. Use synthetic records only.
 
@@ -315,6 +329,7 @@ mane-maarga/
 - [x] Funding sources with double-count protection
 - [x] Money ladder and 30% affordability cap from a dated PMAY-G rule pack
 - [x] Construction stages with photo evidence
+- [x] Plot map with DIGIPIN, a family progress page and site-visit routes
 - [x] Kannada / English interface
 - [ ] Replace the illustrative stage split with the official PMAY-G instalment schedule
 - [x] Scheme eligibility and exclusion rules with clause-level citations (Kannada review pending)

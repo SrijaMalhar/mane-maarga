@@ -35,3 +35,11 @@ Set `POSTGRES_USER` and `POSTGRES_DB` in the environment, then run `scripts/back
 ## Platform-specific notes
 
 For managed PaaS deployment, deploy the API as a Python 3.12 service with `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`, a managed PostgreSQL database, persistent private object storage for uploads, and a frontend static hosting service. Set all environment variables from the provider's secret manager. Never commit deployment credentials.
+
+## Maps and family links
+
+- The plot map loads tiles from `server.arcgisonline.com` (satellite) and `tile.openstreetmap.org` (street). `frontend/nginx.conf` allows both in `img-src`; if you set `VITE_SATELLITE_TILES` or `VITE_MAP_TILES` to another server, add its host there too. Check each provider's terms for your traffic: OpenStreetMap's tile policy asks for attribution and light use, and Esri's imagery terms apply to the satellite layer. A state GIS tile server is a good swap.
+- The same nginx policy allows geolocation for the site itself, for "Use my location" on the map and in the case form.
+- Set `MANE_MAARGA_PUBLIC_APP_URL` to the public web address so the SMS with a family's progress link carries a full link.
+- Progress-link tokens are derived from the JWT secret. Rotating `MANE_MAARGA_JWT_SECRET` switches every family's link off; make new links afterwards.
+

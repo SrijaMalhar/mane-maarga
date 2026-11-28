@@ -705,7 +705,6 @@ code { font-family: var(--font-mono); font-size: .88em; background: var(--sunken
   .ladder-summary { grid-template-columns: 1fr; }
   .ladder-summary > div { border-right: 0; border-bottom: 1px solid var(--line-strong); }
   .build-hero { grid-template-columns: 1fr; }
-  .build-hero svg { width: 220px; height: auto; }
   .build-pct { font-size: 72px; }
   .att-row { grid-template-columns: 30px minmax(0, 1fr) 16px; }
   .att-reason { grid-column: 2; font-size: 12.5px; }
@@ -1076,7 +1075,7 @@ label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1)
 .ev-flow { list-style: none; margin: var(--s4) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 14px; color: var(--ink-2); counter-reset: ev; }
 .ev-flow li { display: inline-flex; gap: 8px; align-items: center; }
 .ev-flow li::before { counter-increment: ev; content: counter(ev); font-family: var(--font-mono); font-size: 12px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--charcoal); color: var(--paper, #F4EFE4); }
-.ev-flow svg { color: var(--neem); }
+.ev-flow svg { color: var(--neem); flex-shrink: 0; }
 .ev-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 6px; }
 .ev-thumb { position: relative; display: block; aspect-ratio: 4 / 3; padding: 0; border: 0; background: var(--line); cursor: pointer; overflow: hidden; outline-offset: 2px; }
 .ev-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1391,3 +1390,37 @@ label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1)
 .pm path.pm-route { fill: none; stroke: #FAF7F0; stroke-width: 3; stroke-dasharray: 8 6; }
 .pm.on-street path.pm-route { stroke: var(--charcoal); }
 @media (max-width: 960px) { .visits-main { grid-template-columns: 1fr; } .visit-row { grid-template-columns: 56px minmax(0, 1fr) auto; } .visit-need { grid-column: 2 / -1; } .visit-leg { grid-column: 2; text-align: left; } }
+
+/* ---------- House stage photos (Construction hero, family progress page) ---------- */
+.hs { display: grid; gap: 8px; width: 100%; max-width: 420px; text-align: left; }
+.hs-main { position: relative; margin: 0; aspect-ratio: 4 / 3; overflow: hidden; background: var(--sand-2); border: 1px solid var(--rule-strong); display: grid; place-items: center; }
+.hs-main img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hs-chip { position: absolute; left: 8px; top: 8px; display: inline-flex; align-items: center; gap: 6px; max-width: calc(100% - 16px); padding: 4px 10px; background: var(--surface); color: var(--ink); border: 1px solid var(--rule-strong); font-size: 13px; font-weight: 700; line-height: 1.3; }
+.hs-chip.done { background: var(--neem); border-color: var(--neem); color: #fff; }
+.fp .hs-chip span[lang='en'] { display: inline; font-size: 12px; font-weight: 500; color: inherit; }
+.hs-credit { position: absolute; right: 0; bottom: 0; padding: 2px 7px; background: rgba(20, 18, 15, .62); color: #fff; font-size: 11px; text-decoration: none; }
+.hs-credit:hover, .hs-credit:focus-visible { text-decoration: underline; }
+.hs-note { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-3); }
+.fp .hs-note span[lang='en'] { display: inline; font-size: 12.5px; color: var(--ink-3); }
+.hs-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.hs-step { display: grid; gap: 4px; align-content: start; text-align: center; }
+.hs-step button { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3; padding: 0; overflow: hidden; background: var(--sand-2); border: 2px solid var(--rule); cursor: pointer; }
+.hs-step button img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hs-step button .house-svg { width: 90%; height: auto; }
+.hs-step.next button img { filter: grayscale(1); opacity: .5; }
+.hs-step.done button { border-color: var(--neem); }
+.hs-step.on button { border-color: var(--turmeric); box-shadow: 0 0 0 2px var(--turmeric); }
+.hs-step button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.hs-n { position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--rule-strong); color: var(--ink-2); font-size: 11px; font-weight: 800; }
+.hs-step.done .hs-n { background: var(--neem); border-color: var(--neem); color: #fff; }
+.hs-l { font-size: 12px; font-weight: 650; line-height: 1.25; color: var(--ink-2); }
+.hs-step.next .hs-l { font-weight: 500; color: var(--ink-3); }
+.fp .hs-l span[lang='kn'] { display: block; font-size: 13px; }
+.fp .hs-l span[lang='en'] { font-size: 11px; color: var(--ink-3); }
+.hs-credits { font-size: 12px; color: var(--ink-3); }
+.hs-credits summary { cursor: pointer; width: fit-content; }
+.hs-credits ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 4px; line-height: 1.45; }
+.fp-hero .hs { margin: 4px 0; }
+@media (max-width: 720px) {
+  .build-hero .hs { width: 100%; }
+}

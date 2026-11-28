@@ -4,7 +4,7 @@
    and keeps the last copy on the phone for when the network drops. Only verified work is shown. */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, CheckCircle2, Copy, MapPin, Navigation, Share2, Sun, Volume2, WifiOff, X } from 'lucide-react'
-import House from '../components/House'
+import HouseStages from '../components/HouseStages'
 import { directionsUrl } from '../components/PlotPanel'
 import { ApiError, type ProgressStep, type PublicProgress } from '../lib/api'
 import { digipin, digipinDisplay } from '../lib/digipin'
@@ -50,12 +50,10 @@ function ago(iso: string | null | undefined, now: number): [string, string] {
 }
 const day = (iso: string | null | undefined, lang: 'kn' | 'en') => parseTime(iso)?.toLocaleDateString(lang === 'kn' ? 'kn-IN' : 'en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) ?? ''
 
-/** Same drawing levels as the Construction page: a stage counts once it is verified. */
-function houseLevel(stages: PublicProgress['stages']) {
+/** As on the Construction page: a stage counts once it is verified. */
+function houseProgress(stages: PublicProgress['stages']) {
   const done = stages.filter(s => s.step === 'done').length
-  if (!stages.length) return { done, level: 0, pct: 0 }
-  const level = done === 0 ? (stages.some(s => s.status === 'in_progress') ? 1 : 0) : Math.min(5, 1 + Math.round((done / stages.length) * 4))
-  return { done, level, pct: Math.round((done / stages.length) * 100) }
+  return { done, pct: stages.length ? Math.round((done / stages.length) * 100) : 0 }
 }
 
 function usePhoto(client: ProgressClient, token: string, id: number | null) {
@@ -167,7 +165,7 @@ export default function FamilyProgress({ token, client, onClose, preview = false
   if (gone) return shell(<div className="fp-card fp-gone" role="alert"><p className="fp-big">{GONE[gone][0]}</p><p lang="en">{GONE[gone][1]}</p></div>)
   if (!data) return shell(<div className="fp-card">{offline ? <><p className="fp-big"><WifiOff size={20} aria-hidden /> ನೆಟ್‌ವರ್ಕ್ ಇಲ್ಲ.</p><p lang="en">No network. This page will load when the phone is back online.</p></> : <p>ಲೋಡ್ ಆಗುತ್ತಿದೆ… <span lang="en">Loading…</span></p>}</div>)
 
-  const { done, level, pct } = houseLevel(data.stages)
+  const { done, pct } = houseProgress(data.stages)
   const current = data.stages.find(s => s.step !== 'done') ?? null
   const finished = data.stages.length > 0 && !current
   const kn = (code: string, name: string) => STAGE_KN[code] ?? name
@@ -199,7 +197,7 @@ export default function FamilyProgress({ token, client, onClose, preview = false
     <section className="fp-hero">
       <p className="fp-hello">ನಮಸ್ಕಾರ {data.first_name}</p>
       <h1 className="fp-title">ನಿಮ್ಮ ಮನೆ <span lang="en">Your house in {data.village}</span></h1>
-      <House level={level} size={260} label={`House drawing, ${pct}% built`} />
+      <HouseStages done={done} total={data.stages.length} family />
       <p className="fp-pct"><b>{pct}%</b> ಮುಗಿದಿದೆ <span lang="en">built</span></p>
       <p className="fp-sub">{data.stages.length ? <>{data.stages.length} ಹಂತಗಳಲ್ಲಿ {done} ಮುಗಿದಿವೆ <span lang="en">{done} of {data.stages.length} stages done</span></> : <>ನಿರ್ಮಾಣದ ಹಂತಗಳನ್ನು ಇನ್ನೂ ಯೋಜಿಸಿಲ್ಲ. <span lang="en">The building stages are not planned yet. They will appear here once they are.</span></>}</p>
       {data.updated_at && <p className="fp-small">ಕೊನೆಯ ಬದಲಾವಣೆ {changed[0]} <span lang="en">Last change {changed[1]}</span></p>}

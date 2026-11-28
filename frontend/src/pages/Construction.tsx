@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
 import { AlertTriangle, Camera, CheckCircle2, Clock3, Copy, Hammer, ImagePlus, MapPin, RotateCcw, ShieldCheck } from 'lucide-react'
-import House from '../components/House'
+import HouseStages from '../components/HouseStages'
 import PlotPanel from '../components/PlotPanel'
 import ProgressShare from '../components/ProgressShare'
 import SiteVisits from '../components/SiteVisits'
@@ -152,7 +152,7 @@ function ReviewPhoto({ e, stage, onClose, onDone }: { e: Evidence; stage: Stage;
           </dl>
           {flags.length > 0 && e.verification_status === 'pending_review' && <p className="ev-alert"><AlertTriangle size={16} aria-hidden />{flags.length === 1 ? 'One check needs a look' : `${flags.length} checks need a look`} before you accept.</p>}
           <p className="ev-ask">Does this photo show <b>{stage.stage_name.toLowerCase()}</b> finished, on this family's plot?</p>
-          <p className="fine">You decide, not the software. Accepting it lets you mark the stage verified, which moves the house drawing and the money ladder on.</p>
+          <p className="fine">You decide, not the software. Accepting it lets you mark the stage verified, which moves the house photos and the money ladder on.</p>
           {err && <Notice tone="error">{err}</Notice>}
           {canEdit && (asking ? (
             <div className="ev-retake">
@@ -219,18 +219,17 @@ function CaseBuild({ c }: { c: CaseItem }) {
   }
 
   const doneCount = stages.filter(s => ['verified', 'completed'].includes(s.status)).length
-  const level = doneCount === 0 ? (stages.some(s => s.status === 'in_progress') ? 1 : 0) : Math.min(5, 1 + Math.round((doneCount / stages.length) * 4))
   const pct = Math.round((doneCount / stages.length) * 100)
 
   return (
     <div className="build">
       <section className="build-hero panel">
-        <House level={level} size={300} label={`House drawing at ${pct}% complete`} />
+        <HouseStages done={doneCount} total={stages.length} />
         <div>
           <p className="build-pct">{pct}<span>%</span></p>
           <p className="muted">{doneCount} of {stages.length} stages verified or complete</p>
           <p className="fine">A stage counts once a reviewer has accepted a site photo and marked it verified. The software never judges a photo; a person does.</p>
-          <ol className="ev-flow" aria-label="How a stage is verified"><li><Camera size={15} aria-hidden />Field officer adds a site photo</li><li><ShieldCheck size={15} aria-hidden />Reviewer accepts it or asks for a retake</li><li><CheckCircle2 size={15} aria-hidden />Stage marked verified; the house fills in</li></ol>
+          <ol className="ev-flow" aria-label="How a stage is verified"><li><Camera size={15} aria-hidden />Field officer adds a site photo</li><li><ShieldCheck size={15} aria-hidden />Reviewer accepts it or asks for a retake</li><li><CheckCircle2 size={15} aria-hidden />Stage marked verified; the photo moves to the next stage</li></ol>
         </div>
       </section>
       <ol className="stage-track">

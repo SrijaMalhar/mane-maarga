@@ -115,7 +115,7 @@ Each working page opens on the one sentence a field officer needs, with the figu
 ### The family watches their house go up
 
 <div align="center">
-<img src="docs/assets/screenshots/family-progress.png" width="640" alt="Three phone screens of the family's progress page in Kannada with English below: a green banner saying the roof is new since the family last looked and the house drawing at 75 percent; what is happening now and the stage timeline with done dates and accepted photos; then and now, a slider between the plinth photo and the roof photo, and buttons to send the page to family on WhatsApp" />
+<img src="docs/assets/screenshots/family-progress.png" width="640" alt="Three phone screens of the family's progress page in Kannada with English below: a green banner saying the roof is new since the family last looked, an example photo of a small brick village house under a new sheet roof marked Roof done, the four stage photos with three done, and 75 percent built; what is happening now and the stage timeline with done dates and accepted photos; then and now, a slider between the plinth photo and the roof photo, and buttons to send the page to family on WhatsApp" />
 <br /><sub>The officer verifies the roof; the next time Lakshmamma opens her page it says so. The link comes from a QR code on the officer's phone, an SMS or WhatsApp. It shows verified work only, never money, documents or her phone number, and the case worker can switch it off.</sub>
 </div>
 

@@ -15,8 +15,9 @@ import hmac
 import io
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from PIL import Image, ImageOps
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -26,7 +27,7 @@ from ..channels.otp import masked_phone
 from ..core import config
 from ..core.audit import write_audit
 from ..core.config import JWT_SECRET
-from ..core.security import Authenticated, Operator, _b64
+from ..core.security import Authenticated, Operator, _b64, decode_token
 from ..database import get_db
 from ..models import AuditLog, Case, ConstructionEvidence, ConstructionStage, ProgressLink
 
@@ -198,14 +199,30 @@ def _step(stage: ConstructionStage, photos: list[ConstructionEvidence]) -> str:
     return "photo_needed" if stage.status == "in_progress" else "not_started"
 
 
+def _staff(authorization: str | None) -> bool:
+    if not authorization or not authorization.lower().startswith("bearer "):
+        return False
+    try:
+        decode_token(authorization[7:].strip())
+    except HTTPException:
+        return False
+    return True
+
+
 @router.get("/api/public/progress/{token}")
-def family_progress(token: str, db: Session = Depends(get_db)):
+def family_progress(
+    token: str,
+    preview: bool = False,
+    authorization: Annotated[str | None, Header()] = None,
+    db: Session = Depends(get_db),
+):
     link, case = _link_by_token(db, token)
     now = datetime.now(UTC)
-    last = _utc(link.last_viewed_at)
-    if last is None or now - last > VISIT_GAP:
-        link.views += 1
-    link.last_viewed_at = now
+    if not (preview and _staff(authorization)):  # a case worker checking the page is not the family visiting
+        last = _utc(link.last_viewed_at)
+        if last is None or now - last > VISIT_GAP:
+            link.views += 1
+        link.last_viewed_at = now
 
     stages = (
         db.query(ConstructionStage)

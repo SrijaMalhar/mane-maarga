@@ -481,7 +481,7 @@ function progressStep(st: Row, own: Row[]) {
   return st.status === 'in_progress' ? 'photo_needed' : 'not_started'
 }
 const linkOut = (l: Row) => ({ id: l.id, case_id: l.case_id, token: l.token, path: `/#/progress/${l.token}`, show_map: l.show_map, created_by: l.created_by, created_at: l.created_at, views: l.views, last_viewed_at: l.last_viewed_at })
-function progressRoutes(s: Store): Array<[string, RegExp, (m: RegExpMatchArray, b: Row) => unknown]> {
+function progressRoutes(s: Store): Array<[string, RegExp, (m: RegExpMatchArray, b: Row, q?: URLSearchParams) => unknown]> {
   const links = () => (s.links ??= [])
   const active = (cid: number) => last(links().filter(l => l.case_id === cid && !l.revoked_at))
   const caseOr404 = (id: string) => { const c = s.cases.find(x => x.id === Number(id)); if (!c) throw new ApiError('Case not found', 404); return c }
@@ -512,10 +512,12 @@ function progressRoutes(s: Store): Array<[string, RegExp, (m: RegExpMatchArray, 
       ;(msg as Row).approval_id = null
       audit(s, 'progress_link_sent', c.id, `link_id=${l.id}; channel=sms; to=${masked(c)}`); return { sent_to: masked(c), channel: 'sms', simulated: true, outbox_id: msg.id }
     }],
-    ['GET', /^\/api\/public\/progress\/([\w-]+)$/, m => {
+    ['GET', /^\/api\/public\/progress\/([\w-]+)$/, (m, _b, q) => {
       const { l, c } = byToken(m[1]); const t = Date.now()
-      if (!l.last_viewed_at || t - Date.parse(l.last_viewed_at) > VISIT_GAP_MS) l.views += 1
-      l.last_viewed_at = now()
+      if (q?.get('preview') !== '1') { // the demo visitor is staff, so a preview is never a family visit
+        if (!l.last_viewed_at || t - Date.parse(l.last_viewed_at) > VISIT_GAP_MS) l.views += 1
+        l.last_viewed_at = now()
+      }
       const changes: number[] = []
       const stages = s.stages.filter(x => x.case_id === c.id).map(st => {
         const own = s.evidence.filter(e => e.stage_id === st.id)

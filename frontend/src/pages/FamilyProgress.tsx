@@ -94,7 +94,7 @@ function ThenNow({ client, token, before, after }: { client: ProgressClient; tok
   )
 }
 
-export default function FamilyProgress({ token, client, onClose }: { token: string; client: ProgressClient; onClose?: () => void }) {
+export default function FamilyProgress({ token, client, onClose, preview = false }: { token: string; client: ProgressClient; onClose?: () => void; /** A case worker looking: not counted as a family visit. */ preview?: boolean }) {
   const key = token.slice(0, 12)
   const [data, setData] = useState<PublicProgress | null>(() => store.get<PublicProgress>(`mm_progress_cache:${key}`))
   const [gone, setGone] = useState<number | null>(null)
@@ -110,7 +110,7 @@ export default function FamilyProgress({ token, client, onClose }: { token: stri
 
   const load = useCallback(async () => {
     try {
-      const d = await client.get<PublicProgress>(`/api/public/progress/${token}`)
+      const d = await client.get<PublicProgress>(`/api/public/progress/${token}${preview ? '?preview=1' : ''}`)
       setData(d); setGone(null); setOffline(false); setChecked(Date.now())
       store.set(`mm_progress_cache:${key}`, d)
       // What changed since this phone last looked: new finished stages, new accepted photos.
@@ -129,7 +129,7 @@ export default function FamilyProgress({ token, client, onClose }: { token: stri
       if (GONE[status]) { setGone(status); setData(null); store.drop(`mm_progress_cache:${key}`) } // a switched-off page must not live on in the cache
       else setOffline(true)
     }
-  }, [client, token, key])
+  }, [client, token, key, preview])
 
   useEffect(() => {
     void load()

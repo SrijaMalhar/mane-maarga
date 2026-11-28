@@ -180,3 +180,12 @@ def test_the_link_goes_out_as_a_simulated_sms(client, monkeypatch):
     sms = client.get(f"/api/outbox?case_id={cid}").json()[0]
     assert sms["channel"] == "sms" and f"https://mane-maarga.example.in/#/progress/{token}" in sms["body"]
     assert "ಮನೆ ಮಾರ್ಗ" in sms["body"]
+
+
+def test_a_staff_preview_is_not_a_family_visit(client):
+    cid, _ = make_case(client)
+    token = client.post(f"/api/cases/{cid}/progress-link", json={}).json()["token"]
+    assert client.get(f"/api/public/progress/{token}?preview=1").status_code == 200  # signed-in staff
+    assert client.get(f"/api/cases/{cid}/progress-link").json()["views"] == 0
+    assert public(client, token, "?preview=1").status_code == 200  # no staff session: still a visit
+    assert client.get(f"/api/cases/{cid}/progress-link").json()["views"] == 1

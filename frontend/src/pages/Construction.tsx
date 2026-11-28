@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
 import { AlertTriangle, Camera, CheckCircle2, Clock3, Copy, Hammer, ImagePlus, MapPin, RotateCcw, ShieldCheck } from 'lucide-react'
 import House from '../components/House'
 import PlotPanel from '../components/PlotPanel'
+import ProgressShare from '../components/ProgressShare'
 import { CasePicker, Dialog, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
 import { type CaseItem, type Evidence, type Stage, type StageStatus } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
@@ -256,6 +257,7 @@ function CaseBuild({ c }: { c: CaseItem }) {
         })}
       </ol>
       <PlotPanel c={c} stages={stages} evidence={evidence} onOpenPhoto={setOpen} onPinSaved={() => void load()} />
+      <ProgressShare c={c} />
       {open !== null && (() => { const e = evidence.find(x => x.id === open); const st = e && stages.find(x => x.id === e.stage_id); return e && st ? <ReviewPhoto e={e} stage={st} onClose={() => setOpen(null)} onDone={msg => { setOpen(null); toast(msg); void load() }} /> : null })()}
     </div>
   )

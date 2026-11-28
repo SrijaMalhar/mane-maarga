@@ -1240,12 +1240,12 @@ label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1)
 /* ---------- Family progress page: their house, stage by stage (phone first, Kannada first) ---------- */
 .fp { min-height: 100vh; background: var(--lime); color: var(--charcoal); padding: var(--s3) var(--s3) var(--s7); }
 .phone-frame .fp { min-height: 100%; }
-.fp-wrap { width: 100%; max-width: 520px; margin: 0 auto; display: grid; gap: var(--s4); }
+.fp-wrap { width: 100%; max-width: 520px; margin: 0 auto; display: grid; gap: var(--s4); container-type: inline-size; }
 .fp-wrap > *, .fp-card > * { min-width: 0; }
 .fp span[lang='en'], .fp p[lang='en'] { display: block; font-family: var(--font-ui); font-size: var(--t2); font-weight: 450; color: var(--ink-2); line-height: 1.5; }
 .fp p[lang='en'] { margin: 0; }
 .fp-top { display: flex; justify-content: space-between; align-items: center; gap: var(--s3); padding-bottom: var(--s2); border-bottom: 1px solid var(--rule); }
-.fp-brand { margin: 0; font-family: var(--font-kn-display); font-size: 20px; color: var(--laterite); display: flex; align-items: baseline; gap: 8px; }
+.fp-brand { margin: 0; font-family: var(--font-kn-display); font-size: 20px; color: var(--laterite); display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
 .fp .fp-brand span[lang='en'] { display: inline; font-size: 13px; color: var(--ink-3); }
 .fp-top-r { display: flex; gap: 6px; }
 .fp-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 12px; border: 1px solid var(--rule-strong); background: var(--surface); color: var(--charcoal); font: inherit; font-size: 14px; cursor: pointer; }
@@ -1323,4 +1323,34 @@ label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1)
 .fp-light { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; align-content: center; gap: 12px; padding: var(--s4); background: rgba(20, 19, 17, .92); }
 .fp-light img { max-width: 100%; max-height: 75vh; object-fit: contain; }
 .fp-light-cap { margin: 0; color: #FAF7F0; }
+@container (max-width: 400px) { .fp .fp-brand span[lang='en'] { display: none; } .fp-chip { padding: 0 10px; } }
 @media (prefers-reduced-motion: reduce) { .fp-dot, .fp-new { animation: none; } }
+
+/* ---------- Family progress page, staff side (construction) ---------- */
+.share { margin-top: var(--s5); display: grid; gap: var(--s4); }
+.share-head { display: flex; justify-content: space-between; align-items: start; gap: var(--s4); }
+.share-head h2 { margin: 2px 0 6px; font-family: var(--font-display); font-size: 24px; font-weight: 480; display: flex; align-items: center; gap: 8px; }
+.share-head h2 svg { color: var(--laterite); }
+.share-head .muted { margin: 0; max-width: 70ch; }
+.share-make { display: grid; gap: var(--s3); justify-items: start; }
+.share-check { display: flex; gap: 10px; align-items: start; max-width: 64ch; cursor: pointer; }
+.share-check input { margin-top: 5px; width: 18px; height: 18px; accent-color: var(--neem); }
+.share-check span { display: grid; gap: 2px; } .share-check small { color: var(--ink-3); font-size: 13.5px; line-height: 1.5; }
+.share-live { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s5); align-items: start; }
+.share-qr { margin: 0; display: grid; gap: 8px; justify-items: center; width: 200px; padding: 8px; background: #FFFFFF; border: 1px solid var(--rule-strong); }
+.share-qr figcaption { font-size: 13px; color: var(--ink-2); text-align: center; line-height: 1.45; }
+.share-body { display: grid; gap: var(--s3); min-width: 0; }
+.share-url { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--well); border: 1px solid var(--rule); min-width: 0; }
+.share-url .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+.share-stats { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); }
+.share-stats > div { display: grid; gap: 2px; border-top: 2px solid var(--charcoal); padding-top: 6px; }
+.share-stats dt { font-size: 12.5px; color: var(--ink-3); }
+.share-stats dd { margin: 0; font-size: 16px; font-weight: 600; display: grid; }
+.share-stats small { font-size: 12.5px; font-weight: 450; color: var(--ink-3); }
+.share-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.share-actions .tag { font-size: 11px; padding: 1px 6px; }
+.share-manage { display: flex; gap: 18px; flex-wrap: wrap; }
+.share-confirm { display: grid; gap: 8px; padding: var(--s3) var(--s4); background: var(--redpen-tint); border-left: 4px solid var(--redpen); }
+.share-confirm p { margin: 0; font-size: 14.5px; }
+.qr { display: block; }
+@media (max-width: 720px) { .share-live { grid-template-columns: 1fr; } .share-qr { justify-self: center; } .share-stats { grid-template-columns: 1fr 1fr; } }

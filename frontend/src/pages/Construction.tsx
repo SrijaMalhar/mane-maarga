@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
 import { AlertTriangle, Camera, CheckCircle2, Clock3, Copy, Hammer, ImagePlus, MapPin, RotateCcw, ShieldCheck } from 'lucide-react'
 import House from '../components/House'
+import PlotPanel from '../components/PlotPanel'
 import { CasePicker, Dialog, Empty, Notice, PageHead, Skeleton, Tag } from '../components/ui'
 import { type CaseItem, type Evidence, type Stage, type StageStatus } from '../lib/api'
 import { href, useApp } from '../lib/app-context'
@@ -190,10 +191,13 @@ function CaseBuild({ c }: { c: CaseItem }) {
 
   if (stages.length === 0) {
     return (
-      <div className="panel">
-        <Empty title={t('case.noStages')} sub={Number(c.estimated_cost) > 0 ? `Create the four standard stages, costed from the ${inr(c.estimated_cost)} estimate. The split is illustrative — adjust to the sanction order.` : 'Add a construction cost estimate to the case first, so each stage can be costed.'}
-          action={canEdit && Number(c.estimated_cost) > 0 ? <button className="btn primary" onClick={createPlan} disabled={busy}><Hammer size={16} />{busy ? 'Creating…' : 'Create stage plan'}</button> : undefined} />
-      </div>
+      <>
+        <div className="panel">
+          <Empty title={t('case.noStages')} sub={Number(c.estimated_cost) > 0 ? `Create the four standard stages, costed from the ${inr(c.estimated_cost)} estimate. The split is illustrative — adjust to the sanction order.` : 'Add a construction cost estimate to the case first, so each stage can be costed.'}
+            action={canEdit && Number(c.estimated_cost) > 0 ? <button className="btn primary" onClick={createPlan} disabled={busy}><Hammer size={16} />{busy ? 'Creating…' : 'Create stage plan'}</button> : undefined} />
+        </div>
+        <PlotPanel c={c} stages={stages} evidence={evidence} onPinSaved={() => void load()} />
+      </>
     )
   }
 
@@ -251,6 +255,7 @@ function CaseBuild({ c }: { c: CaseItem }) {
           )
         })}
       </ol>
+      <PlotPanel c={c} stages={stages} evidence={evidence} onOpenPhoto={setOpen} onPinSaved={() => void load()} />
       {open !== null && (() => { const e = evidence.find(x => x.id === open); const st = e && stages.find(x => x.id === e.stage_id); return e && st ? <ReviewPhoto e={e} stage={st} onClose={() => setOpen(null)} onDone={msg => { setOpen(null); toast(msg); void load() }} /> : null })()}
     </div>
   )

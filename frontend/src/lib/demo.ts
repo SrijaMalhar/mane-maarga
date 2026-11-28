@@ -121,7 +121,7 @@ async function photoChecks(s: Store, e: Row) {
   const others = s.evidence.filter(o => o.id !== e.id).map(o => { const oc = s.cases.find(x => x.id === o.case_id); return { evidence_id: o.id, case_id: o.case_id, who: String(oc?.beneficiary_name ?? '').split(' (')[0], village: oc?.village ?? '', stage_name: stageName(o.stage_id), same_case: o.case_id === e.case_id, fingerprint: o.fingerprint } })
   return evaluate({ taken_at: e.taken_at, gps: e.gps, fingerprint: e.fingerprint, uploaded_at: e.uploaded_at }, c?.plot_lat != null ? [Number(c.plot_lat), Number(c.plot_lon)] : null, others)
 }
-const evidenceOut = async (s: Store, e: Row) => { const { meta: _m, fingerprint: _f, taken_override: _t, ...rest } = e; void _m; void _f; void _t; return { ...rest, checks: await photoChecks(s, e) } }
+const evidenceOut = async (s: Store, e: Row) => { const checks = await photoChecks(s, e); const { meta: _m, fingerprint: _f, taken_override: _t, ...rest } = e; void _m; void _f; void _t; return { ...rest, checks } }
 const blobs = new Map<number, Blob>()
 
 function audit(s: Store, action: string, case_id: number | null, detail = '', actor = 'demo_visitor') { s.audit.unshift({ id: s.seq++, case_id, actor, action, detail, created_at: now() }) }

@@ -1175,3 +1175,64 @@ label.check { display: flex; gap: 8px; align-items: center; font-size: var(--t1)
   .tb-actions { grid-column: 1 / -1; justify-content: flex-end; }
 }
 @media (prefers-reduced-motion: reduce) { .tour-card, .tour-target { animation: none; } }
+
+/* ---------- Plot map: where the house is being built ---------- */
+.plot { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr); gap: var(--s5); margin-top: var(--s5); align-items: stretch; }
+.plot-map { display: flex; flex-direction: column; gap: var(--s3); min-width: 0; }
+.plot-map > .pm { flex: 1 1 auto; min-height: 380px; }
+.pm { position: relative; isolation: isolate; border: 1px solid var(--rule-strong); background: var(--well); overflow: hidden; min-height: 240px; }
+.pm-map { position: absolute; inset: 0; font-family: var(--font-ui); background: #D8CFBD; }
+.pm-map.picking, .pm-map.picking .leaflet-grab, .pm-map.picking .leaflet-interactive { cursor: crosshair; }
+.pm .skeleton { padding: var(--s4); }
+.pm-tools { position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: calc(100% - 64px); }
+.pm-switch { display: inline-flex; background: var(--surface); border: 1px solid var(--rule-strong); box-shadow: var(--shadow-1); }
+.pm-switch button, .pm-tool { font: inherit; font-size: 13px; font-weight: 620; padding: 0 11px; border: 0; background: transparent; color: var(--ink-2); cursor: pointer; min-height: 32px; }
+.pm-switch button[aria-pressed='true'] { background: var(--charcoal); color: var(--surface); }
+.pm-tool { display: inline-flex; gap: 6px; align-items: center; background: var(--surface); border: 1px solid var(--rule-strong); box-shadow: var(--shadow-1); }
+.pm-tool:hover, .pm-switch button:hover:not([aria-pressed='true']) { background: var(--well); color: var(--ink); }
+.pm-offline { position: absolute; left: 10px; right: 10px; bottom: 26px; z-index: 1000; margin: 0; background: var(--surface); border-left: 3px solid var(--turmeric); padding: 8px 10px; font-size: 13.5px; box-shadow: var(--shadow-1); }
+.pm .leaflet-bar { border: 1px solid var(--rule-strong); border-radius: 0; box-shadow: var(--shadow-1); }
+.pm .leaflet-bar a { color: var(--charcoal); border-radius: 0 !important; }
+.pm .leaflet-control-attribution { font-size: 10.5px; background: rgba(250, 247, 240, .85); }
+.pm .leaflet-tooltip { font-family: var(--font-ui); font-size: 13px; border-radius: var(--r-data); border-color: var(--rule-strong); color: var(--charcoal); box-shadow: var(--shadow-1); }
+.pm .leaflet-container :focus-visible, .pm .leaflet-marker-icon:focus-visible { outline: 3px solid var(--turmeric); outline-offset: 2px; }
+/* Markers: a square pin for the plot (data), circles for the stage photos (milestones). */
+.pm-plot { position: relative; display: grid; place-items: center; width: 36px; height: 36px; background: var(--laterite); color: #FAF7F0; border: 2px solid #FAF7F0; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
+.pm-plot::after { content: ''; position: absolute; left: 50%; top: 100%; width: 2px; height: 8px; margin: 2px 0 0 -1px; background: #FAF7F0; box-shadow: 0 0 0 1px rgba(0, 0, 0, .25); }
+.pm-plot.moving { background: var(--turmeric); color: var(--charcoal); outline: 2px dashed #FAF7F0; outline-offset: 3px; }
+.pm-plot.moving svg path:last-child { fill: var(--turmeric); }
+.pm-photo { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font: 700 12px/1 var(--font-mono); color: #fff; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .4); cursor: pointer; }
+.pm-at_plot { background: var(--neem); } .pm-near { background: var(--turmeric); color: var(--charcoal); } .pm-far { background: var(--redpen); } .pm-no_plot { background: var(--ink-2); }
+.pm-low .pm-ring-l { display: none; }
+.pm-ring-l { display: inline-block; font: 600 11px/1.4 var(--font-mono); padding: 1px 6px; background: rgba(34, 33, 30, .72); color: #FAF7F0; white-space: nowrap; }
+.pm path.pm-ring { fill: none; stroke-width: 1.6; stroke: #FAF7F0; }
+.pm path.pm-ring.near { stroke-dasharray: 6 5; }
+.pm path.pm-ring.far { stroke-dasharray: 2 6; stroke-opacity: .8; }
+.pm.on-street path.pm-ring { stroke: var(--charcoal); }
+.pm path.pm-cell { fill: var(--turmeric); fill-opacity: .4; stroke: var(--turmeric); stroke-width: 1.5; }
+.pm path.pm-acc { fill: var(--stamp); fill-opacity: .14; stroke: var(--stamp); stroke-width: 1; }
+.pm path.pm-far-line { fill: none; stroke: var(--redpen); stroke-width: 2; stroke-dasharray: 7 6; }
+.plot-move { display: grid; gap: 8px; padding: var(--s3) var(--s4); background: var(--turmeric-tint); border: 1px solid var(--turmeric); }
+.plot-move p { margin: 0; font-size: 14.5px; }
+.plot-move .fine { margin: 0; color: var(--ink-2); }
+.plot-move-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.plot-info { display: grid; gap: var(--s4); align-content: start; min-width: 0; }
+.plot-info h2 { font-family: var(--font-display); font-size: 24px; font-weight: 480; line-height: 1.25; margin: -8px 0 0; }
+.plot-code { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: var(--s3) var(--s4); background: var(--surface); border: 1px solid var(--rule-strong); border-left: 4px solid var(--stamp); }
+.plot-code-l { grid-column: 1 / -1; font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--stamp); }
+.plot-code-v { font-size: 26px; font-weight: 500; letter-spacing: .08em; color: var(--charcoal); white-space: nowrap; }
+.plot-code .fine { grid-column: 1 / -1; margin: 4px 0 0; }
+.plot-facts { margin: 0; display: grid; gap: 10px; }
+.plot-facts > div { display: grid; gap: 2px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+.plot-facts dt { font-size: 12.5px; color: var(--ink-3); }
+.plot-facts dd { margin: 0; font-size: 15px; display: grid; gap: 2px; }
+.plot-facts small { color: var(--ink-3); font-size: 12.5px; line-height: 1.45; }
+.plot-facts .plot-pin { display: flex; align-items: center; gap: 6px; }
+.plot-counts { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.pc { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
+.pc::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--ink-3); }
+.pc.at::before { background: var(--neem); } .pc.near::before { background: var(--turmeric); } .pc.far::before { background: var(--redpen); }
+.pc.far { color: var(--redpen); }
+.plot-links { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.icon-btn.small { width: 30px; height: 30px; }
+@media (max-width: 960px) { .plot { grid-template-columns: 1fr; } }
